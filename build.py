@@ -138,7 +138,8 @@ def render_tool(name, source, core_css, core_js, manifest_tools):
     # the manifest link is dead weight from file:// (browsers only fetch a webmanifest
     # during http(s) installability checks) but makes every tool page install-capable
     html = VIEWPORT_RE.sub(lambda m: m.group(0) + "\n" + csp +
-                           '\n<link rel="manifest" href="manifest.webmanifest">', html, count=1)
+                           '\n<link rel="manifest" href="manifest.webmanifest">' +
+                           '\n<link rel="icon" href="icons/icon-192.png" sizes="192x192">', html, count=1)
     return html
 
 def render_all(manifest):
