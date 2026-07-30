@@ -62,4 +62,9 @@ hosts (unworkable under generated CSP) · aviationweather.gov API still no ACAO.
 - Security: `nps-secret-scan.txt` — protected key mode 0600 and zero exact
   occurrences in the repository.
 
-No commit, push, remote change, or secret disclosure was performed.
+- Hosted release: `hosted-verify.txt` — Pages workflow verification/deployment succeeded;
+  the hub, Flight, Parks, Arcade, service worker, and webmanifest returned HTTP 200 and matched
+  the local generated release byte-for-byte; fresh hosted mobile checks had no console errors or overflow.
+
+Implementation agents performed no commit, push, remote change, or secret disclosure. Hermes independently
+verified, committed, published, and read back the final release.

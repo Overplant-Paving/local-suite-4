@@ -1,0 +1,26 @@
+# Local Suite v4.0.0 hosted-release verification
+
+Verified: 2026-07-30
+Repository: https://github.com/Overplant-Paving/local-suite-4
+Hosted suite: https://overplant-paving.github.io/local-suite-4/
+Release-candidate commit: 19db0715e529283be5187abc72676e76445bf82b
+Successful GitHub Pages run: https://github.com/Overplant-Paving/local-suite-4/actions/runs/30573609704
+
+## Deployment
+
+- GitHub Actions `verify`: success, including build gates, locations, favorites/recents, Flight, Parks, Arcade, 101-page smoke, and v3/v4 PWA cache coexistence.
+- GitHub Actions `deploy`: success.
+- GitHub Pages HTTPS: enabled.
+
+## Hosted checks
+
+All returned HTTP 200 and byte-for-byte matched the local generated release:
+
+- `index.html` — `aa7f988200aafed5f3d88e1b25f7afa18e706cc800d0bfb6e9e3db66330dc13f`
+- `flight.html` — `e09d0eef6304eface3517e3f8edb9f257003811dab8488a4ee942deb20e262db`
+- `parks.html` — `c722d84bf8b03d6426aa90b8fa5745e747c5f937adbee9e6a33129ec5ee82160`
+- `arcade.html` — `5b6db6caa545f280cbcb6761f4dfa80e493ea162b9ee5a447ba5ec9933523fb0`
+- `sw.js` — `5f0d8c0a5afc9219df3c7211f9223e0c0907bfbfa49d46b291afbc16c87b695f`
+- `manifest.webmanifest` — `b8026cd897c7ef01eb80d9c43f8bbdc066b9320d9ebbb116345ca87dda492b10`
+
+A fresh Playwright Chromium session loaded the hosted hub, Flight Tracker, National Parks Explorer, and The Arcade with HTTP 200, no console/page errors, no horizontal overflow at 390×844, registered service-worker support, and all five Arcade images/cards present. Hosted mobile screenshots were visually inspected; no clipping, blank content, broken images, or obvious layout defects were found.
