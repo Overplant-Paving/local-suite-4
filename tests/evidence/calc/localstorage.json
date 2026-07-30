@@ -1,0 +1,9 @@
+{
+  "note": "new-in-v2 tool — no v1 original; parity N/A",
+  "v2": {
+    "suite.calc.mode": "tape",
+    "suite.hub.recents": "[{\"id\":\"calc\",\"t\":1785435563949}]",
+    "suite.theme": "dark",
+    "suite.calc.tape": "[\"6*7\",\"ans/2 + 1\"]"
+  }
+}

@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Metronome &amp; Practice Tones · Local Suite</title>
+<link rel="stylesheet" href="../core/suite.css" data-suite-inline>
+<style>
+  body { padding: 1.4rem 1.25rem 4rem; }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  .topbar { display: flex; align-items: center; gap: 1rem; }
+  .topbar .theme-btn, .topbar .fav-btn { float: none; }
+  .topbar .theme-btn { margin-left: auto; }
+  header { margin: 1rem 0 1.2rem; }
+  h1 { font-size: 1.8rem; letter-spacing: -.02em; }
+  .tag { color: var(--muted); margin-top: .35rem; max-width: 48rem; }
+
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 1.1rem 1.2rem 1.2rem; box-shadow: var(--shadow); margin-bottom: 1.3rem;
+  }
+  .card h2 { font-size: 1.05rem; margin-bottom: .25rem; }
+  .sub { color: var(--muted); font-size: .88rem; margin-bottom: .9rem; }
+  .row { display: flex; align-items: center; gap: .9rem; flex-wrap: wrap; margin-top: .9rem; }
+  .row:first-child { margin-top: 0; }
+  .mlabel { font-size: .78rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+
+  .play {
+    border: none; border-radius: 50%; width: 3.6rem; height: 3.6rem; cursor: pointer;
+    background: var(--accent); color: var(--bg); font-size: 1.35rem; flex: none;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .play:hover { filter: brightness(1.07); }
+  .bpmbox { flex: 1; min-width: 12rem; }
+  .bpmbox input[type=range] { width: 100%; }
+  .bpmnum { display: flex; align-items: center; gap: .45rem; }
+  .bpmnum input {
+    width: 5rem; font-size: 1.25rem; font-variant-numeric: tabular-nums; text-align: center;
+    background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 8px;
+    padding: .3rem .35rem;
+  }
+  .btn {
+    border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+    border-radius: 8px; padding: .5rem .85rem; font-size: .9rem; cursor: pointer;
+  }
+  .btn:hover { border-color: var(--accent); }
+  .substatus { color: var(--muted); font-size: .85rem; margin-top: .45rem; min-height: 1.1em; }
+
+  .seg { display: flex; gap: .35rem; flex-wrap: wrap; }
+  .seg button {
+    border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+    border-radius: 8px; padding: .45rem .8rem; font-size: .9rem; cursor: pointer;
+    font-variant-numeric: tabular-nums;
+  }
+  .seg button:hover { border-color: var(--accent); }
+  .seg button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+
+  .dots { display: flex; gap: .8rem; align-items: center; margin-top: 1.1rem; min-height: 26px; flex-wrap: wrap; }
+  .dot {
+    width: 16px; height: 16px; border-radius: 50%; background: var(--chip);
+    border: 1px solid var(--line); transition: background .08s, transform .08s;
+  }
+  .dot.accent { width: 22px; height: 22px; }
+  .dot.hit { background: var(--accent); border-color: var(--accent); transform: scale(1.2); }
+  /* reduced motion: the state/colour change stays, the pulse animation goes */
+  @media (prefers-reduced-motion: reduce) {
+    .dot { transition: none; }
+    .dot.hit { transform: none; }
+  }
+
+  input[type=range] { accent-color: var(--accent); cursor: pointer; }
+  .volrow input[type=range] { flex: 1; min-width: 9rem; }
+
+  .tones { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: .5rem; margin-top: .9rem; }
+  .tones button {
+    border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+    border-radius: 10px; padding: .55rem .3rem .5rem; cursor: pointer; text-align: center;
+  }
+  .tones button:hover { border-color: var(--accent); }
+  .tones button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+  .tones .nn { font-weight: 600; font-size: .95rem; }
+  .tones .hz { display: block; font-size: .72rem; color: var(--muted); font-variant-numeric: tabular-nums; margin-top: .15rem; }
+  .tones button[aria-pressed="true"] .hz { color: var(--bg); opacity: .85; }
+  #octLabel { font-variant-numeric: tabular-nums; font-size: .9rem; color: var(--muted); }
+
+  .hint { font-size: .82rem; color: var(--muted); margin-top: 1rem; }
+  footer { margin-top: 2.5rem; font-size: .84rem; text-align: center; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="index.html">← suite</a>
+    <button class="theme-btn" id="themeBtn" title="Toggle light/dark">◐ theme</button>
+  </div>
+  <header>
+    <h1>Metronome &amp; Practice Tones</h1>
+    <p class="tag">A steady WebAudio click with accents and tap-tempo, plus clean sine reference tones for tuning by ear.</p>
+  </header>
+
+  <section class="card" aria-label="Metronome">
+    <div class="row">
+      <button class="play" id="startBtn" aria-label="Start metronome" aria-pressed="false">▶</button>
+      <div class="bpmbox">
+        <label class="mlabel" for="bpmSlider" id="bpmLabel">Tempo (beats per minute)</label>
+        <input type="range" id="bpmSlider" min="30" max="250" step="1" value="120">
+      </div>
+      <div class="bpmnum">
+        <input type="number" id="bpmNum" min="30" max="250" step="1" value="120" aria-labelledby="bpmLabel">
+        <span class="mlabel">BPM</span>
+      </div>
+      <button class="btn" id="tapBtn">Tap tempo</button>
+    </div>
+    <div class="substatus" id="tapStatus">Tap the button in rhythm — 4 taps set the tempo.</div>
+
+    <div class="row">
+      <span class="mlabel" id="meterLabel">Time signature</span>
+      <div class="seg" id="meterPick" role="group" aria-labelledby="meterLabel"></div>
+    </div>
+    <div class="dots" id="dots" aria-hidden="true"></div>
+
+    <div class="row volrow">
+      <label class="mlabel" for="vol">Volume</label>
+      <input type="range" id="vol" min="0" max="100" step="1" value="70">
+    </div>
+    <div class="substatus" id="saveNote"></div>
+    <p class="hint">Beat 1 is accented (higher, louder). Press Space to start or stop when you’re not typing in a field.</p>
+  </section>
+
+  <section class="card" aria-label="Practice tones">
+    <h2>Practice tones</h2>
+    <p class="sub">Reference pitches in equal temperament around A4 = 440 Hz. Tap a note to toggle it — only one sounds at a time.</p>
+    <div class="row">
+      <button class="btn" id="octDown">− octave</button>
+      <span id="octLabel">A4 = 440.0 Hz</span>
+      <button class="btn" id="octUp">+ octave</button>
+      <button class="btn" id="stopTones">■ Stop tone</button>
+    </div>
+    <div class="tones" id="tones"></div>
+  </section>
+
+  <footer>No network — clicks and tones are synthesized on your machine with the Web Audio API. Settings stay in local storage.</footer>
+</div>
+
+<script src="../core/suite.js" data-suite-inline></script>
+<script>
+"use strict";
+Suite.theme.init();
+
+/* ===== TEST-ONLY debug hook =====
+   window.__metronome mirrors scheduler state so automated tests can assert
+   timing/accents without listening to audio. Read-only, not a public API. */
+const DBG = window.__metronome = {
+  running: false, bpm: 120, beatsPerBar: 4, beatCount: 0,
+  scheduled: [],            // last ≤64 scheduled clicks: {beat, accent, level, t}
+  toneStarts: 0, toneStops: 0, activeToneFreq: null,
+};
+
+/* ===== state + persistence (suite.metronome.v1) ===== */
+/* Accent map per meter: 2 = strong (beat 1), 1 = secondary (6/8 compound
+   meter groups eighths in threes, so beat 4 gets a lighter accent), 0 = weak. */
+const ACCENTS = {
+  "2/4": [2, 0],
+  "3/4": [2, 0, 0],
+  "4/4": [2, 0, 0, 0],
+  "6/8": [2, 0, 0, 1, 0, 0],
+};
+let bpm = 120, meter = "4/4", volume = 70;
+
+const saveNote = document.getElementById("saveNote");
+function save() {
+  const ok = Suite.store.set("suite.metronome.v1", { bpm, meter, volume });
+  saveNote.textContent = ok ? "" :
+    "Settings couldn’t be saved (storage is full) — the metronome still works.";
+}
+(function load() {
+  const s = Suite.store.get("suite.metronome.v1");
+  if (s && typeof s === "object") {
+    if (Number.isFinite(+s.bpm)) bpm = Math.min(250, Math.max(30, Math.round(+s.bpm)));
+    if (ACCENTS[s.meter]) meter = s.meter;
+    if (Number.isFinite(+s.volume)) volume = Math.min(100, Math.max(0, Math.round(+s.volume)));
+  }
+})();
+
+/* ===== audio: context created/resumed only on user gesture (autoplay policy) ===== */
+let audio = null, master = null;
+function ensureAudio() {
+  if (!audio) {
+    audio = new (window.AudioContext || window.webkitAudioContext)();
+    master = audio.createGain();
+    master.gain.value = volume / 100;
+    master.connect(audio.destination);
+  }
+  if (audio.state === "suspended") audio.resume();
+}
+
+/* ===== metronome: standard lookahead scheduler (Chris Wilson, "A Tale of
+   Two Clocks") — a 25 ms setInterval schedules clicks up to 100 ms ahead on
+   the AudioContext clock, so tempo never drifts with timer jitter. ===== */
+const LOOKAHEAD_MS = 25, SCHEDULE_AHEAD_S = 0.1;
+let running = false, nextNoteTime = 0, beatInBar = 0, timerId = null, rafId = null;
+const drawQueue = [];   // {beat, t} — consumed by the rAF loop to light dots
+
+function scheduleClick(beat, t) {
+  const level = ACCENTS[meter][beat];
+  const osc = audio.createOscillator();
+  const env = audio.createGain();
+  osc.type = "sine";
+  osc.frequency.value = level === 2 ? 1760 : level === 1 ? 1320 : 880;
+  const peak = level === 2 ? 1 : level === 1 ? 0.7 : 0.5;
+  env.gain.setValueAtTime(0.0001, t);
+  env.gain.exponentialRampToValueAtTime(peak, t + 0.002);
+  env.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
+  osc.connect(env); env.connect(master);
+  osc.start(t); osc.stop(t + 0.08);
+  drawQueue.push({ beat, t });
+  DBG.beatCount++;
+  DBG.scheduled.push({ beat, accent: level === 2, level, t });
+  if (DBG.scheduled.length > 64) DBG.scheduled.shift();
+}
+
+function scheduler() {
+  while (nextNoteTime < audio.currentTime + SCHEDULE_AHEAD_S) {
+    scheduleClick(beatInBar, nextNoteTime);
+    nextNoteTime += 60 / bpm;
+    beatInBar = (beatInBar + 1) % ACCENTS[meter].length;
+  }
+}
+
+const dotsEl = document.getElementById("dots");
+function renderDots() {
+  dotsEl.textContent = "";
+  ACCENTS[meter].forEach((level, i) => {
+    const d = document.createElement("span");
+    d.className = "dot" + (level === 2 ? " accent" : "");
+    d.dataset.beat = i;
+    dotsEl.append(d);
+  });
+}
+function draw() {
+  if (!running) return;
+  let lit = -1;
+  while (drawQueue.length && drawQueue[0].t <= audio.currentTime) lit = drawQueue.shift().beat;
+  if (lit >= 0) {
+    dotsEl.querySelectorAll(".dot").forEach(d => d.classList.toggle("hit", +d.dataset.beat === lit));
+  }
+  rafId = requestAnimationFrame(draw);
+}
+
+const startBtn = document.getElementById("startBtn");
+function setRunning(on) {
+  if (on === running) return;
+  running = on;
+  DBG.running = on;
+  startBtn.textContent = on ? "⏸" : "▶";
+  startBtn.setAttribute("aria-pressed", String(on));
+  startBtn.setAttribute("aria-label", on ? "Stop metronome" : "Start metronome");
+  if (on) {
+    ensureAudio();
+    beatInBar = 0;
+    nextNoteTime = audio.currentTime + 0.06;
+    timerId = setInterval(scheduler, LOOKAHEAD_MS);
+    rafId = requestAnimationFrame(draw);
+  } else {
+    clearInterval(timerId); timerId = null;
+    cancelAnimationFrame(rafId); rafId = null;
+    drawQueue.length = 0;
+    dotsEl.querySelectorAll(".dot").forEach(d => d.classList.remove("hit"));
+  }
+}
+startBtn.addEventListener("click", () => setRunning(!running));
+
+/* Space toggles start/stop when focus isn't in a field (buttons keep their
+   native Space behaviour, so they're excluded too — no double toggling). */
+document.addEventListener("keydown", e => {
+  if (e.code !== "Space" || e.repeat) return;
+  const t = e.target;
+  if (t && /^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(t.tagName)) return;
+  e.preventDefault();
+  setRunning(!running);
+});
+
+/* ===== BPM: slider + number input, two-way bound ===== */
+const bpmSlider = document.getElementById("bpmSlider");
+const bpmNum = document.getElementById("bpmNum");
+function setBpm(v) {
+  bpm = Math.min(250, Math.max(30, Math.round(v) || 120));
+  DBG.bpm = bpm;
+  bpmSlider.value = bpm;
+  bpmNum.value = bpm;
+  save();
+}
+bpmSlider.addEventListener("input", () => setBpm(+bpmSlider.value));
+bpmNum.addEventListener("input", () => {
+  const v = +bpmNum.value;
+  if (v >= 30 && v <= 250) { bpm = Math.round(v); DBG.bpm = bpm; bpmSlider.value = bpm; save(); }
+});
+bpmNum.addEventListener("change", () => setBpm(+bpmNum.value)); // clamp on commit
+
+/* ===== tap tempo: average of the last ≤4 intervals; intervals more than 40%
+   away from the median are treated as outliers (a missed or double tap). ===== */
+const tapStatus = Suite.liveRegion(document.getElementById("tapStatus"));
+let taps = [];
+document.getElementById("tapBtn").addEventListener("click", () => {
+  const now = performance.now();
+  if (taps.length && now - taps[taps.length - 1] > 2000) taps = []; // stale run: restart
+  taps.push(now);
+  if (taps.length > 5) taps.shift();          // keep ≤5 taps → ≤4 intervals
+  if (taps.length < 2) { tapStatus.textContent = "Keep tapping…"; return; }
+  const iv = [];
+  for (let i = 1; i < taps.length; i++) iv.push(taps[i] - taps[i - 1]);
+  const sorted = [...iv].sort((a, b) => a - b);
+  const med = sorted.length % 2 ? sorted[(sorted.length - 1) / 2]
+    : (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2;
+  const good = iv.filter(x => Math.abs(x - med) / med <= 0.4);
+  const avg = good.reduce((a, b) => a + b, 0) / good.length;
+  setBpm(60000 / avg);
+  tapStatus.textContent = `Tap tempo: ${bpm} BPM from ${taps.length} taps` +
+    (good.length < iv.length ? ` (${iv.length - good.length} outlier ignored)` : "");
+});
+
+/* ===== time signature ===== */
+const meterPick = document.getElementById("meterPick");
+function setMeter(m) {
+  meter = m;
+  DBG.beatsPerBar = ACCENTS[m].length;
+  beatInBar = beatInBar % ACCENTS[m].length;
+  meterPick.querySelectorAll("button").forEach(b =>
+    b.setAttribute("aria-pressed", String(b.dataset.m === m)));
+  renderDots();
+  save();
+}
+for (const m of Object.keys(ACCENTS)) {
+  const b = document.createElement("button");
+  b.textContent = m; b.dataset.m = m;
+  b.setAttribute("aria-pressed", "false");
+  b.addEventListener("click", () => setMeter(m));
+  meterPick.append(b);
+}
+
+/* ===== volume ===== */
+const volEl = document.getElementById("vol");
+volEl.addEventListener("input", () => {
+  volume = +volEl.value;
+  if (master) master.gain.setTargetAtTime(volume / 100, audio.currentTime, 0.02);
+  save();
+});
+
+/* ===== practice tones: A4 = 440 Hz and the 12 semitones around it (±6),
+   shiftable an octave at a time. Equal temperament: f = 440 · 2^((midi−69)/12). ===== */
+const NAMES = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
+const tonesEl = document.getElementById("tones");
+const octLabel = document.getElementById("octLabel");
+const octDown = document.getElementById("octDown");
+const octUp = document.getElementById("octUp");
+let octOffset = 0;                  // −2 … +2 around the A4 octave
+let tone = null;                    // {osc, gain, midi}
+
+function noteInfo(n) {              // n = semitones from A of the current octave
+  const midi = 69 + octOffset * 12 + n;
+  const freq = 440 * Math.pow(2, (midi - 69) / 12);
+  return { midi, freq, label: NAMES[midi % 12] + (Math.floor(midi / 12) - 1) };
+}
+function syncTonePressed() {
+  tonesEl.querySelectorAll("button").forEach(b =>
+    b.setAttribute("aria-pressed", String(!!tone && +b.dataset.midi === tone.midi)));
+}
+function stopTone() {
+  if (!tone) return;
+  const t = audio.currentTime;
+  tone.gain.gain.cancelScheduledValues(t);
+  tone.gain.gain.setValueAtTime(tone.gain.gain.value, t);
+  tone.gain.gain.linearRampToValueAtTime(0.0001, t + 0.05);
+  tone.osc.stop(t + 0.07);
+  tone = null;
+  DBG.toneStops++;
+  DBG.activeToneFreq = null;
+  syncTonePressed();
+}
+function toggleTone(midi, freq) {
+  ensureAudio();
+  if (tone && tone.midi === midi) { stopTone(); return; }
+  stopTone();                       // only one tone at a time
+  const osc = audio.createOscillator();
+  const g = audio.createGain();
+  osc.type = "sine";
+  osc.frequency.value = freq;
+  const t = audio.currentTime;
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(0.35, t + 0.03);   // click-free fade-in
+  osc.connect(g); g.connect(master);
+  osc.start(t);
+  tone = { osc, gain: g, midi };
+  DBG.toneStarts++;
+  DBG.activeToneFreq = freq;
+  syncTonePressed();
+}
+function renderTones() {
+  tonesEl.textContent = "";
+  for (let n = -6; n <= 6; n++) {
+    const { midi, freq, label } = noteInfo(n);
+    const b = document.createElement("button");
+    b.dataset.midi = midi;
+    b.setAttribute("aria-pressed", "false");
+    b.setAttribute("aria-label", `${label}, ${freq.toFixed(1)} hertz`);
+    const nn = document.createElement("span"); nn.className = "nn"; nn.textContent = label;
+    const hz = document.createElement("span"); hz.className = "hz"; hz.textContent = freq.toFixed(1) + " Hz";
+    b.append(nn, hz);
+    b.addEventListener("click", () => toggleTone(midi, freq));
+    tonesEl.append(b);
+  }
+  const a = noteInfo(0);
+  octLabel.textContent = `${a.label} = ${a.freq.toFixed(1)} Hz`;
+  octDown.disabled = octOffset <= -2;
+  octUp.disabled = octOffset >= 2;
+  syncTonePressed();
+}
+octDown.addEventListener("click", () => { if (octOffset > -2) { if (tone) stopTone(); octOffset--; renderTones(); } });
+octUp.addEventListener("click", () => { if (octOffset < 2) { if (tone) stopTone(); octOffset++; renderTones(); } });
+document.getElementById("stopTones").addEventListener("click", () => { if (tone) stopTone(); });
+
+/* ===== init ===== */
+bpmSlider.value = bpm; bpmNum.value = bpm; DBG.bpm = bpm;
+volEl.value = volume;
+setMeter(meter);       // renders dots + pressed states (also persists the restored trio)
+renderTones();
+</script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+{
+  "note": "new-in-v2 tool — no v1 original; parity N/A",
+  "v2": {
+    "suite.cache.wayback.hostile-link-example-com-4yt48z": "{\"t\":1785435682423,\"v\":{\"url\":\"https://hostile-link.example.com/\",\"archived_snapshots\":{\"closest\":{\"status\":\"200\",\"available\":true,\"url\":\"javascript:w…(198 chars)",
+    "suite.cache.wayback.hostile-status-example-com-1f9v6qt": "{\"t\":1785435682373,\"v\":{\"url\":\"https://hostile-status.example.com/\",\"archived_snapshots\":{\"closest\":{\"status\":\"<img src=x onerror=\\\"window.__xss=9\\\">\"…(286 chars)",
+    "suite.hub.recents": "[{\"id\":\"wayback\",\"t\":1785435682169}]",
+    "suite.cache.wayback.example-com-20190301-1hk029i": "{\"t\":1785435683039,\"v\":{\"url\":\"https://example.com/\",\"archived_snapshots\":{\"closest\":{\"status\":\"200\",\"available\":true,\"url\":\"http://web.archive.org/we…(221 chars)",
+    "suite.cache.wayback.h3-example-com-14dpldv": "{\"t\":1785435682639,\"v\":{\"url\":\"https://h3.example.com/\",\"archived_snapshots\":{\"closest\":{\"status\":\"200\",\"available\":true,\"url\":\"http://web.archive.org…(227 chars)",
+    "suite.cache.wayback.h1-example-com-qhjhf9": "{\"t\":1785435682539,\"v\":{\"url\":\"https://h1.example.com/\",\"archived_snapshots\":{\"closest\":{\"status\":\"200\",\"available\":true,\"url\":\"http://web.archive.org…(227 chars)",
+    "suite.wayback.history": "[{\"u\":\"https://example.com/\",\"d\":\"2019-03-01\"},{\"u\":\"https://example.com/a/really/long/path/that/keeps/going/and/going/for-overflow-checking\",\"d\":\"\"}]",
+    "suite.cache.wayback.h0-example-com-1cetu1y": "{\"t\":1785435682490,\"v\":{\"url\":\"https://h0.example.com/\",\"archived_snapshots\":{\"closest\":{\"status\":\"200\",\"available\":true,\"url\":\"http://web.archive.org…(227 chars)",
+    "suite.cache.wayback.h2-example-com-qmo6as": "{\"t\":1785435682589,\"v\":{\"url\":\"https://h2.example.com/\",\"archived_snapshots\":{\"closest\":{\"status\":\"200\",\"available\":true,\"url\":\"http://web.archive.org…(227 chars)",
+    "suite.cache.wayback.example-com-a-really-long-path-that-keep-ufwt5d": "{\"t\":1785435682923,\"v\":{\"url\":\"https://example.com/a/really/long/path/that/keeps/going/and/going/for-overflow-checking\",\"archived_snapshots\":{\"closest…(355 chars)",
+    "suite.cache.wayback.example-com-1vtv1lk": "{\"t\":1785435681939,\"v\":{\"url\":\"https://example.com/\",\"archived_snapshots\":{\"closest\":{\"status\":\"200\",\"available\":true,\"url\":\"http://web.archive.org/we…(221 chars)",
+    "suite.cache.wayback.notarchived-example-com-1xg5vht": "{\"t\":1785435682106,\"v\":{\"url\":\"https://notarchived.example.com/\",\"archived_snapshots\":{}}}",
+    "suite.theme": "dark"
+  }
+}

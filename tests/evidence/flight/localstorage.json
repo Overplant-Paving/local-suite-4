@@ -1,11 +1,19 @@
 {
   "note": "new-in-v2 tool — no v1 original; parity N/A",
   "v2": {
-    "suite.cache.flight.aa100.2026-07-16": "{\"t\":1784257134075,\"v\":{\"pagination\":{\"limit\":100,\"offset\":0,\"count\":1,\"total\":1},\"data\":[{\"flight_date\":\"2026-07-16\",\"flight_status\":\"active\",\"depart…(1010 chars)",
-    "suite.cache.flight.zz999.2026-07-16": "{\"t\":1784257133758,\"v\":{\"pagination\":{\"count\":0},\"data\":[]}}",
+    "suite.cache.flight.wx.grid.39x-104": "{\"t\":1785437795877,\"v\":[{\"current\":{\"precipitation\":1.2,\"weather_code\":61}},{\"current\":{\"precipitation\":0,\"weather_code\":2}},{\"current\":{\"precipitatio…(1614 chars)",
+    "suite.cache.flight.zz999.2026-07-30": "{\"t\":1785434195892,\"v\":{\"pagination\":{\"count\":0},\"data\":[]}}",
+    "suite.cache.flight.aa100.2026-07-30": "{\"t\":1785437795871,\"v\":{\"pagination\":{\"limit\":100,\"offset\":0,\"count\":1,\"total\":1},\"data\":[{\"flight_date\":\"2026-07-30\",\"flight_status\":\"active\",\"depart…(1010 chars)",
+    "suite.hub.recents": "[{\"id\":\"flight\",\"t\":1785437795237}]",
+    "suite.cache.flight.wx.grid.41x-93": "{\"t\":1785434195750,\"v\":[{\"current\":{\"precipitation\":1.2,\"weather_code\":61}},{\"current\":{\"precipitation\":0,\"weather_code\":2}},{\"current\":{\"precipitatio…(1614 chars)",
+    "suite.cache.flight.wx.outlook.klax": "{\"t\":1785437795880,\"v\":{\"hourly\":{\"time\":[\"2026-07-30T18:00\",\"2026-07-30T19:00\",\"2026-07-30T20:00\",\"2026-07-30T21:00\",\"2026-07-30T22:00\",\"2026-07-30T2…(2597 chars)",
+    "suite.flight.usage": "{\"month\":\"2026-07\",\"count\":10}",
+    "suite.cache.flight.wx.station.klax": "{\"t\":1785434195750,\"v\":{\"geometry\":{\"type\":\"Point\",\"coordinates\":[-118.408,33.9425]},\"properties\":{\"stationIdentifier\":\"KLAX\"}}}",
+    "suite.cache.flight.wx.sigmets": "{\"t\":1785437795877,\"v\":{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"geometry\":{\"type\":\"Polygon\",\"coordinates\":[[[40.5,-104.5],[40.5,-102…(235 chars)",
+    "suite.cache.flight.wx.metar.kjfk": "{\"t\":1785437795877,\"v\":{\"properties\":{\"timestamp\":\"2026-07-30T18:44:35.875Z\",\"textDescription\":\"Light Rain\",\"rawMessage\":\"KJFK 301651Z 18012G20KT 6SM …(416 chars)",
     "suite.flight.refresh": "0",
+    "suite.cache.flight.wx.metar.klax": "{\"t\":1785437795877,\"v\":{\"properties\":{\"timestamp\":\"2026-07-30T18:44:35.875Z\",\"textDescription\":\"Light Rain\",\"rawMessage\":\"KJFK 301651Z 18012G20KT 6SM …(416 chars)",
     "suite.key.aviationstack": "test-key",
-    "suite.theme": "dark",
-    "suite.flight.usage": "{\"month\":\"2026-07\",\"count\":8}"
+    "suite.theme": "dark"
   }
 }

@@ -1,0 +1,52 @@
+ok: starter renders 11 category rows
+ok: starter names exact: Housing, Utilities, Groceries, Transportation, Insurance, Health, Debt payments, Savings, Dining & fun, Subscriptions, Misc
+ok: starter tags exact (6 need, 2 savings, 3 want); Debt payments tagged savings
+empty-state split panel: $0 — guideline 50% | verdict: Enter your monthly take-home income to compare your plan against the guideline.
+ok: two earner incomes sum: statIncome = $5,000
+ok: total planned = $4,750
+ok: remaining unallocated = $250
+ok: remaining ≥ 0 carries the green .ok state
+ok: over-allocation sentence hidden while under budget
+Housing row share text: 30% of income
+ok: per-category share bar text exact (1500/5000)
+ok: needs split exact: 50% · $2,500 — guideline 50%
+ok: wants split exact: 25% · $1,250 — guideline 30%
+ok: savings split exact: 20% · $1,000 — guideline 20%
+ok: unallocated line: Unallocated: 5% of income ($250).
+ok: verdict (balanced): Your plan lands close to the 50/30/20 guideline — a balanced starting point.
+ok: over-allocated remaining = -$350
+ok: remaining < 0 flips to the .over alert state
+ok: over-allocation sentence visible
+ok: plain over-allocation sentence: You've planned $350 more than you bring in — trim a category or add income.
+ok: verdict tracks the biggest deviation: Wants take 37% of income, above the 30% guideline — usually the easiest bucket to trim.
+ok: state flips back to .ok after restore
+ok: add: 12 rows after + Add category
+ok: new want row shifts wants to 27%
+ok: retag updates the row's bucket color tag
+ok: retag moves Pets into needs: 52%
+ok: delete: back to 11 rows
+ok: needs back to exactly 50% after delete
+ok: rename updates the amount input's aria-label
+ok: incomes persist across reload (4000 + 1000)
+ok: rows + rename persist across reload
+ok: math recomputed from storage after reload: remaining $250
+ok: localStorage suite.budget.v1 holds income1=4000 and 11 cats
+ok: export payload complete (incomes + 11 cats, Housing $1,500 need)
+ok: import restores tampered income and amount
+ok: import status: Imported budget — 11 categories.
+ok: round-trip math intact: remaining $250
+ok: reset asks for confirmation: confirm: Reset to the starter categories? Your amounts and income will be cleared.
+ok: reset returns starter categories with cleared amounts and income
+post-reset verdict (designed empty state): Enter your monthly take-home income to compare your plan against the guideline.
+ok: re-imported for final state
+ok: amount inputs carry per-category aria-labels
+ok: tag selects carry per-category aria-labels
+ok: icon-only delete buttons carry aria-labels
+ok: all bars are aria-hidden — values carried by adjacent text
+ok: text alternatives state the same percentages the bars draw
+ok: stats and verdict are polite live regions
+ok: theme button exposes aria-pressed
+ok: no horizontal overflow at 390px (doc delta 0, body delta 0)
+mobile screenshot: mobile.png
+theme toggle: light -> dark, aria-pressed=true
+console: clean (no errors)

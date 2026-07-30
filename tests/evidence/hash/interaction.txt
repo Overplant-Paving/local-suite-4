@@ -1,0 +1,25 @@
+empty state: No files yet — drop some above or choose them. Digests are computed on this device only.
+file vectors OK for abc.txt: SHA-256=ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad
+  SHA-384=cb00753f45a35e8bb5a03d699ac65007… SHA-512=ddaf35a193617abacc417349ae204131… SHA-1=a9993e364706816aba3e25717850c26c9cd0d89d — all four equal the NIST "abc" vectors
+file meta: abc.txt 3 B 4 digests computed
+SHA-1 labelled: legacy — collision-broken, verify only
+multi-file flow: 3 cards / 12 digests; SHA-256(empty.dat) = e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 (empty-string vector)
+verify [plain hex] -> class="vout match" text="MATCH — this is the SHA-256 digest of abc.txt."
+verify [uppercase + grouped whitespace] -> class="vout match" text="MATCH — this is the SHA-256 digest of abc.txt."
+verify [sha256: prefix] -> class="vout match" text="MATCH — this is the SHA-256 digest of abc.txt."
+verify [BSD tag format] -> class="vout match" text="MATCH — this is the SHA-256 digest of abc.txt."
+verify [sha256sum checksum line] -> class="vout match" text="MATCH — this is the SHA-256 digest of abc.txt."
+verify [flipped last char] -> class="vout mismatch" text="MISMATCH — no computed SHA-256 digest equals this value. The file is not the one this digest describes."
+verify [prefix/length disagreement] -> class="vout note" text="Prefix disagrees with length — the prefix says SHA-512 but the value is 40 hex chars (SHA-1 length). Check for truncation before comparing."
+verify [junk] -> class="vout note" text="Not a digest — expected hex characters (0-9, a-f), optionally with an algorithm prefix."
+text tab vectors OK: SHA-256=ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad SHA-1=a9993e364706816aba3e25717850c26c9cd0d89d (UTF-8, 3 bytes)
+verify [SHA-1 hex against text result] -> class="vout match" text="MATCH — this is the SHA-1 digest of abc.txt and pasted text."
+copy click -> toast: "Digest copied to clipboard" (no unhandled error either way)
+drop-zone path: dropped-abc.txt hashed, SHA-256 matches the vector
+clear results: 0 cards, empty state back: true
+a11y: copy aria-label="Copy SHA-256 digest of pasted text", file input aria-label="Choose files to hash", aria-live=polite on fileList/textOut/verifyOut, active tab aria-pressed=true
+storage keys after full exercise: [suite.theme, suite.hub.recents] — no tool-specific keys beyond the manifest's suite.theme (hub.recents is core chrome)
+mobile 390px: scrollWidth 390 <= clientWidth 390 (body 390/390) — no horizontal overflow; mobile.png saved
+final state: one hashed file + green MATCH banner for the after-interaction shot
+theme toggle: light -> dark, aria-pressed=true
+console: clean (no errors)

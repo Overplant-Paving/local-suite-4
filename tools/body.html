@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Body Metrics Calculator · Local Suite</title>
+<link rel="stylesheet" href="../core/suite.css" data-suite-inline>
+<style>
+  body { padding: 1.4rem 1.25rem 4rem; }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  .topbar { display: flex; align-items: center; gap: 1rem; }
+  .topbar .theme-btn, .topbar .fav-btn { float: none; }
+  .topbar .theme-btn { margin-left: auto; }
+  header { margin: 1rem 0 1.2rem; }
+  h1 { font-size: 1.8rem; letter-spacing: -.02em; }
+  .tag { color: var(--muted); margin-top: .35rem; max-width: 48rem; }
+
+  /* calm, prominent disclaimer */
+  .disclaimer { border: 1px solid var(--line); border-left: 4px solid var(--accent);
+    background: var(--accent-soft); border-radius: 10px; padding: .8rem 1rem;
+    color: var(--ink); font-size: .92rem; margin-bottom: 1.2rem; max-width: 100%; }
+
+  /* v1's .card is a plain block — neutralize the core flex-card layout */
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 1.1rem 1.2rem; box-shadow: var(--shadow); margin-bottom: 1.2rem;
+    display: block; flex-direction: row; gap: normal; }
+  .card h2 { font-size: .82rem; text-transform: uppercase; letter-spacing: .08em;
+    color: var(--muted); margin-bottom: 1rem; }
+
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px;
+    overflow: hidden; margin-bottom: 1rem; }
+  .seg button { border: 0; background: var(--card); color: var(--muted);
+    padding: .42rem 1rem; cursor: pointer; font-size: .88rem; }
+  .seg button[aria-pressed="true"] { background: var(--accent); color: var(--bg); }
+  .seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+  .inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .9rem; }
+  .field label { display: block; font-size: .78rem; color: var(--muted); margin-bottom: .3rem; }
+  .field .in { display: flex; align-items: center; border: 1px solid var(--line);
+    border-radius: 9px; background: var(--bg); overflow: hidden; }
+  .field .in span { padding: 0 .5rem; color: var(--muted); font-size: .9rem; white-space: nowrap; }
+  .field input, .field select { flex: 1; width: 100%; min-width: 0; padding: .5rem .6rem;
+    font-size: .95rem; color: var(--ink); border: 0; background: transparent; outline: none; }
+  .field .in:focus-within { border-color: var(--accent); }
+  .field select { border: 1px solid var(--line); border-radius: 9px; background: var(--bg); }
+  .field select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .hpair { display: flex; gap: .5rem; }
+  .hpair .in { flex: 1; }
+  .hidden { display: none; }
+
+  .btn { border: 1px solid var(--line); background: var(--card); color: var(--muted);
+    border-radius: 9px; padding: .45rem .9rem; cursor: pointer; font-size: .88rem; }
+  .btn:hover { color: var(--ink); border-color: var(--accent); }
+  .actions { margin-top: 1rem; display: flex; align-items: center; gap: .8rem; flex-wrap: wrap; }
+  .save-note { font-size: .8rem; color: var(--muted); }
+
+  .empty { color: var(--muted); font-size: .95rem; padding: 1.4rem 0; text-align: center; }
+
+  .stats { display: flex; gap: 1.8rem; flex-wrap: wrap; margin-bottom: .4rem; }
+  .stat b { font-size: 1.55rem; display: block; line-height: 1.15; color: var(--accent);
+    font-variant-numeric: tabular-nums; }
+  .stat span { font-size: .76rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .stat .unit { font-size: .95rem; color: var(--muted); font-weight: 400; }
+
+  .note { font-size: .9rem; color: var(--ink); margin-top: .6rem; }
+  .note.sub { color: var(--muted); font-size: .84rem; }
+  .kv { display: flex; justify-content: space-between; gap: 1rem; padding: .4rem 0;
+    border-bottom: 1px dashed var(--line); font-size: .92rem; flex-wrap: wrap; }
+  .kv:last-child { border-bottom: 0; }
+  .kv b { font-variant-numeric: tabular-nums; }
+  .kv span:first-child { color: var(--muted); }
+
+  .method { font-size: .88rem; color: var(--muted); margin-bottom: .8rem; }
+  .method b { color: var(--ink); font-weight: 600; }
+  table.zones { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: .9rem; }
+  table.zones th, table.zones td { padding: .45rem .5rem; text-align: left; border-bottom: 1px solid var(--line); }
+  table.zones th { color: var(--muted); font-weight: 500; font-size: .74rem;
+    text-transform: uppercase; letter-spacing: .04em; }
+  table.zones td.bpm { text-align: right; white-space: nowrap; font-weight: 600; }
+  table.zones td.pct { white-space: nowrap; color: var(--muted); }
+
+  footer { font-size: .82rem; padding-top: 1rem; }
+  @media (max-width: 480px) {
+    .stats { gap: 1.1rem; } .stat b { font-size: 1.3rem; }
+    table.zones { font-size: .8rem; }
+    table.zones th, table.zones td { padding: .4rem .3rem; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="index.html">← suite</a>
+    <button class="theme-btn" id="themeBtn" title="Toggle light/dark">◐ theme</button>
+  </div>
+  <header>
+    <h1>Body Metrics Calculator</h1>
+    <p class="tag">BMI, estimated BMR/TDEE, a healthy-weight range, and heart-rate training zones — from the standard published formulas, computed entirely in this file.</p>
+  </header>
+
+  <aside class="disclaimer" id="disclaimer">
+    These are population-level formulas — useful for orientation, not diagnosis. They know nothing
+    about your body composition, medications, or history. Not medical advice; for anything that
+    matters, talk to a clinician.
+  </aside>
+
+  <div class="card">
+    <h2>About you</h2>
+    <div class="seg" role="group" aria-label="Measurement units">
+      <button id="uMetric" aria-pressed="true">Metric (cm · kg)</button>
+      <button id="uImperial" aria-pressed="false">Imperial (ft · in · lb)</button>
+    </div>
+    <div class="inputs">
+      <div class="field"><label for="age">Age</label>
+        <div class="in"><input type="number" id="age" min="10" max="120" step="1" inputmode="numeric" placeholder="30"><span>yrs</span></div></div>
+      <div class="field"><label for="sex">Sex (for the formula)</label>
+        <select id="sex"><option value="male">Male</option><option value="female">Female</option></select></div>
+      <div class="field" id="hMetric"><label for="hcm">Height</label>
+        <div class="in"><input type="number" id="hcm" min="90" max="250" step="0.5" inputmode="decimal" placeholder="175"><span>cm</span></div></div>
+      <div class="field hidden" id="hImp"><label for="hft">Height</label>
+        <div class="hpair">
+          <div class="in"><input type="number" id="hft" min="3" max="8" step="1" inputmode="numeric" placeholder="5" aria-label="Height, feet"><span>ft</span></div>
+          <div class="in"><input type="number" id="hin" min="0" max="11.5" step="0.5" inputmode="decimal" placeholder="9" aria-label="Height, inches"><span>in</span></div>
+        </div></div>
+      <div class="field" id="wMetric"><label for="wkg">Weight</label>
+        <div class="in"><input type="number" id="wkg" min="25" max="350" step="0.1" inputmode="decimal" placeholder="70"><span>kg</span></div></div>
+      <div class="field hidden" id="wImp"><label for="wlb">Weight</label>
+        <div class="in"><input type="number" id="wlb" min="55" max="770" step="0.5" inputmode="decimal" placeholder="155"><span>lb</span></div></div>
+      <div class="field"><label for="act">Activity level</label>
+        <select id="act">
+          <option value="1.2">Sedentary (×1.2)</option>
+          <option value="1.375">Light (×1.375)</option>
+          <option value="1.55" selected>Moderate (×1.55)</option>
+          <option value="1.725">Active (×1.725)</option>
+          <option value="1.9">Very active (×1.9)</option>
+        </select></div>
+      <div class="field"><label for="rhr">Resting heart rate (optional)</label>
+        <div class="in"><input type="number" id="rhr" min="30" max="120" step="1" inputmode="numeric" placeholder="—"><span>bpm</span></div></div>
+    </div>
+    <div class="actions">
+      <button class="btn" id="clearBtn">Clear saved inputs</button>
+      <span class="save-note" id="saveNote" hidden>Couldn’t save your inputs (storage full) — results still work, they just won’t be remembered.</span>
+    </div>
+  </div>
+
+  <div class="empty" id="empty">Enter your age, height, and weight above — everything recalculates as you type.</div>
+
+  <section id="results" class="hidden">
+    <div class="card">
+      <h2>Energy &amp; body-mass estimates</h2>
+      <div class="stats" id="stats">
+        <div class="stat"><b id="bmiVal">—</b><span>BMI (kg ÷ m²)</span></div>
+        <div class="stat"><b id="bmrVal">—</b><span>BMR, Mifflin-St Jeor <span class="unit">kcal/day</span></span></div>
+        <div class="stat"><b id="tdeeVal">—</b><span id="tdeeLabel">TDEE = BMR × activity <span class="unit">kcal/day</span></span></div>
+      </div>
+      <p class="note" id="bmiCat"></p>
+      <p class="note sub">BMI ignores body composition — muscle and fat weigh the same here, so athletic and older bodies are routinely misclassified.</p>
+      <div class="kv"><span>Healthy-weight range for your height (BMI 18.5–24.9)</span><b id="rangeVal"></b></div>
+      <p class="note sub" id="adultNote" hidden>Mifflin-St Jeor and 220 − age are adult formulas; results under age 18 are unreliable.</p>
+    </div>
+
+    <div class="card">
+      <h2>Heart-rate training zones</h2>
+      <p class="method" id="zoneMethod"></p>
+      <table class="zones" id="zones">
+        <thead><tr><th scope="col">Zone</th><th scope="col">Effort</th><th scope="col">Intensity</th><th scope="col">Heart rate</th></tr></thead>
+        <tbody id="zoneBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>No network — every number is computed on your machine and stays there. Population formulas (WHO BMI bands, Mifflin-St Jeor 1990, Karvonen 1957, HRmax ≈ 220 − age), not medical advice.</footer>
+</div>
+
+<script src="../core/suite.js" data-suite-inline></script>
+<script>
+"use strict";
+Suite.theme.init();
+
+const $ = id => document.getElementById(id);
+const KEY = "suite.body.v1";
+const CM_PER_IN = 2.54, KG_PER_LB = 0.45359237;
+const FIELDS = ["age", "sex", "hcm", "hft", "hin", "wkg", "wlb", "act", "rhr"];
+let unit = "metric";
+
+const fmtInt = n => Math.round(n).toLocaleString("en-US");
+const fmt1 = n => (Math.round(n * 10) / 10).toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const num = id => { const v = $(id).value.trim(); return v === "" ? null : +v; };
+
+/* ---- read inputs, normalized to metric ---- */
+function readInputs() {
+  const age = num("age"), sex = $("sex").value, act = +$("act").value, rhr = num("rhr");
+  let hcm = null, wkg = null;
+  if (unit === "metric") { hcm = num("hcm"); wkg = num("wkg"); }
+  else {
+    const ft = num("hft"), inch = num("hin");
+    if (ft !== null || inch !== null) hcm = ((ft || 0) * 12 + (inch || 0)) * CM_PER_IN;
+    const lb = num("wlb");
+    if (lb !== null) wkg = lb * KG_PER_LB;
+  }
+  return { age, sex, act, rhr, hcm, wkg };
+}
+
+function valid(d) {
+  return d.age !== null && isFinite(d.age) && d.age > 0 &&
+         d.hcm !== null && isFinite(d.hcm) && d.hcm > 0 &&
+         d.wkg !== null && isFinite(d.wkg) && d.wkg > 0;
+}
+
+/* WHO BMI classification (adults) */
+function whoCategory(bmi) {
+  if (bmi < 18.5) return "Underweight";
+  if (bmi < 25) return "Healthy range";
+  if (bmi < 30) return "Overweight";
+  if (bmi < 35) return "Obesity, class I";
+  if (bmi < 40) return "Obesity, class II";
+  return "Obesity, class III";
+}
+
+/* ---- render ---- */
+function render() {
+  const d = readInputs();
+  const ok = valid(d);
+  $("empty").classList.toggle("hidden", ok);
+  $("results").classList.toggle("hidden", !ok);
+  if (!ok) return;
+
+  const m = d.hcm / 100;
+  const bmi = d.wkg / (m * m);
+  /* Mifflin-St Jeor (1990): 10·kg + 6.25·cm − 5·age, +5 male / −161 female */
+  const bmr = 10 * d.wkg + 6.25 * d.hcm - 5 * d.age + (d.sex === "male" ? 5 : -161);
+  const tdee = bmr * d.act;
+
+  $("bmiVal").textContent = fmt1(bmi);
+  $("bmrVal").textContent = fmtInt(bmr);
+  $("tdeeVal").textContent = fmtInt(tdee);
+  const actName = $("act").options[$("act").selectedIndex].text.replace(/ \(.*\)$/, "").toLowerCase();
+  $("tdeeLabel").innerHTML = `TDEE = BMR × ${Suite.esc(String(d.act))} (${Suite.esc(actName)}) <span class="unit">kcal/day</span>`;
+  $("bmiCat").textContent = `WHO category: ${whoCategory(bmi)} (WHO adult bands: under 18.5 · 18.5–24.9 · 25–29.9 · 30+).`;
+
+  /* healthy-weight range for the height, BMI 18.5–24.9, shown in the active unit */
+  const loKg = 18.5 * m * m, hiKg = 24.9 * m * m;
+  $("rangeVal").textContent = unit === "metric"
+    ? `${fmt1(loKg)} – ${fmt1(hiKg)} kg`
+    : `${fmtInt(loKg / KG_PER_LB)} – ${fmtInt(hiKg / KG_PER_LB)} lb`;
+
+  $("adultNote").hidden = d.age >= 18;
+  renderZones(d);
+}
+
+/* ---- heart-rate zones: Karvonen (1957) when resting HR is usable, else %HRmax ---- */
+function renderZones(d) {
+  const hrmax = 220 - d.age;
+  const useK = d.rhr !== null && isFinite(d.rhr) && d.rhr >= 30 && d.rhr < hrmax;
+  $("zoneMethod").innerHTML = useK
+    ? `Method in use: <b>Karvonen (heart-rate reserve)</b> — target = resting + % × (HRmax − resting), with your resting ${Suite.esc(String(Math.round(d.rhr)))} bpm. HRmax estimated as 220 − age = <b>${Suite.esc(String(hrmax))} bpm</b>, a population estimate — your true max can differ by ±10 bpm or more.`
+    : `Method in use: <b>straight % of HRmax</b> (add your resting heart rate above to switch to Karvonen). HRmax estimated as 220 − age = <b>${Suite.esc(String(hrmax))} bpm</b>, a population estimate — your true max can differ by ±10 bpm or more.`;
+
+  const ZONES = [
+    ["1", "Very light · recovery", 0.5, 0.6],
+    ["2", "Light · endurance base", 0.6, 0.7],
+    ["3", "Moderate · aerobic", 0.7, 0.8],
+    ["4", "Hard · threshold", 0.8, 0.9],
+    ["5", "Maximum · sprint", 0.9, 1.0],
+  ];
+  const at = p => Math.round(useK ? d.rhr + p * (hrmax - d.rhr) : p * hrmax);
+  const body = $("zoneBody");
+  body.textContent = "";
+  for (const [z, name, lo, hi] of ZONES) {
+    const tr = document.createElement("tr");
+    const cells = [
+      ["td", "Zone " + z, ""],
+      ["td", name, ""],
+      ["td", Math.round(lo * 100) + "–" + Math.round(hi * 100) + "%", "pct"],
+      ["td", at(lo) + " – " + at(hi) + " bpm", "bpm"],
+    ];
+    for (const [tag, text, cls] of cells) {
+      const td = document.createElement(tag);
+      td.textContent = text;
+      if (cls) td.className = cls;
+      tr.appendChild(td);
+    }
+    body.appendChild(tr);
+  }
+}
+
+/* ---- unit toggle: convert whatever is filled in, keep everything else ---- */
+function setUnit(next, convert) {
+  if (next === unit) return;
+  if (convert) {
+    if (next === "imperial") {
+      const cm = num("hcm"), kg = num("wkg");
+      if (cm !== null && isFinite(cm)) {
+        const totalIn = cm / CM_PER_IN;
+        let ft = Math.floor(totalIn / 12);
+        let inch = Math.round((totalIn - ft * 12) * 2) / 2; /* nearest half inch */
+        if (inch >= 12) { ft += 1; inch = 0; }
+        $("hft").value = ft; $("hin").value = inch;
+      }
+      if (kg !== null && isFinite(kg)) $("wlb").value = Math.round(kg / KG_PER_LB * 2) / 2;
+    } else {
+      const ft = num("hft"), inch = num("hin"), lb = num("wlb");
+      if (ft !== null || inch !== null)
+        $("hcm").value = Math.round(((ft || 0) * 12 + (inch || 0)) * CM_PER_IN * 2) / 2;
+      if (lb !== null && isFinite(lb)) $("wkg").value = Math.round(lb * KG_PER_LB * 10) / 10;
+    }
+  }
+  unit = next;
+  $("uMetric").setAttribute("aria-pressed", String(unit === "metric"));
+  $("uImperial").setAttribute("aria-pressed", String(unit === "imperial"));
+  $("hMetric").classList.toggle("hidden", unit !== "metric");
+  $("wMetric").classList.toggle("hidden", unit !== "metric");
+  $("hImp").classList.toggle("hidden", unit !== "imperial");
+  $("wImp").classList.toggle("hidden", unit !== "imperial");
+}
+$("uMetric").addEventListener("click", () => { setUnit("metric", true); save(); render(); });
+$("uImperial").addEventListener("click", () => { setUnit("imperial", true); save(); render(); });
+
+/* ---- persistence: suite.body.v1 ---- */
+function save() {
+  const o = { unit };
+  FIELDS.forEach(id => { o[id] = $(id).value; });
+  const ok = Suite.store.set(KEY, o);
+  $("saveNote").hidden = ok;
+}
+function loadState() {
+  const o = Suite.store.get(KEY);
+  if (!o || typeof o !== "object") return;
+  FIELDS.forEach(id => { if (typeof o[id] === "string" && o[id] !== "") $(id).value = o[id]; });
+  if (o.unit === "imperial") setUnit("imperial", false);
+}
+$("clearBtn").addEventListener("click", () => {
+  FIELDS.forEach(id => { $(id).value = ""; });
+  $("sex").value = "male"; $("act").value = "1.55";
+  setUnit("metric", false);
+  Suite.store.remove(KEY);
+  $("saveNote").hidden = true;
+  render();
+});
+
+FIELDS.forEach(id => $(id).addEventListener("input", () => { save(); render(); }));
+
+Suite.liveRegion($("stats"));
+Suite.liveRegion($("zoneMethod"));
+
+loadState();
+render();
+</script>
+</body>
+</html>

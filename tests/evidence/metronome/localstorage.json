@@ -1,0 +1,8 @@
+{
+  "note": "new-in-v2 tool — no v1 original; parity N/A",
+  "v2": {
+    "suite.metronome.v1": "{\"bpm\":144,\"meter\":\"3/4\",\"volume\":40}",
+    "suite.hub.recents": "[{\"id\":\"metronome\",\"t\":1785435597341}]",
+    "suite.theme": "dark"
+  }
+}

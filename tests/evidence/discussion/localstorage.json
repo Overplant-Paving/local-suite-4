@@ -1,0 +1,12 @@
+{
+  "note": "new-in-v2 tool — no v1 original; parity N/A",
+  "v2": {
+    "suite.cache.discussion.point.40.713x-74.006": "{\"t\":1785435667994,\"v\":{\"properties\":{\"@id\":\"https://api.weather.gov/points/40.7128,-74.006\",\"cwa\":\"OKX\",\"gridId\":\"OKX\",\"gridX\":33,\"gridY\":35,\"forecas…(337 chars)",
+    "suite.hub.recents": "[{\"id\":\"discussion\",\"t\":1785435668002}]",
+    "suite.location": "{\"lat\":40.7128,\"lon\":-74.006,\"label\":\"New York, NY\"}",
+    "suite.cache.discussion.prod.4f6a8f3e-8e0f-4c9d-9a01-000000000001": "{\"t\":1785435667994,\"v\":{\"@context\":{\"@vocab\":\"https://api.weather.gov/ontology#\"},\"@id\":\"https://api.weather.gov/products/4f6a8f3e-8e0f-4c9d-9a01-0000…(1979 chars)",
+    "suite.cache.discussion.list.OKX": "{\"t\":1785435667994,\"v\":{\"@context\":{\"@vocab\":\"https://api.weather.gov/ontology#\"},\"@graph\":[{\"@id\":\"https://api.weather.gov/products/4f6a8f3e-8e0f-4c9…(1762 chars)",
+    "suite.cache.discussion.prod.4f6a8f3e-8e0f-4c9d-9a01-000000000002": "{\"t\":1785435667994,\"v\":{\"@context\":{\"@vocab\":\"https://api.weather.gov/ontology#\"},\"@id\":\"https://api.weather.gov/products/4f6a8f3e-8e0f-4c9d-9a01-0000…(825 chars)",
+    "suite.theme": "dark"
+  }
+}

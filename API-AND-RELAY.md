@@ -42,10 +42,19 @@ Never: paid APIs, APIs requiring OAuth, sources that demand tracking.
 | NASA `DEMO_KEY` | 30/hr, 50/day | apod, (nutrition via USDA demo) | 24 h TTL + "add your free key" nudge |
 | Overpass public | fair-use | nearby | long TTL + kumi.systems mirror fallback |
 | Nominatim | 1 req/s | geo | client-side throttle |
-| National Park Service | 1,000 req/rolling hr | parks | `X-Api-Key` header; tab-lazy endpoint groups; 2 h content TTL, longer reference/media TTLs; three unreliable services load only on demand |
+| National Park Service | 1,000 req/rolling hr | parks | `X-Api-Key` header; 30 d lightweight directory + separate 2 h selected detail; tab-lazy sequential endpoint groups; standard and Events pagination; 401/403 queue suppression; 429 cooldown/header display; large boundary GeoJSON only loads on demand |
 | ipapi.co | 1k/day | network | cache IP info per session |
 | Aviationstack free | 100/month | flight | 1 min cache; automatic refresh defaults off, stops on rate limit, and has an 80-request local monthly safety threshold |
-| Airplanes.live | 1 req/s documented | flight position fallback | query only one Aviationstack-resolved ICAO24 per user lookup; no local response cache (`no-store`) |
+| Airplanes.live | 1 req/s documented | flight position fallback, overhead | flight: one Aviationstack-resolved ICAO24 per lookup; overhead: one point query per manual refresh, auto-refresh ≥30 s and paused on hidden tabs |
+| NWS api.weather.gov (aviation surfaces) | fair-use | flight weather map, tropical, discussion | METARs 10 min TTL, SIGMETs 10 min, products 60 min; each panel shows its own stale stamp |
+| Open-Meteo | fair-use free tier | flight weather grid, weatherhistory (+ existing marine/air/normals) | one multi-point request per refresh (32 points), 5 min TTL; history cached 24 h |
+| USAspending.gov | fair-use, keyless | spending | 24 h TTL per agency/state view |
+| Datamuse | 100k/day keyless | rhymes | 7 d per-query cache |
+| Crossref | polite fair-use | cite | 7 d per-DOI cache; no user email is ever attached |
+| Google/Cloudflare DoH | fair-use | dns | 10 min per-query cache; two resolvers queried only on explicit lookup |
+| Internet Archive availability API | fair-use | wayback | 24 h per-URL cache |
+| World Bank API | fair-use, keyless | worldbank | 7 d per-indicator cache |
+| NASA Image Library | fair-use, keyless | nasaimages | 24 h per-search cache |
 
 ## 3. Key management
 

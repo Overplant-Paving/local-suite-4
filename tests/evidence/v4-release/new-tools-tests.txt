@@ -1,0 +1,52 @@
+installed Chrome not found; using Playwright Chromium for local verification
+evidence written to tests/evidence/calc/
+installed Chrome not found; using Playwright Chromium for local verification
+evidence written to tests/evidence/hash/
+installed Chrome not found; using Playwright Chromium for local verification
+evidence written to tests/evidence/checklists/
+installed Chrome not found; using Playwright Chromium for local verification
+evidence written to tests/evidence/image/
+installed Chrome not found; using Playwright Chromium for local verification
+evidence written to tests/evidence/ics/
+installed Chrome not found; using Playwright Chromium for local verification
+evidence written to tests/evidence/typing/
+installed Chrome not found; using Playwright Chromium for local verification
+evidence written to tests/evidence/metronome/
+installed Chrome not found; using Playwright Chromium for local verification
+evidence written to tests/evidence/periodic/
+installed Chrome not found; using Playwright Chromium for local verification
+evidence written to tests/evidence/body/
+installed Chrome not found; using Playwright Chromium for local verification
+evidence written to tests/evidence/savings/
+installed Chrome not found; using Playwright Chromium for local verification
+evidence written to tests/evidence/budget/
+installed Chrome not found; using Playwright Chromium for local verification
+evidence written to tests/evidence/recipes/
+installed Chrome not found; using Playwright Chromium for local verification
+evidence written to tests/evidence/fuellog/
+installed Chrome not found; using Playwright Chromium for local verification
+evidence written to tests/evidence/healthlog/
+installed Chrome not found; using Playwright Chromium for local verification
+evidence written to tests/evidence/skyevents/
+installed Chrome not found; using Playwright Chromium for local verification
+evidence written to tests/evidence/dns/
+installed Chrome not found; using Playwright Chromium for local verification
+evidence written to tests/evidence/overhead/
+installed Chrome not found; using Playwright Chromium for local verification
+evidence written to tests/evidence/spending/
+installed Chrome not found; using Playwright Chromium for local verification
+evidence written to tests/evidence/rhymes/
+installed Chrome not found; using Playwright Chromium for local verification
+evidence written to tests/evidence/cite/
+installed Chrome not found; using Playwright Chromium for local verification
+evidence written to tests/evidence/weatherhistory/
+installed Chrome not found; using Playwright Chromium for local verification
+evidence written to tests/evidence/tropical/
+installed Chrome not found; using Playwright Chromium for local verification
+evidence written to tests/evidence/discussion/
+installed Chrome not found; using Playwright Chromium for local verification
+evidence written to tests/evidence/nasaimages/
+installed Chrome not found; using Playwright Chromium for local verification
+evidence written to tests/evidence/worldbank/
+installed Chrome not found; using Playwright Chromium for local verification
+evidence written to tests/evidence/wayback/

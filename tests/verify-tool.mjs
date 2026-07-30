@@ -121,6 +121,7 @@ writeFileSync(join(EV, "computed-style-diff.txt"), styleReport);
 /* interaction pass on v2 (light theme), collecting console issues */
 const log = [];
 const { ctx, page, issues } = await newPage("light");
+if (mod.beforeGoto) await mod.beforeGoto({ page });
 await page.goto(v2Url);
 await page.waitForTimeout(400);
 await mod.interact({ page, log: s => log.push(s), evidenceDir: EV });

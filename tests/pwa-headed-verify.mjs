@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = join(ROOT, "dist");
 const PORT = 8032;
-const SCREENSHOT = process.argv[2] || join(ROOT, "tests", "evidence", "v3-release", "headed-installability.png");
+const SCREENSHOT = process.argv[2] || join(ROOT, "tests", "evidence", "v4-release", "headed-installability.png");
 const executable = process.env.CHROMIUM_EXECUTABLE || chromium.executablePath();
 const mime = {
   ".html": "text/html",
@@ -88,7 +88,7 @@ try {
   if (manifest.errors.some((e) => e.critical)) throw new Error("critical webmanifest error");
   if (installability.installabilityErrors.length) throw new Error("PWA is not installable");
   if (!state.serviceWorkerRegistered || !state.serviceWorkerControlsPage) throw new Error("service worker is not controlling the page");
-  if (!state.cacheNames.some((name) => name.startsWith("suite-v3-"))) throw new Error("v3 precache missing");
+  if (!state.cacheNames.some((name) => name.startsWith("suite-v4-"))) throw new Error("v4 precache missing");
   if (state.installPromptEvents < 1) throw new Error("beforeinstallprompt did not fire");
   if (errors.length) throw new Error("headed browser reported errors");
   console.log("HEADED INSTALLABILITY VERIFICATION OK");

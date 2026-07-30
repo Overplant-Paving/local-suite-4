@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Household Budget Planner · Local Suite</title>
+<link rel="stylesheet" href="../core/suite.css" data-suite-inline>
+<style>
+  /* tool accents: bucket palette (3-layer, same pattern as core).
+     Light values are AA as text on --card: need #2f6f6a 5.0:1, save #3a7d44 4.6:1,
+     over #b04545 5.5:1; want #7a5ea8 is used for bar fills + the swatch only. */
+  :root { --need: #2f6f6a; --want: #7a5ea8; --save: #3a7d44; --overc: #b04545; }
+  @media (prefers-color-scheme: dark) {
+    :root { --need: #6fb5ae; --want: #a891d0; --save: #7dc487; --overc: #e07a7a; }
+  }
+  :root[data-theme="light"] { --need: #2f6f6a; --want: #7a5ea8; --save: #3a7d44; --overc: #b04545; }
+  :root[data-theme="dark"] { --need: #6fb5ae; --want: #a891d0; --save: #7dc487; --overc: #e07a7a; }
+
+  body { padding: 1.4rem 1.25rem 4rem; }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  .topbar { display: flex; align-items: center; gap: 1rem; }
+  .topbar .theme-btn, .topbar .fav-btn { float: none; }
+  .topbar .theme-btn { margin-left: auto; }
+  header { margin: 1rem 0 1.2rem; }
+  h1 { font-size: 1.8rem; letter-spacing: -.02em; }
+  .tag { color: var(--muted); margin-top: .35rem; max-width: 48rem; }
+
+  .card { margin-bottom: 1.2rem; }
+  .card h2 { font-size: .82rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+  .btn { border: 1px solid var(--accent); background: var(--accent); color: var(--bg); border-radius: 9px; padding: .5rem .9rem; cursor: pointer; font-size: .92rem; }
+  .btn.ghost { background: var(--card); color: var(--accent); }
+  .btn:hover { filter: brightness(1.05); }
+  .small { font-size: .82rem; }
+  .muted { color: var(--muted); }
+  .hidden { display: none; }
+
+  /* income */
+  .inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: .9rem; }
+  .field label { display: block; font-size: .78rem; color: var(--muted); margin-bottom: .3rem; }
+  .field .in { display: flex; align-items: center; border: 1px solid var(--line); border-radius: 9px; background: var(--bg); }
+  .field .in span { padding: 0 .55rem; color: var(--muted); font-size: .9rem; }
+  .field .in input { flex: 1; width: 100%; min-width: 0; padding: .5rem .6rem .5rem 0; font-size: .95rem; color: var(--ink); border: 0; background: transparent; outline: none; }
+  .field .in:focus-within { border-color: var(--accent); outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  /* summary stats */
+  .stats { display: flex; gap: 1.8rem; flex-wrap: wrap; }
+  .stat b { font-size: 1.5rem; display: block; line-height: 1.15; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .stat span { font-size: .74rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .stat b.ok { color: var(--save); }
+  .stat b.over { color: var(--overc); }
+  .over-note { color: var(--overc); background: color-mix(in srgb, var(--overc) 12%, transparent); border-radius: 10px; padding: .7rem .9rem; font-size: .92rem; }
+
+  /* category rows */
+  .cathead, .catrow { display: grid; grid-template-columns: minmax(0, 1fr) 7.5rem 10rem 2.2rem; gap: .35rem .6rem; align-items: center; }
+  .cathead { color: var(--muted); font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; padding: 0 .1rem; }
+  .catrow { padding: .5rem .1rem .6rem; border-bottom: 1px solid var(--line); grid-template-areas: "name amt tag del" "share share share share"; }
+  .catrow:last-of-type { border-bottom: 0; }
+  .c-name { grid-area: name; min-width: 0; padding: .45rem .6rem; font-size: .93rem; color: var(--ink); border: 1px solid var(--line); border-radius: 8px; background: var(--bg); outline: none; font-family: inherit; }
+  .c-in { grid-area: amt; display: flex; align-items: center; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
+  .c-in span { padding: 0 .1rem 0 .5rem; color: var(--muted); font-size: .88rem; }
+  .c-in input { flex: 1; width: 100%; min-width: 0; padding: .45rem .4rem; font-size: .93rem; color: var(--ink); border: 0; background: transparent; outline: none; font-variant-numeric: tabular-nums; }
+  .c-in:focus-within { border-color: var(--accent); outline: 2px solid var(--accent); outline-offset: 1px; }
+  .c-name:focus-visible { border-color: var(--accent); }
+  .c-tag { grid-area: tag; padding: .45rem .4rem; font-size: .88rem; color: var(--ink); border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
+  .c-del { grid-area: del; border: 1px solid var(--line); background: var(--bg); color: var(--muted); border-radius: 7px; padding: .3rem 0; cursor: pointer; font-size: .85rem; line-height: 1.2; }
+  .c-del:hover { color: var(--overc); border-color: var(--overc); }
+  .c-share { grid-area: share; display: flex; align-items: center; gap: .6rem; }
+  .c-share .c-pct { font-size: .74rem; color: var(--muted); white-space: nowrap; min-width: 7.5rem; font-variant-numeric: tabular-nums; }
+
+  /* bars (shared by rows and the 50/30/20 panel) */
+  .track { position: relative; flex: 1; height: 6px; background: var(--chip); border-radius: 4px; }
+  .track .fill { display: block; height: 100%; width: 0; border-radius: 4px; background: var(--accent); }
+  .track.big { height: 12px; border-radius: 6px; flex: none; }
+  .track.big .fill { border-radius: 6px; }
+  .track .guide { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--ink); opacity: .55; border-radius: 1px; }
+  [data-tag="need"] .fill, [data-tag="need"] .sw { background: var(--need); }
+  [data-tag="want"] .fill, [data-tag="want"] .sw { background: var(--want); }
+  [data-tag="savings"] .fill, [data-tag="savings"] .sw { background: var(--save); }
+
+  .rowbar { display: flex; gap: .6rem; align-items: center; margin-top: .5rem; flex-wrap: wrap; }
+
+  /* 50/30/20 panel */
+  .split-row { margin-top: .2rem; }
+  .split-head { display: flex; align-items: baseline; gap: .5rem; }
+  .split-head .sw { width: .75rem; height: .75rem; border-radius: 3px; align-self: center; flex: none; }
+  .split-name { font-weight: 600; font-size: .95rem; }
+  .split-val { margin-left: auto; font-size: .88rem; color: var(--muted); font-variant-numeric: tabular-nums; text-align: right; }
+  .split-row .track { margin-top: .35rem; }
+  .verdict { padding: .8rem 1rem; border-radius: 10px; background: var(--accent-soft); color: var(--accent); font-size: .95rem; }
+
+  @media (max-width: 640px) {
+    .cathead { display: none; }
+    .cathead, .catrow { grid-template-columns: minmax(0, 1fr) minmax(0, 9rem) 2.2rem; }
+    .catrow { grid-template-areas: "name name del" "amt tag tag" "share share share"; }
+    .stats { gap: 1.1rem 1.4rem; }
+    .stat b { font-size: 1.25rem; }
+  }
+  footer { font-size: .82rem; padding-top: 1rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="index.html">← suite</a>
+    <button class="theme-btn" id="themeBtn" title="Toggle light/dark">◐ theme</button>
+  </div>
+  <header>
+    <h1>Household Budget Planner</h1>
+    <p class="tag">Plan a month's take-home pay against categorized spending, check yourself against the 50/30/20 guideline, and keep every number on this machine.</p>
+  </header>
+
+  <div class="card">
+    <h2>Monthly take-home income</h2>
+    <div class="inputs">
+      <div class="field"><label for="inc1">Your take-home pay / month</label>
+        <div class="in"><span>$</span><input type="number" id="inc1" min="0" step="50" inputmode="numeric" placeholder="0"></div></div>
+      <div class="field"><label for="inc2">Second earner (optional)</label>
+        <div class="in"><span>$</span><input type="number" id="inc2" min="0" step="50" inputmode="numeric" placeholder="0"></div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats">
+      <div class="stat"><b id="statIncome">$0</b><span>Income / month</span></div>
+      <div class="stat"><b id="statPlanned">$0</b><span>Total planned</span></div>
+      <div class="stat"><b id="statRemaining" class="ok">$0</b><span>Remaining unallocated</span></div>
+    </div>
+    <p class="over-note hidden" id="overNote"></p>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.6rem">
+      <h2 style="margin:0">Categories</h2>
+      <button class="btn" id="addCat">+ Add category</button>
+    </div>
+    <div class="cathead" aria-hidden="true"><span>Category</span><span>Planned / mo</span><span>Tag</span><span></span></div>
+    <div id="catList"></div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin-top:.6rem">
+      <button class="btn ghost" id="exportBtn">Export JSON</button>
+      <button class="btn ghost" id="importBtn">Import JSON</button>
+      <input type="file" id="importFile" accept=".json,application/json" class="hidden" aria-label="Budget JSON file to import">
+      <button class="btn ghost" id="resetBtn">Reset to starter</button>
+      <span class="small muted" id="ioStatus"></span>
+      <span class="small" id="saveNote" style="color:var(--overc)"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>50/30/20 check</h2>
+    <div class="split-row" data-tag="need">
+      <div class="split-head"><i class="sw" aria-hidden="true"></i><span class="split-name">Needs</span><span class="split-val" id="valNeed">—</span></div>
+      <div class="track big" aria-hidden="true"><i class="fill" id="fillNeed"></i><b class="guide" style="left:50%"></b></div>
+    </div>
+    <div class="split-row" data-tag="want">
+      <div class="split-head"><i class="sw" aria-hidden="true"></i><span class="split-name">Wants</span><span class="split-val" id="valWant">—</span></div>
+      <div class="track big" aria-hidden="true"><i class="fill" id="fillWant"></i><b class="guide" style="left:30%"></b></div>
+    </div>
+    <div class="split-row" data-tag="savings">
+      <div class="split-head"><i class="sw" aria-hidden="true"></i><span class="split-name">Savings &amp; debt</span><span class="split-val" id="valSave">—</span></div>
+      <div class="track big" aria-hidden="true"><i class="fill" id="fillSave"></i><b class="guide" style="left:20%"></b></div>
+    </div>
+    <p class="small muted" id="unalloc"></p>
+    <p class="verdict" id="verdict"></p>
+    <p class="small muted">The 50/30/20 split — 50% of take-home pay to needs, 30% to wants, 20% to savings &amp; debt — is a rule of thumb popularized by Elizabeth Warren, not a law; real budgets vary by city, season, and stage of life. The tick mark on each bar is the guideline.</p>
+  </div>
+
+  <footer>No network — your income and budget stay in this browser's storage (<code>suite.budget.v1</code>). Estimates only, not financial advice.</footer>
+</div>
+
+<script src="../core/suite.js" data-suite-inline></script>
+<script>
+"use strict";
+
+Suite.theme.init();
+
+const $ = id => document.getElementById(id);
+const KEY = "suite.budget.v1";
+const TAGS = ["need", "want", "savings"];
+const TAG_LABEL = { need: "Need", want: "Want", savings: "Savings & debt" };
+/* starter categories, tagged per the 50/30/20 buckets (debt payments count in
+   the 20% "savings & debt" bucket, per the rule as popularized) */
+const STARTER = [
+  ["Housing", "need"], ["Utilities", "need"], ["Groceries", "need"],
+  ["Transportation", "need"], ["Insurance", "need"], ["Health", "need"],
+  ["Debt payments", "savings"], ["Savings", "savings"],
+  ["Dining & fun", "want"], ["Subscriptions", "want"], ["Misc", "want"]
+];
+
+/* whole dollars via toLocaleString */
+const fmt$ = n => (n < 0 ? "-$" : "$") + Math.abs(Math.round(n)).toLocaleString("en-US");
+/* percentages to at most one decimal (50, 27.5) */
+const fmtPct = p => String(Math.round(p * 10) / 10);
+const money = v => Math.max(0, Math.round(Number(v) || 0));
+
+/* ---- state ---- */
+function starterState() {
+  return { income1: 0, income2: 0, cats: STARTER.map(([name, tag]) => ({ name, amt: 0, tag })) };
+}
+function normalize(raw) {
+  if (!raw || typeof raw !== "object" || !Array.isArray(raw.cats)) return null;
+  return {
+    income1: money(raw.income1),
+    income2: money(raw.income2),
+    cats: raw.cats.map(c => ({
+      name: String((c && c.name) || "").slice(0, 40),
+      amt: money(c && c.amt),
+      tag: TAGS.includes(c && c.tag) ? c.tag : "want"
+    }))
+  };
+}
+let st = normalize(Suite.store.get(KEY)) || starterState();
+
+function save() {
+  const ok = Suite.store.set(KEY, st);
+  $("saveNote").textContent = ok ? "" :
+    "Couldn't save — this browser's storage is full, so changes may not survive a reload.";
+}
+
+/* ---- category rows (DOM built with createElement + value props; no user data
+        ever passes through innerHTML) ---- */
+let rowEls = [];   // kept aligned with st.cats by renderRows()
+
+function buildRow(cat) {
+  const row = document.createElement("div");
+  row.className = "catrow";
+  row.dataset.tag = cat.tag;
+  row.innerHTML = `
+    <input class="c-name" type="text" maxlength="40" placeholder="Category name">
+    <div class="c-in"><span aria-hidden="true">$</span><input class="c-amt" type="number" min="0" step="10" inputmode="numeric" placeholder="0"></div>
+    <select class="c-tag">
+      <option value="need">Need</option>
+      <option value="want">Want</option>
+      <option value="savings">Savings &amp; debt</option>
+    </select>
+    <button class="c-del" type="button">✕</button>
+    <div class="c-share"><span class="c-pct"></span><div class="track" aria-hidden="true"><i class="fill"></i></div></div>`;
+  const nameIn = row.querySelector(".c-name");
+  const amtIn = row.querySelector(".c-amt");
+  const tagSel = row.querySelector(".c-tag");
+  const delBtn = row.querySelector(".c-del");
+  nameIn.value = cat.name;
+  amtIn.value = cat.amt > 0 ? cat.amt : "";
+  tagSel.value = cat.tag;
+  const relabel = () => {
+    const n = cat.name.trim() || "unnamed category";
+    nameIn.setAttribute("aria-label", "Category name");
+    amtIn.setAttribute("aria-label", "Planned monthly amount for " + n);
+    tagSel.setAttribute("aria-label", "Need, want, or savings tag for " + n);
+    delBtn.setAttribute("aria-label", "Delete " + n);
+  };
+  relabel();
+  nameIn.addEventListener("input", () => { cat.name = nameIn.value.slice(0, 40); relabel(); save(); });
+  amtIn.addEventListener("input", () => { cat.amt = money(amtIn.value); save(); recompute(); });
+  tagSel.addEventListener("change", () => { cat.tag = tagSel.value; row.dataset.tag = cat.tag; save(); recompute(); });
+  delBtn.addEventListener("click", () => {
+    const i = st.cats.indexOf(cat);
+    if (i >= 0) { st.cats.splice(i, 1); save(); renderRows(); recompute(); }
+  });
+  return row;
+}
+
+function renderRows(focusLast) {
+  const list = $("catList");
+  list.textContent = "";
+  rowEls = st.cats.map(cat => buildRow(cat));
+  rowEls.forEach(r => list.append(r));
+  if (focusLast && rowEls.length) rowEls[rowEls.length - 1].querySelector(".c-name").focus();
+}
+
+/* ---- live math ---- */
+function recompute() {
+  const income = st.income1 + st.income2;
+  let planned = 0;
+  const buckets = { need: 0, want: 0, savings: 0 };
+  st.cats.forEach(c => { planned += c.amt; buckets[c.tag] += c.amt; });
+  const remaining = income - planned;
+
+  $("statIncome").textContent = fmt$(income);
+  $("statPlanned").textContent = fmt$(planned);
+  const rem = $("statRemaining");
+  rem.textContent = fmt$(remaining);
+  rem.classList.toggle("ok", remaining >= 0);
+  rem.classList.toggle("over", remaining < 0);
+  const over = $("overNote");
+  over.classList.toggle("hidden", remaining >= 0);
+  over.textContent = remaining < 0
+    ? "You've planned " + fmt$(-remaining) + " more than you bring in — trim a category or add income."
+    : "";
+
+  /* per-category share-of-income bars */
+  rowEls.forEach((row, i) => {
+    const c = st.cats[i];
+    const pct = income > 0 ? c.amt / income * 100 : 0;
+    row.querySelector(".fill").style.width = Math.min(100, pct) + "%";
+    row.querySelector(".c-pct").textContent =
+      income > 0 ? fmtPct(pct) + "% of income" : (c.amt > 0 ? "add income to see shares" : "");
+  });
+
+  /* 50/30/20 panel */
+  const parts = [["need", "valNeed", "fillNeed", 50], ["want", "valWant", "fillWant", 30], ["savings", "valSave", "fillSave", 20]];
+  const pcts = {};
+  parts.forEach(([tag, valId, fillId, guide]) => {
+    const amt = buckets[tag];
+    const pct = income > 0 ? amt / income * 100 : 0;
+    pcts[tag] = pct;
+    $(fillId).style.width = Math.min(100, pct) + "%";
+    $(valId).textContent = income > 0
+      ? fmtPct(pct) + "% · " + fmt$(amt) + " — guideline " + guide + "%"
+      : fmt$(amt) + " — guideline " + guide + "%";
+  });
+
+  const un = $("unalloc");
+  if (income <= 0) un.textContent = "Shares appear once income is set.";
+  else if (remaining > 0) un.textContent = "Unallocated: " + fmtPct(remaining / income * 100) + "% of income (" + fmt$(remaining) + ").";
+  else if (remaining === 0 && planned > 0) un.textContent = "Every dollar of income is allocated.";
+  else un.textContent = "";
+
+  $("verdict").textContent = verdictText(income, pcts.need, pcts.want, pcts.savings);
+}
+
+function verdictText(income, pN, pW, pS) {
+  if (income <= 0) return "Enter your monthly take-home income to compare your plan against the guideline.";
+  const dN = pN - 50, dW = pW - 30, dS = pS - 20;
+  if (Math.abs(dN) <= 5 && Math.abs(dW) <= 5 && Math.abs(dS) <= 5)
+    return "Your plan lands close to the 50/30/20 guideline — a balanced starting point.";
+  const [tag, d] = [["need", dN], ["want", dW], ["savings", dS]]
+    .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))[0];
+  if (tag === "need") return d > 0
+    ? "Needs take " + fmtPct(pN) + "% of income, above the 50% guideline — common in high-cost areas, but it squeezes the other buckets."
+    : "Needs take only " + fmtPct(pN) + "% of income, under the 50% guideline — that leaves room for wants and savings.";
+  if (tag === "want") return d > 0
+    ? "Wants take " + fmtPct(pW) + "% of income, above the 30% guideline — usually the easiest bucket to trim."
+    : "Wants take " + fmtPct(pW) + "% of income, under the 30% guideline — you're spending lean.";
+  return d < 0
+    ? "Savings & debt get " + fmtPct(pS) + "% of income, under the 20% guideline — even a small automatic transfer moves this."
+    : "Savings & debt get " + fmtPct(pS) + "% of income, above the 20% guideline — you're ahead of the rule.";
+}
+
+/* ---- income inputs ---- */
+[["inc1", "income1"], ["inc2", "income2"]].forEach(([id, prop]) => {
+  $(id).addEventListener("input", () => { st[prop] = money($(id).value); save(); recompute(); });
+});
+
+/* ---- add / reset / export / import ---- */
+$("addCat").addEventListener("click", () => {
+  st.cats.push({ name: "", amt: 0, tag: "want" });
+  save(); renderRows(true); recompute();
+});
+
+$("resetBtn").addEventListener("click", () => {
+  if (!confirm("Reset to the starter categories? Your amounts and income will be cleared.")) return;
+  st = starterState();
+  $("inc1").value = ""; $("inc2").value = "";
+  save(); renderRows(); recompute();
+  $("ioStatus").textContent = "Reset to the starter categories.";
+});
+
+$("exportBtn").addEventListener("click", () => {
+  const payload = { version: 1, exported: new Date().toISOString(),
+    income1: st.income1, income2: st.income2, cats: st.cats };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "household-budget.json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+  $("ioStatus").textContent = "Exported household-budget.json.";
+});
+
+$("importBtn").addEventListener("click", () => $("importFile").click());
+$("importFile").addEventListener("change", e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    let next = null;
+    try { next = normalize(JSON.parse(r.result)); } catch (err) { next = null; }
+    if (next) {
+      st = next;
+      $("inc1").value = st.income1 > 0 ? st.income1 : "";
+      $("inc2").value = st.income2 > 0 ? st.income2 : "";
+      save(); renderRows(); recompute();
+      $("ioStatus").textContent = "Imported budget — " + st.cats.length +
+        " categor" + (st.cats.length === 1 ? "y" : "ies") + ".";
+    } else {
+      $("ioStatus").textContent = "Couldn't read that file — expected a budget JSON export.";
+    }
+    e.target.value = "";
+  };
+  r.readAsText(f);
+});
+
+/* ---- a11y: announce recomputed results to screen readers ---- */
+Suite.liveRegion($("stats"));
+Suite.liveRegion($("verdict"));
+Suite.liveRegion($("ioStatus"));
+
+/* ---- init ---- */
+$("inc1").value = st.income1 > 0 ? st.income1 : "";
+$("inc2").value = st.income2 > 0 ? st.income2 : "";
+renderRows();
+recompute();
+</script>
+</body>
+</html>

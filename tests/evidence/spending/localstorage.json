@@ -1,0 +1,11 @@
+{
+  "note": "new-in-v2 tool — no v1 original; parity N/A",
+  "v2": {
+    "suite.state": "CA",
+    "suite.cache.spending.state.06": "{\"t\":1785435645792,\"v\":{\"name\":\"California\",\"code\":\"CA\",\"fips\":\"06\",\"type\":\"state\",\"population\":39536653,\"pop_year\":2017,\"pop_source\":\"U.S. Census Bur…(534 chars)",
+    "suite.hub.recents": "[{\"id\":\"spending\",\"t\":1785435645804}]",
+    "suite.cache.spending.state.56": "{\"t\":1785435645792,\"v\":{\"name\":\"Wyoming\",\"code\":\"WY\",\"fips\":\"56\",\"type\":\"state\",\"population\":null,\"pop_year\":null,\"pop_source\":null,\"median_household_…(389 chars)",
+    "suite.cache.spending.agencies": "{\"t\":1785435645793,\"v\":{\"results\":[{\"agency_id\":0,\"toptier_code\":\"028\",\"abbreviation\":\"SSA\",\"agency_name\":\"Social Security Administration\",\"congressio…(7691 chars)",
+    "suite.theme": "dark"
+  }
+}

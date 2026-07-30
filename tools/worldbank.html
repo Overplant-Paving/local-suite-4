@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Country Indicator Trends · Local Suite</title>
+<link rel="stylesheet" href="../core/suite.css" data-suite-inline>
+<style>
+  body { padding: 1.4rem 1.25rem 4rem; }
+  .wrap { max-width: 960px; margin: 0 auto; }
+  .topbar { display: flex; align-items: center; gap: 1rem; }
+  .topbar .theme-btn, .topbar .fav-btn { float: none; }
+  .topbar .theme-btn { margin-left: auto; }
+  header { margin: 1rem 0 1.2rem; }
+  h1 { font-size: 1.8rem; letter-spacing: -.02em; }
+  .tag { color: var(--muted); margin-top: .35rem; max-width: 48rem; }
+
+  /* compare-series + error accents, both palettes (AA-checked against --card) */
+  :root { --cmp: #a3562f; --err: #a14842; }
+  @media (prefers-color-scheme: dark) { :root { --cmp: #d9a05b; --err: #e08b84; } }
+  :root[data-theme="light"] { --cmp: #a3562f; --err: #a14842; }
+  :root[data-theme="dark"]  { --cmp: #d9a05b; --err: #e08b84; }
+
+  .picker { background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 1rem 1.1rem; box-shadow: var(--shadow); }
+  .row { display: flex; gap: 1rem; flex-wrap: wrap; }
+  .field { flex: 1 1 240px; min-width: 0; }
+  .field label { display: block; font-size: .74rem; text-transform: uppercase;
+    letter-spacing: .07em; color: var(--muted); margin-bottom: .3rem; }
+  .field input { width: 100%; padding: .6rem .8rem; border: 1px solid var(--line);
+    border-radius: 10px; background: var(--bg); color: var(--ink); font: inherit; }
+  .cmpline { display: flex; gap: .5rem; align-items: center; }
+  .cmpline input { flex: 1; min-width: 0; }
+  .cmpline button { border: 1px solid var(--line); background: var(--chip); color: var(--ink);
+    border-radius: 10px; padding: .55rem .8rem; font: inherit; font-size: .9rem; cursor: pointer; }
+  .cmpline button:disabled { opacity: .45; cursor: default; }
+  #pickNote { color: var(--err); font-size: .87rem; margin-top: .5rem; min-height: 0; }
+  #status { color: var(--muted); font-size: .87rem; margin-top: .6rem; }
+
+  #cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+    gap: 1rem; margin-top: 1.2rem; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 1rem 1.1rem; box-shadow: var(--shadow); display: block; min-width: 0; }
+  .ind-head { display: flex; align-items: baseline; gap: .5rem; flex-wrap: wrap; }
+  .card h2 { font-size: 1.02rem; letter-spacing: -.01em; }
+  .unit { color: var(--muted); font-size: .78rem; }
+  .serie { margin-top: .75rem; min-width: 0; }
+  .legend { display: flex; align-items: baseline; gap: .45rem; flex-wrap: wrap; }
+  .dot { width: .6rem; height: .6rem; border-radius: 50%; background: var(--accent);
+    align-self: center; flex: none; }
+  .serie.b .dot { background: var(--cmp); }
+  .cname { color: var(--muted); font-size: .84rem; min-width: 0; overflow-wrap: anywhere; }
+  .val { font-size: 1.35rem; font-weight: 650; letter-spacing: -.01em; }
+  .yr { color: var(--muted); font-size: .85rem; } /* WB data lags — the year is part of the truth */
+  svg.spark { display: block; width: 100%; height: 44px; margin: .45rem 0 .15rem; }
+  .sline { fill: none; stroke: var(--accent); stroke-width: 1.6; }
+  .serie.b .sline { stroke: var(--cmp); }
+  .delta { font-size: .82rem; color: var(--muted); }
+  .nodata { color: var(--muted); font-style: italic; font-size: .9rem; margin-top: .35rem; }
+  .loadingp { color: var(--muted); font-size: .9rem; margin-top: .6rem; }
+  .stale-note { color: var(--muted); border: 1px dashed var(--line); border-radius: 8px;
+    padding: .3rem .55rem; font-size: .78rem; margin-top: .45rem; display: inline-block; }
+  .errbox { border: 1px solid var(--line); border-left: 3px solid var(--err);
+    border-radius: 10px; padding: .55rem .7rem; margin-top: .45rem; font-size: .88rem; }
+  .errbox.global { margin-top: 1.2rem; padding: 1rem 1.1rem; background: var(--card); }
+  .errbox p { margin: 0; }
+  .retry { margin-top: .5rem; border: 1px solid var(--line); background: var(--chip);
+    color: var(--ink); border-radius: 8px; padding: .3rem .75rem; cursor: pointer;
+    font: inherit; font-size: .85rem; }
+  input:focus-visible, button:focus-visible, a:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px; }
+  footer a { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="index.html">← suite</a>
+    <button class="theme-btn" id="themeBtn" title="Toggle light/dark">◐ theme</button>
+  </div>
+  <header>
+    <h1>Country Indicator Trends</h1>
+    <p class="tag">GDP, population, life expectancy and more for any country — thirty years of
+      World Bank open data as sparkline trends, with the reporting year on every figure.</p>
+  </header>
+
+  <div class="picker">
+    <div class="row">
+      <div class="field">
+        <label for="c1">Country</label>
+        <input id="c1" list="countryList" autocomplete="off" spellcheck="false"
+          placeholder="Type a country name or ISO code…">
+      </div>
+      <div class="field">
+        <label for="c2">Compare with</label>
+        <div class="cmpline">
+          <input id="c2" list="countryList" autocomplete="off" spellcheck="false"
+            placeholder="none — type a second country">
+          <button id="clearCmp" type="button" aria-label="Clear comparison country" disabled>× clear</button>
+        </div>
+      </div>
+    </div>
+    <datalist id="countryList"></datalist>
+    <p id="pickNote"></p>
+    <p id="status">Loading the country list…</p>
+  </div>
+
+  <div id="cards"></div>
+
+  <footer>Data: <a href="https://data.worldbank.org/" target="_blank" rel="noopener">World Bank
+    Open Data</a> (CC BY-4.0), fetched keylessly from api.worldbank.org and cached in this browser
+    for 7 days. World Bank figures lag by one to two years — every value above is shown with the
+    year it was reported for, not today's date.</footer>
+</div>
+
+<script src="../core/suite.js" data-suite-inline></script>
+<script>
+"use strict";
+Suite.theme.init();
+
+/* World Bank API v2 (verified live 2026-07-30, ACAO: *):
+   every JSON response is a [meta, rows] pair; indicator rows are newest-first
+   objects {date: "2024", value: <number|null>, ...} and mrv=30 asks for the 30
+   most recent values. /v2/country marks aggregate rows (regions, income groups)
+   with region.id === "NA" — only real countries are kept here. */
+const API = "https://api.worldbank.org";
+const TTL_IND = 7 * 24 * 60 * 60 * 1000;         /* manifest cacheTtlMin 10080 = 7 days */
+const TTL_COUNTRIES = 30 * 24 * 60 * 60 * 1000;  /* the country list barely changes */
+
+/* Fixed indicator set — honest World Bank names and units. */
+const INDICATORS = [
+  { code: "NY.GDP.MKTP.CD",    name: "GDP",                        unit: "current US$",     kind: "usd" },
+  { code: "NY.GDP.PCAP.CD",    name: "GDP per capita",             unit: "current US$",     kind: "usdExact" },
+  { code: "SP.POP.TOTL",       name: "Population",                 unit: "total people",    kind: "count" },
+  { code: "SP.DYN.LE00.IN",    name: "Life expectancy at birth",   unit: "years",           kind: "years" },
+  { code: "FP.CPI.TOTL.ZG",    name: "Inflation, consumer prices", unit: "annual %",        kind: "pct" },
+  { code: "IT.NET.USER.ZS",    name: "Internet users",             unit: "% of population", kind: "pct" },
+  { code: "SP.URB.TOTL.IN.ZS", name: "Urban population",           unit: "% of total",      kind: "pct" }
+];
+
+const $ = id => document.getElementById(id);
+function el(tag, cls, text) {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text != null) n.textContent = text;
+  return n;
+}
+
+const statusEl = Suite.liveRegion($("status"));
+const noteEl = Suite.liveRegion($("pickNote"));
+const cardsEl = Suite.liveRegion($("cards"));
+
+let countries = [];
+let primary = null;
+let compare = null;
+let seq = 0;                 /* in-flight guard: a country switch obsoletes older loads */
+let countriesStaleAt = null;
+
+/* ---- formatting: $26.9T · 334M · 79.2 years · 4.1% ---- */
+function fmtTrim(x) {
+  const a = Math.abs(x);
+  const dp = a >= 100 ? 0 : a >= 10 ? 1 : 2;
+  return x.toLocaleString("en-US", { maximumFractionDigits: dp });
+}
+function fmtAbbrev(n) {
+  const a = Math.abs(n);
+  if (a >= 1e12) return fmtTrim(n / 1e12) + "T";
+  if (a >= 1e9)  return fmtTrim(n / 1e9) + "B";
+  if (a >= 1e6)  return fmtTrim(n / 1e6) + "M";
+  if (a >= 1e3)  return fmtTrim(n / 1e3) + "K";
+  return fmtTrim(n);
+}
+function fmtValue(v, kind) {
+  switch (kind) {
+    case "usd":      return "$" + fmtAbbrev(v);
+    case "usdExact": return "$" + Math.round(v).toLocaleString("en-US");
+    case "count":    return fmtAbbrev(v);
+    case "years":    return v.toFixed(1) + " years";
+    default:         return v.toFixed(1) + "%";
+  }
+}
+/* Relative change over the shown span, oldest→newest non-null value. */
+function fmtDelta(first, latest) {
+  if (!first.v) return "Change n/a · " + first.year + "→" + latest.year;
+  const pct = (latest.v - first.v) / Math.abs(first.v) * 100;
+  return (pct >= 0 ? "+" : "") + pct.toFixed(1) + "% · " + first.year + "→" + latest.year;
+}
+
+/* [meta, rows] → [{year, v}] oldest-first, nulls skipped */
+function parseSeries(payload) {
+  const rows = Array.isArray(payload) && Array.isArray(payload[1]) ? payload[1] : [];
+  const pts = [];
+  for (const r of rows) {
+    const year = parseInt(r && r.date, 10);
+    const v = r ? r.value : null;
+    if (Number.isFinite(year) && typeof v === "number" && Number.isFinite(v)) pts.push({ year, v });
+  }
+  pts.sort((a, b) => a.year - b.year);
+  return pts;
+}
+
+/* Sparkline: x is proportional to the year across the card's shared span (so two
+   countries align in time); y is normalized per series — it shows each country's
+   own trend shape, not a shared scale. Nulls were already skipped. */
+function sparkline(pts, minYear, maxYear, ind, country) {
+  const NS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(NS, "svg");
+  svg.setAttribute("class", "spark");
+  svg.setAttribute("viewBox", "0 0 100 30");
+  svg.setAttribute("preserveAspectRatio", "none");
+  svg.setAttribute("role", "img");
+  svg.setAttribute("aria-label", ind.name + " trend for " + country.name + ", " +
+    pts[0].year + " to " + pts[pts.length - 1].year + " (" + pts.length + " yearly values)");
+  let lo = Infinity, hi = -Infinity;
+  for (const p of pts) { if (p.v < lo) lo = p.v; if (p.v > hi) hi = p.v; }
+  const spanX = Math.max(1, maxYear - minYear), spanY = hi - lo;
+  const d = pts.map((p, i) =>
+    (i ? "L" : "M") + (((p.year - minYear) / spanX) * 100).toFixed(2) + " " +
+    (spanY ? 27 - ((p.v - lo) / spanY) * 24 : 15).toFixed(2)).join(" ");
+  const path = document.createElementNS(NS, "path");
+  path.setAttribute("class", "sline");
+  path.setAttribute("d", d);
+  path.setAttribute("vector-effect", "non-scaling-stroke");
+  svg.appendChild(path);
+  return svg;
+}
+
+function fetchSeries(c, ind) {
+  return Suite.fetchJSON(
+    API + "/v2/country/" + c.iso3 + "/indicator/" + ind.code + "?format=json&mrv=30",
+    { cacheKey: "worldbank." + c.iso3 + "." + ind.code, ttl: TTL_IND, tries: 2, timeout: 12000 });
+}
+
+function errBox(err, ind, country) {
+  const box = el("div", "errbox");
+  const msg = String((err && err.message) || err);
+  box.appendChild(el("p", null,
+    /429/.test(msg)
+      ? "Rate-limited by the World Bank API (HTTP 429) — wait a minute and retry."
+      : /HTTP \d+/.test(msg)
+        ? "The World Bank API answered " + msg.match(/HTTP \d+/)[0] + " and nothing is cached yet."
+        : "Couldn't reach the World Bank API — " + msg + "."));
+  const b = el("button", "retry", "Retry");
+  b.type = "button";
+  b.setAttribute("aria-label", "Retry " + ind.name + " for " + country.name);
+  b.addEventListener("click", () => { loadCard(ind, seq); });
+  box.appendChild(b);
+  return box;
+}
+
+function renderCard(card, ind, entries) {
+  const body = card.querySelector(".ind-body");
+  body.textContent = "";
+  /* shared x-domain so both countries' sparklines align in time */
+  let minYear = Infinity, maxYear = -Infinity;
+  const parsed = entries.map(e => {
+    const pts = e.result.status === "fulfilled" ? parseSeries(e.result.value.v) : [];
+    for (const p of pts) { if (p.year < minYear) minYear = p.year; if (p.year > maxYear) maxYear = p.year; }
+    return pts;
+  });
+  entries.forEach((e, i) => {
+    const s = el("div", "serie" + (i ? " b" : ""));
+    const legend = el("div", "legend");
+    legend.appendChild(el("span", "dot"));
+    legend.appendChild(el("span", "cname", e.country.name));
+    if (e.result.status === "rejected") {
+      s.appendChild(legend);
+      s.appendChild(errBox(e.result.reason, ind, e.country));
+      body.appendChild(s);
+      return;
+    }
+    const env = e.result.value, pts = parsed[i];
+    if (!pts.length) {
+      s.appendChild(legend);
+      s.appendChild(el("p", "nodata", "No data reported to the World Bank."));
+    } else {
+      const latest = pts[pts.length - 1];
+      legend.appendChild(el("span", "val", fmtValue(latest.v, ind.kind)));
+      legend.appendChild(el("span", "yr", String(latest.year)));
+      s.appendChild(legend);
+      if (pts.length >= 2) {
+        s.appendChild(sparkline(pts, minYear, maxYear, ind, e.country));
+        s.appendChild(el("div", "delta", fmtDelta(pts[0], latest)));
+      } else {
+        s.appendChild(el("div", "delta", "Only one year reported — no trend to draw."));
+      }
+    }
+    if (env.stale) {
+      s.appendChild(el("div", "stale-note",
+        "Offline — cached from " + new Date(env.t).toLocaleString()));
+    }
+    body.appendChild(s);
+  });
+}
+
+async function loadCard(ind, mySeq) {
+  const card = cardsEl.querySelector('.card[data-code="' + ind.code + '"]');
+  if (!card) return;
+  const body = card.querySelector(".ind-body");
+  body.textContent = "";
+  body.appendChild(el("p", "loadingp", "Loading…"));
+  const who = compare ? [primary, compare] : [primary];
+  const results = await Promise.allSettled(who.map(c => fetchSeries(c, ind)));
+  if (mySeq !== seq) return; /* the selection changed while this was in flight */
+  renderCard(card, ind, who.map((c, i) => ({ country: c, result: results[i] })));
+}
+
+function buildCards() {
+  cardsEl.textContent = "";
+  for (const ind of INDICATORS) {
+    const card = el("div", "card");
+    card.dataset.code = ind.code;
+    const head = el("div", "ind-head");
+    head.appendChild(el("h2", null, ind.name));
+    head.appendChild(el("span", "unit", ind.unit));
+    card.appendChild(head);
+    const body = el("div", "ind-body");
+    body.appendChild(el("p", "loadingp", "Waiting for the country list…"));
+    card.appendChild(body);
+    cardsEl.appendChild(card);
+  }
+}
+
+function paintStatus() {
+  $("clearCmp").disabled = !compare;
+  if (!primary) return;
+  let s = primary.name + (compare ? " vs " + compare.name : "") +
+    " · latest reported year on every figure";
+  if (countriesStaleAt) {
+    s += " · offline: country list cached from " + new Date(countriesStaleAt).toLocaleDateString();
+  }
+  statusEl.textContent = s;
+}
+
+function loadAll() {
+  const mySeq = ++seq;
+  paintStatus();
+  for (const ind of INDICATORS) loadCard(ind, mySeq);
+}
+
+/* ---- country picking (input + datalist, matches name or ISO2/ISO3 code) ---- */
+function resolveCountry(txt) {
+  const t = String(txt || "").trim().toLowerCase();
+  if (!t) return null;
+  return countries.find(c => c.name.toLowerCase() === t ||
+    c.iso3.toLowerCase() === t || (c.iso2 || "").toLowerCase() === t) || null;
+}
+function note(msg) { noteEl.textContent = msg; }
+
+function commitPrimary() {
+  const r = resolveCountry($("c1").value);
+  if (!r) { note("No country matched “" + $("c1").value.trim() + "” — pick a name from the list."); return; }
+  note("");
+  if (primary && r.iso3 === primary.iso3) { $("c1").value = primary.name; return; }
+  primary = r;
+  $("c1").value = r.name;
+  loadAll();
+}
+function commitCompare() {
+  const raw = $("c2").value.trim();
+  if (!raw) { if (compare) { compare = null; loadAll(); } return; }
+  const r = resolveCountry(raw);
+  if (!r) { note("No country matched “" + raw + "” — pick a name from the list."); return; }
+  if (primary && r.iso3 === primary.iso3) {
+    note(r.name + " is already shown — pick a different country to compare."); return;
+  }
+  note("");
+  if (compare && compare.iso3 === r.iso3) { $("c2").value = compare.name; return; }
+  compare = r;
+  $("c2").value = r.name;
+  loadAll();
+}
+
+$("c1").addEventListener("change", commitPrimary);
+$("c2").addEventListener("change", commitCompare);
+$("c1").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); commitPrimary(); } });
+$("c2").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); commitCompare(); } });
+$("clearCmp").addEventListener("click", () => {
+  $("c2").value = "";
+  note("");
+  if (compare) { compare = null; loadAll(); }
+});
+
+function fillDatalist() {
+  const dl = $("countryList");
+  dl.textContent = "";
+  for (const c of countries) {
+    const o = document.createElement("option");
+    o.value = c.name;
+    dl.appendChild(o);
+  }
+}
+
+function globalError(err) {
+  const msg = String((err && err.message) || err);
+  statusEl.textContent = "Country list unavailable.";
+  cardsEl.textContent = "";
+  const box = el("div", "errbox global");
+  box.appendChild(el("p", null, "Couldn't load the World Bank country list (" + msg +
+    ") and nothing is cached yet. Check the connection, then retry."));
+  const b = el("button", "retry", "Retry");
+  b.type = "button";
+  b.id = "retryAll";
+  b.setAttribute("aria-label", "Retry loading the country list");
+  b.addEventListener("click", boot);
+  box.appendChild(b);
+  cardsEl.appendChild(box);
+}
+
+async function boot() {
+  buildCards();
+  statusEl.textContent = "Loading the country list…";
+  let env;
+  try {
+    env = await Suite.fetchJSON(API + "/v2/country?format=json&per_page=400",
+      { cacheKey: "worldbank.countries", ttl: TTL_COUNTRIES, tries: 2, timeout: 12000 });
+  } catch (err) { globalError(err); return; }
+  const rows = Array.isArray(env.v) && Array.isArray(env.v[1]) ? env.v[1] : [];
+  countries = rows
+    .filter(r => r && r.region && r.region.id !== "NA") /* region.id "NA" = aggregate row */
+    .map(r => ({ iso3: r.id, iso2: r.iso2Code, name: r.name }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+  if (!countries.length) { globalError(new Error("empty country list")); return; }
+  countriesStaleAt = env.stale ? env.t : null;
+  fillDatalist();
+  primary = countries.find(c => c.iso3 === "USA") || countries[0];
+  $("c1").value = primary.name;
+  loadAll();
+}
+
+boot();
+</script>
+</body>
+</html>

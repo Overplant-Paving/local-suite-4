@@ -1,0 +1,30 @@
+boot: date bounds min=1940-01-01 max=2026-07-25 (fixed clock 2026-07-30 − 5-day ERA5 lag), default=2026-07-25
+boot: place "Test Ridge, NY" chip="saved location"
+day URL params verified: ?latitude=40.7889&longitude=-73.9669&start_date=2019-07-15&end_date=2019-07-15&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,snowfall_sum,wind_speed_10m_max,sunrise,sunset&temperature_unit=fahrenheit&precipitation_unit=inch&wind_speed_unit=mph&timezone=auto
+ctx URL (one request, 10-year span) verified: ?latitude=40.7889&longitude=-73.9669&start_date=2009-07-15&end_date=2019-07-15&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&temperature_unit=fahrenheit&precipitation_unit=inch&timezone=auto
+day card 2019-07-15: High=86.5° · Low=65.9° · Precip=0.12 · Snowfall=0.0 · Max wind=9 · Sunrise=5:37 AM · Sunset=8:26 PM · sky="Overcast WMO 3"
+day stamp: "Fetched 12:00 PM"
+context chart: 3653 fixture rows filtered to 11 same-month-day bars (2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019), chosen=2019 highlighted
+context sentences: "Warmest of the ten: 2010 (91.3°) · coldest: 2014 (76.4°).Wettest of the ten: 2013 (1.42 in).Ten-year average high: 85.5° — 2019 came in at 86.5° (+1.0°)."
+cache keys (24 h TTL envelopes): suite.cache.weatherhistory.ctx.40.7889x-73.9669.2019-07-15, suite.cache.weatherhistory.ctx.40.7889x-73.9669.2026-07-25, suite.cache.weatherhistory.day.40.7889x-73.9669.2019-07-15, suite.cache.weatherhistory.day.40.7889x-73.9669.2026-07-25
+empty search: "No places matched "Nowhereville"."
+place search "Lisbon": 2 options via ?name=Lisbon&count=5&language=en&format=json
+picked "Lisbon, Portugal": archive URL now ?latitude=38.72509&longitude=-9.1498&start_date=2019-07-15&end_date=2019-07-15&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,snowfall_sum,wind_speed_10m_max,sunrise,sunset&temperature_unit=fahrenheit&precipitation_unit=inch&wind_speed_unit=mph&timezone=auto
+  suite.location untouched: {"lat":40.7889,"lon":-73.9669,"label":"Test Ridge, NY"} · chip="searched — saved location unchanged"
+"use my saved location": back to Test Ridge with 0 new requests — stamp "From today's cache (12:00 PM)"
+date 1939-12-31 -> "ERA5 reanalysis starts January 1, 1940 — no earlier days exist in this dataset."
+date 2026-07-28 (inside the 5-day lag) -> "ERA5 runs about five days behind real time — the latest available day is 2026-07-25."
+date-bounds validation fired 0 requests (still 6 archive calls)
+error path (routes aborted, no cache): day="Couldn't load Friday, March 9, 2001 Couldn't reach Open-Meteo (Failed to fetch). Check your connection and try again.Nothing is cached for this place and date yet."
+  ctx="This date across 10 years Couldn't reach Open-Meteo (Failed to fetch). Check your connection and try again."
+a11y: live regions [dayCard=polite, ctxCard=polite, qRes=polite, dateErr=polite], labeled inputs=true, theme aria-label="Toggle light/dark theme", native buttons=true
+offline + stale cache (25 h old, all routes aborted): day stamp "Offline — cached from 11:00 AM Jul 29"
+  ctx renders 11 bars from stale cache with its own offline stamp
+restored from fresh cache without refetch: stamp "From today's cache (12:00 PM)"
+mobile 390×844: horizontal overflow doc=0px body=0px (none)
+theme toggle: light -> dark, aria-pressed=true
+CONSOLE ISSUES:
+  console.error: Failed to load resource: net::ERR_FAILED
+  console.error: Failed to load resource: net::ERR_FAILED
+  console.error: Failed to load resource: net::ERR_FAILED
+  console.error: Failed to load resource: net::ERR_FAILED

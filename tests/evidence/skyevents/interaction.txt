@@ -1,0 +1,20 @@
+banner (vintage + penumbral policy): Curated dataset — compiled 2026-07. Eclipse dates are UTC calendar dates, so your local date can differ by a day. Penumbral lunar eclipses a…
+2026-08-12 total solar card: type + Arctic/Greenland/Iceland/Spain visibility verified
+2027-08-02 total solar card: type + Spain/N-Africa/Luxor + longest-of-century note verified
+all 10 showers present with ZHR, active range, parent body, and labeled peak-night lines
+split: 1 featured + 30 upcoming + 2 already-happened = 33; past holds eclipses only
+upcoming ordering verified non-decreasing across 31 cards (featured first)
+countdown Delta Aquariids: expected 0d, shown "now peaks tonight"
+countdown Perseids: expected 13d, shown "13 days away"
+countdown Total solar eclipse: expected 13d, shown "13 days away"
+countdown Partial lunar eclipse: expected 29d, shown "29 days away"
+countdown Draconids: expected 70d, shown "70 days away"
+filter Eclipses: aria-pressed correct, 23 eclipse-only cards
+filter Meteor showers: aria-pressed correct, 10 shower cards; past note: "Nothing yet — meteor showers are annual and always listed above."
+filter All restored
+past section: collapsed by default, expands on click, summary "Already happened in this window (2)"
+almanac cross-link: 33/33 cards link href="almanac.html"; 0 external links
+a11y: group aria-label="Filter events by kind", native buttons, aria-live=polite; localStorage keys: [suite.theme, suite.hub.recents]
+mobile 390x844: scrollWidth 390 <= clientWidth 390, screenshot mobile.png
+theme toggle: light -> dark, aria-pressed=true
+console: clean (no errors)

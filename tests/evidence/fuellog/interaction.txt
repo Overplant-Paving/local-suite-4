@@ -1,0 +1,95 @@
+ok: empty state card visible before any vehicle
+ok: entry form hidden before any vehicle
+ok: vehicle created: Added Civic.
+ok: entry form visible after vehicle creation
+ok: date defaults to today (2026-07-30)
+ok: 5 seeded fill-ups in the table
+ok: table is newest-first (first row odo 21080)
+ok: tank MPG (2025-02-02) = 30.0 (300 mi / 10 gal)
+ok: tank MPG (2025-01-26) = 37.5 (450 mi / 12 gal, partial folded in)
+ok: partial fill shows — with 'partial' hint
+ok: tank MPG (2025-01-12) = 30.0 (330 mi / 11 gal)
+ok: first fill shows — with 'first fill' hint
+ok: partial-fill title explains the method: Partial fill — the tank wasn't filled, so these gallons roll into the next full tank's MPG.
+ok: first-fill title explains the baseline: First fill — sets the odometer baseline; nothing to measure yet.
+ok: table hint states the between-full-fills method
+ok: lifetime MPG = 32.7 (1080 mi / 33 gal)
+ok: best tank = 37.5
+ok: best tank dated 2025-01-26
+ok: worst tank = 30.0
+ok: avg price/gal = $3.57 (157.10 / 44 gal)
+ok: cost/mile = $0.110 (118.60 / 1080 mi)
+ok: last-30-days spend = $0.00 (all seeded fills are old)
+ok: MPG sparkline path has 3 points: M8.0 54.0 L132.0 10.0 L194.0 54.0
+ok: MPG sparkline has 3 dots (one per tank)
+ok: price sparkline has 5 dots (one per fill)
+ok: MPG sparkline aria: MPG per tank — 3 points from 30.0 to 37.5, latest 30.0
+ok: price sparkline aria: Price per gallon — 5 points from $3.40 to $3.75, latest $3.40
+ok: designed inline odometer error: Odometer must increase — your 2025-02-02 fill already reads 21,080 mi.
+ok: invalid entry was not added
+ok: Clear resets the form date to today
+ok: today's fill added (6 rows)
+ok: today's fill sorts newest-first
+ok: today's tank MPG = 30.0 (300 mi / 10 gal)
+ok: lifetime recomputed = 32.1 (1380 / 43)
+ok: last-30-days spend = $33.00 (only today's fill)
+avg $/gal with 6 fills: $3.52 (190.10 / 54 gal)
+ok: deleted today's fill (back to 5 rows)
+ok: lifetime back to 32.7 after delete
+ok: last-30-days spend back to $0.00 after delete
+ok: edit mode: Edit fill-up · 2025-01-26
+ok: submit button switches to Save changes
+ok: edited tank MPG = 32.1 (450 / 14)
+ok: lifetime after edit = 30.9 (1080 / 35)
+ok: best tank after edit = 32.1
+ok: edit reverted: lifetime back to 32.7
+ok: edit reverted: best tank back to 37.5
+ok: download filename: fuellog-civic.csv
+ok: exported CSV matches expected content byte-for-byte (quoted note included)
+exported CSV:
+date,odometer_mi,gallons,total_cost,partial,note
+2025-01-05,20000,11,38.50,no,first fill
+2025-01-12,20330,11,39.60,no,
+2025-01-19,20450,4,15.00,yes,"topped up, ""half tank"""
+2025-01-26,20780,8,30.00,no,
+2025-02-02,21080,10,34.00,no,
+ok: new vehicle starts with no stats (lifetime —)
+ok: new vehicle shows the designed empty-table state
+ok: import message: Imported 5 fill-ups into Truck.
+ok: round-trip: 5 rows imported
+ok: round-trip: identical lifetime MPG 32.7
+ok: round-trip: identical cost/mile $0.110
+ok: round-trip preserves quoted note: topped up, "half tank"
+ok: malformed-row error: Import failed — nothing was added. Row 3: date must be YYYY-MM-DD. Expected columns: date,odometer_mi,gallons,total_cost,partial,note.
+ok: malformed import added nothing (all-or-nothing)
+decreasing-odometer import error: Import failed — nothing was added. Odometer must increase over time — 2026-03-01 reads 30,000 mi but 2026-03-08 reads 29,900 mi. Expected columns: date,odometer_mi,gallons,total_cost,partial,note.
+ok: decreasing-odometer import added nothing
+ok: picker: Civic still has its 5 fills
+ok: picker: Truck keeps its imported fills
+ok: rename form prefilled with current name
+ok: vehicle renamed in the picker: Work Truck
+ok: delete arms to a confirm step
+ok: confirm message names the vehicle: Delete "Work Truck" and its 5 fill-ups? Click "Confirm delete" to make it permanent.
+ok: vehicle deleted after confirm (1 option left)
+ok: deletion confirmed: Deleted Work Truck.
+ok: active vehicle fell back to Civic with its 5 fills
+ok: theme button has aria-label
+ok: partial-fill checkbox has a visible label
+ok: CSV file input is labeled
+ok: row edit button aria-label: Edit fill-up 2025-02-02 at 21,080 mi
+ok: icon-only delete button aria-label: Delete fill-up 2025-02-02 at 21,080 mi
+ok: stats container is a live region
+ok: inline form error is a live region
+suite.* keys written: suite.fuellog.v1, suite.hub.recents, suite.theme
+ok: manifest storage key suite.fuellog.v1 is written
+ok: persistence: 5 fills after reload
+ok: persistence: lifetime MPG 32.7 after reload
+ok: persistence: cost/mile $0.110 after reload
+ok: persistence: active vehicle Civic after reload
+ok: no network requests during the entire run (file:// only)
+ok: no horizontal overflow at 390px (scrollWidth 390 <= clientWidth 390)
+ok: body does not overflow at 390px (390 <= 390)
+ok: table header hidden at 390px (rows collapse to labeled cards)
+mobile screenshot: mobile.png
+theme toggle: light -> dark, aria-pressed=true
+console: clean (no errors)

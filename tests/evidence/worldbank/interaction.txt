@@ -1,0 +1,43 @@
+fixture boot: default country United States, all 7 indicator cards fetched via route-stub
+country picker: fixture had 5 rows incl. aggregate "Africa Eastern and Southern" (region.id "NA") -> datalist [Germany, Japan, Kenya, United States] (aggregate filtered)
+GDP: "$26.9T" (2025) — $T formatting; delta "+34.5% · 2016→2025" (recomputed: ((26.9-20)/20*100).toFixed(1) = 34.5); sparkline path = 10 points / 9 L-segments
+Population: fixture 2025 row is null -> latest-with-year picks newest NON-null: "334M" (2024); delta "+4.4% · 2015→2024" (recomputed 4.4%)
+Life expectancy: "79.2 years" (2024); 30-row series with nulls at 2025+2020 -> sparkline draws 28 points (nulls skipped); delta "+4.2% · 1996→2024"
+formats: GDP per capita "$80,190", inflation "4.1%" (negative-trend delta "-12.8% · 2021→2025", recomputed -12.8%), urban "83.5%"
+all-null indicator (Internet users, USA fixture): designed state "No data reported to the World Bank." — no fake value, no blank
+cache keys (8, all under suite.cache.worldbank.*): countries + per-(country,indicator) e.g. suite.cache.worldbank.USA.IT.NET.USER.ZS
+request shape: /v2/country/USA/indicator/NY.GDP.MKTP.CD?format=json&mrv=30
+a11y: labeled inputs ("Country", "Compare with"); #status/#cards/#pickNote aria-live=polite; clear button aria-label="Clear comparison country"; sparkline aria-label="GDP trend for United States, 2016 to 2025 (10 yearly values)"
+unknown input "Atlantis" + Enter -> note "No country matched “Atlantis” — pick a name from the list.", cards untouched
+compare mode (Japan via Enter): GDP card renders 2 series / 2 sparkline paths; legend "United States" $26.9T vs "Japan" $4.2T (2025), JPN delta "-16.0% · 2021→2025"
+mixed card (Internet users): USA "No data reported to the World Bank." while Japan shows "86.2%" (2024) — honest per-series states
+status line: "United States vs Japan · latest reported year on every figure"
+country switch to Kenya: 7 fresh /v2/country/KEN/indicator/* requests (Japan compare served from cache); GDP "$108B" (2024, 2025 null skipped), delta "+13.7% · 2022→2024" (recomputed 13.7%) — $B formatting
+clear-compare button: cards back to a single series
+HTTP 500 (Germany, uncached): designed error card "The World Bank API answered HTTP 500 and nothing is cached yet." with retry button (aria-label="Retry GDP for Germany")
+HTTP 429 (Germany CPI): distinct rate-limit card "Rate-limited by the World Bank API (HTTP 429) — wait a minute and retry."
+retry after recovery: GDP card re-queried and now shows "$4.5T" (2024)
+country-list 500 with empty cache: global error card "Couldn't load the World Bank country list (HTTP 500) and nothing is cached yet. Check the connection, then retry."
+retry-all: country list + United States cards recover (cache repopulated)
+offline + expired cache: cards render cached values with per-card stamp "Offline — cached from 7/22/2026, 1:21:17 PM"
+  status carries the stale country list too: "United States · latest reported year on every figure · offline: country list cached from 6/29/2026"
+restored: fresh cache serves without refetch, stale stamps gone
+mobile 390px: scrollWidth 390 <= clientWidth 390 (no horizontal overflow; cards stack)
+theme toggle: light -> dark, aria-pressed=true
+CONSOLE ISSUES:
+  console.error: Failed to load resource: net::ERR_FAILED
+  console.error: Failed to load resource: net::ERR_FAILED
+  console.error: Failed to load resource: net::ERR_FAILED
+  console.error: Failed to load resource: net::ERR_FAILED
+  console.error: Failed to load resource: net::ERR_FAILED
+  console.error: Failed to load resource: net::ERR_FAILED
+  console.error: Failed to load resource: net::ERR_FAILED
+  console.error: Failed to load resource: net::ERR_FAILED
+  console.error: Failed to load resource: net::ERR_FAILED
+  console.error: Failed to load resource: net::ERR_FAILED
+  console.error: Failed to load resource: net::ERR_FAILED
+  console.error: Failed to load resource: net::ERR_FAILED
+  console.error: Failed to load resource: net::ERR_FAILED
+  console.error: Failed to load resource: net::ERR_FAILED
+  console.error: Failed to load resource: net::ERR_FAILED
+  console.error: Failed to load resource: net::ERR_FAILED

@@ -2,21 +2,21 @@ built hub, theme=light
 built hub, theme=dark
 theme button click → light (flips)
 
-categories rendered (10):
-  ☀️ Weather & Sky 9 tools
+categories rendered (11):
+  ☀️ Weather & Sky 12 tools
   🌎 Earth & Nature 7 tools
-  🚀 Space & Flight 7 tools
-  🏛️ Civic & Government 7 tools
-  💵 Money & Economy 6 tools
-  🩺 Health & Safety 5 tools
-  📚 Reference & Lookup 8 tools
-  🕰️ Time & Planning 5 tools
-  📍 Local Life 6 tools
-  🧰 Utilities & Toys 13 tools
+  🚀 Space & Flight 10 tools
+  🏛️ Civic & Government 8 tools
+  💵 Money & Economy 8 tools
+  🩺 Health & Safety 7 tools
+  📚 Reference & Lookup 12 tools
+  🕰️ Time & Planning 6 tools
+  📍 Local Life 7 tools
+  🧰 Utilities & Toys 22 tools
+  🕹️ Games & Arcade 1 tool
 
-sum of per-category counts: 73  (manifest: 73 tools + hub)
+sum of per-category counts: 100  (manifest: 100 tools + hub)
 absent from built hub — "Meteor Patrol": YES
-absent from built hub — "Games": YES
 absent from built hub — "work in progress": YES
 absent from built hub — "in the workshop": YES
 console errors on the built hub: 0

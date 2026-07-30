@@ -1,0 +1,34 @@
+a11y: domain+type inputs label-wrapped, #results aria-live=polite, #formErr aria-live=polite, theme-btn aria-pressed=false
+record types offered: A,AAAA,CNAME,MX,TXT,NS,SOA,CAA
+invalid "not a domain!!" -> inline error: "Enter a full domain like example.com — a dot is required."
+invalid "localhost" (single label) -> inline error: "Enter a full domain like example.com — a dot is required."
+routed requests after both invalid submissions: google=0 cloudflare=0 (0 as required)
+unicode "münchen.de" -> punycode note: "Unicode name — looked up as xn--mnchen-3ya.de (punycode)."; requests google=1 cloudflare=1
+example.com A: google col "GOOGLE PUBLIC DNS dns.google NOERROR DNSSEC ✓ authenticated example.com TTL 75s 172.66.147.243 example.com TTL 75s 104.2…"
+  cloudflare col "CLOUDFLARE 1.1.1.1 cloudflare-dns.com NOERROR DNSSEC not validated example.com TTL 75s 104.20.23.154 example.c…"
+  2+2 answer rows (name/TTL/data), AD chip on Google only, callout: "Answers match — both resolvers returned the same 2 records."
+  (fixture orders differ and Google uses trailing dots — match is order-insensitive and normalized)
+cache identity keys (dns.<resolver>.<type>.<name>): suite.cache.dns.cloudflare.A.example.com, suite.cache.dns.cloudflare.A.xn--mnchen-3ya.de, suite.cache.dns.google.A.example.com, suite.cache.dns.google.A.xn--mnchen-3ya.de
+gmail.com MX: first row split into [priority 5] + host "gmail-smtp-in.l.google.com"; callout: "Answers match — both resolvers returned the same 2 records."
+example.org TXT: unquoted "v=spf1 -all", chunks joined "chunk-onechunk-two", hostile "<b>" chunk rendered as text (0 injected elements)
+example.com SOA: labeled fields render — "Primary NS ns.icann.org Admin mailbox noc.dns.icann.org Serial 2024081461 Refresh 7200 s Retry 3600 s Expire 1209600 s M…"
+no-such-host.example.com A: status decoded "GOOGLE PUBLIC DNS dns.google NXDOMAIN DNSSEC not validated This resolver says the domain does not ex…"; callout: "Both resolvers agree: NXDOMAIN — this domain does not exist."
+disagree.example.com A: callout (callout warn): "Resolvers disagree — Google returned 1 record, Cloudflare 2. Only Cloudflare: 203.0.113.9"
+one-resolver-500 (google 500, cloudflare ok): error card "Lookup failed Google Public DNS didn't answer (HTTP 500) and there's no cached copy of this query yet. The other column is unaffected — try again in a moment."
+  cloudflare column still renders 1 row(s): "CLOUDFLARE 1.1.1.1 cloudflare-dns.com NOERROR DNSSEC not validated half.example.com TTL 12…"; callout: "Comparison unavailable — Google Public DNS did not answer."
+  sibling-page console (inherent non-2xx fetch noise, quarantined off the main gate): Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+suite.dns.history (newest first): half.example.com/A, disagree.example.com/A, no-such-host.example.com/A, example.com/SOA, example.org/TXT, gmail.com/MX, example.com/A, xn--mnchen-3ya.de/A
+dedupe: re-ran example.com A -> moved to front, 1 occurrence, length still 8; 0 new requests (served from fresh 10-min cache)
+history chips rendered: [example.com · A | half.example.com · A | disagree.example.com · A | no-such-host.example.com · A | example.com · SOA | example.org · TXT | gmail.com · MX | xn--mnchen-3ya.de · A]
+bound: seeded 10 entries then looked up gmail.com MX -> length stays 10, oldest (seed9) dropped
+history chip click re-queries: title "gmail.com · MX", +1 request to each resolver (cache expired first)
+cloudflare Accept header observed on routed requests: "application/dns-json"
+offline + stale cache: google col "GOOGLE PUBLIC DNS dns.google NOERROR DNSSEC ✓ authenticated Offline — cached from 12:20 PM. Answers may have c…"
+  cloudflare col "CLOUDFLARE 1.1.1.1 cloudflare-dns.com NOERROR DNSSEC not validated Offline — cached from 12:20 PM. Answers may…"
+  both columns carry the per-column "Offline — cached from …" stamp; callout still compares: "Answers match — both resolvers returned the same 2 records."
+restored: example.com A re-rendered from fresh cache without refetch (stale stamp gone: true)
+mobile 390px: scrollWidth 390 <= clientWidth 390 (no horizontal overflow; columns stack)
+theme toggle: light -> dark, aria-pressed=true
+CONSOLE ISSUES:
+  console.error: Failed to load resource: net::ERR_FAILED
+  console.error: Failed to load resource: net::ERR_FAILED

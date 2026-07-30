@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Eclipses &amp; Meteor Showers · Local Suite</title>
+<link rel="stylesheet" href="../core/suite.css" data-suite-inline>
+<style>
+  /* tool accents, 3-layer like core: sun (solar eclipses, banner), moon (lunar), met (showers).
+     Light pairs checked ≥4.5:1 on their soft backgrounds; dark pairs likewise. */
+  :root { --sun: #8a5a1e; --sun-soft: #f0e2ce; --moon: #5c4390; --moon-soft: #e9e3f5;
+    --met: #28626f; --met-soft: #d9ecef; }
+  @media (prefers-color-scheme: dark) {
+    :root { --sun: #d9a05a; --sun-soft: #33291a; --moon: #b9a5e8; --moon-soft: #262038;
+      --met: #7fc7d6; --met-soft: #16333a; }
+  }
+  :root[data-theme="light"] { --sun: #8a5a1e; --sun-soft: #f0e2ce; --moon: #5c4390; --moon-soft: #e9e3f5;
+    --met: #28626f; --met-soft: #d9ecef; }
+  :root[data-theme="dark"] { --sun: #d9a05a; --sun-soft: #33291a; --moon: #b9a5e8; --moon-soft: #262038;
+    --met: #7fc7d6; --met-soft: #16333a; }
+
+  body { padding: 1.4rem 1.25rem 4rem; }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  .topbar { display: flex; align-items: center; gap: 1rem; }
+  .topbar .theme-btn, .topbar .fav-btn { float: none; }
+  .topbar .theme-btn { margin-left: auto; }
+  header { margin: 1rem 0 1.2rem; }
+  h1 { font-size: 1.8rem; letter-spacing: -.02em; }
+  .tag { color: var(--muted); margin-top: .35rem; max-width: 48rem; }
+
+  .banner {
+    background: var(--sun-soft); border: 1px solid color-mix(in srgb, var(--sun) 40%, transparent);
+    border-radius: 12px; padding: .85rem 1.1rem; font-size: .9rem; margin: 0 0 1.2rem;
+  }
+  .banner strong { color: var(--sun); }
+
+  .chips { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1.3rem; }
+  .chips button {
+    border: 1px solid var(--line); background: var(--card); color: var(--ink);
+    border-radius: 999px; padding: .45rem 1rem; font-size: .9rem; cursor: pointer;
+  }
+  .chips button:hover { border-color: var(--accent); }
+  .chips button[aria-pressed="true"] {
+    background: var(--accent-soft); color: var(--accent); border-color: var(--accent); font-weight: 600;
+  }
+
+  section { margin-top: 1.8rem; }
+  section h2 { font-size: 1.15rem; margin-bottom: .2rem; }
+  section .note { color: var(--muted); font-size: .85rem; margin-bottom: .8rem; }
+
+  .ev {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 1rem 1.15rem; box-shadow: var(--shadow); margin-bottom: .9rem;
+    display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;
+  }
+  .ev .main { flex: 1 1 16rem; min-width: 0; }
+  .ev h3 { font-size: 1.08rem; margin: .25rem 0 .1rem; letter-spacing: -.01em; }
+  .ev .dl { color: var(--muted); font-size: .88rem; }
+  .ev .vis { font-size: .92rem; margin-top: .4rem; }
+  .ev .peak { font-size: .88rem; margin-top: .35rem; color: var(--muted); }
+  .ev .peak strong { color: var(--ink); }
+  .ev .alink { font-size: .85rem; margin-top: .45rem; }
+  .ev .alink a { text-decoration: none; }
+  .ev .alink a:hover { text-decoration: underline; }
+  .badge { font-size: .72rem; padding: .14rem .55rem; border-radius: 999px; white-space: nowrap; font-weight: 600; }
+  .badge.sun { background: var(--sun-soft); color: var(--sun); }
+  .badge.moon { background: var(--moon-soft); color: var(--moon); }
+  .badge.met { background: var(--met-soft); color: var(--met); }
+
+  .cd { text-align: center; min-width: 5.2rem; flex: 0 0 auto; }
+  .cd .n { display: block; font-size: 1.7rem; font-weight: 700; color: var(--accent); line-height: 1.15; }
+  .cd .u { font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+
+  .ev.hero { border-color: var(--accent); background: var(--card); }
+  .ev.hero .k { font-size: .74rem; text-transform: uppercase; letter-spacing: .07em; color: var(--accent); font-weight: 700; }
+  .ev.hero .cd .n { font-size: 2.4rem; }
+
+  .ev.past { opacity: .68; }
+  .ev.past .cd .n { font-size: 1.1rem; color: var(--muted); font-weight: 600; }
+
+  details.pastbox { margin-top: 1.8rem; border: 1px dashed var(--line); border-radius: 14px; padding: .2rem .9rem; }
+  details.pastbox summary { cursor: pointer; padding: .7rem .2rem; font-weight: 600; color: var(--muted); }
+  details.pastbox[open] summary { border-bottom: 1px solid var(--line); margin-bottom: .9rem; }
+  details.pastbox .note { color: var(--muted); font-size: .85rem; margin: .2rem 0 .8rem; }
+
+  footer { padding-top: 1.2rem; }
+  @media (max-width: 480px) {
+    .ev { align-items: flex-start; }
+    .cd { text-align: left; min-width: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="index.html">← suite</a>
+    <button class="theme-btn" id="themeBtn" title="Toggle light/dark">◐ theme</button>
+  </div>
+  <header>
+    <h1>Eclipses &amp; Meteor Showers</h1>
+    <p class="tag">Solar and lunar eclipses from 2026 through 2030 and the ten major annual meteor
+      showers — dates, peaks, and where to look. Everything is embedded in this file; no network, ever.</p>
+  </header>
+
+  <div class="banner" id="banner">
+    <strong>Curated dataset — compiled 2026-07.</strong> Eclipse dates are UTC calendar dates, so your
+    local date can differ by a day. Penumbral lunar eclipses are included when the Moon dips noticeably
+    into Earth's penumbra; ultra-grazing penumbral events are omitted. Meteor-shower peaks are the
+    typical nights — the exact best night shifts slightly year to year.
+  </div>
+
+  <div class="chips" id="filters" role="group" aria-label="Filter events by kind">
+    <button data-f="all" aria-pressed="true">All</button>
+    <button data-f="eclipse" aria-pressed="false">Eclipses</button>
+    <button data-f="shower" aria-pressed="false">Meteor showers</button>
+  </div>
+
+  <section>
+    <h2>Next up</h2>
+    <div id="featured"></div>
+  </section>
+
+  <section>
+    <h2>Upcoming</h2>
+    <p class="note">Eclipses and meteor-shower peak nights merged, soonest first. Countdowns are in
+      whole days — sky events do not need second-level precision.</p>
+    <div id="upcoming"></div>
+  </section>
+
+  <details class="pastbox" id="past">
+    <summary id="pastSummary">Already happened</summary>
+    <p class="note">Eclipses from the 2026–2030 window whose date has passed. Meteor showers are
+      annual, so they always appear above with their next peak.</p>
+    <div id="pastList"></div>
+  </details>
+
+  <footer>No network — the eclipse list and shower calendar are curated data embedded in this file
+    (compiled 2026-07). Eclipse circumstances follow the standard NASA five-millennium eclipse canon;
+    shower figures follow the International Meteor Organization's annual calendar. For travel-critical
+    plans, confirm against a current almanac.</footer>
+</div>
+
+<script src="../core/suite.js" data-suite-inline></script>
+<script>
+"use strict";
+
+Suite.theme.init();
+
+const DAY = 86400000;
+const MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const DOW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+
+/* ---------- eclipses 2026–2030 (curated 2026-07) ----------
+   Dates are UTC calendar dates of greatest eclipse, per the NASA/Espenak five-millennium
+   canon of solar and lunar eclipses. Noticeable penumbral lunar eclipses are included;
+   ultra-grazing penumbral events are omitted (stated in the banner).
+   body: solar|lunar · type: total|annular|partial|penumbral */
+const ECLIPSES = [
+  { y: 2026, m: 2,  d: 17, body: "solar", type: "annular",
+    vis: "Ring visible only from Antarctica; a partial eclipse covers southern South America, southern Africa, and the southern Indian Ocean." },
+  { y: 2026, m: 3,  d: 3,  body: "lunar", type: "total",
+    vis: "Totality visible from East Asia, Australia, the Pacific, and the Americas." },
+  { y: 2026, m: 8,  d: 12, body: "solar", type: "total",
+    vis: "Totality crosses the Arctic, Greenland, Iceland, and northern Spain; a deep partial eclipse covers most of Europe, northwest Africa, and northeastern North America." },
+  { y: 2026, m: 8,  d: 28, body: "lunar", type: "partial",
+    vis: "Visible from the eastern Pacific, the Americas, Europe, and Africa." },
+  { y: 2027, m: 2,  d: 6,  body: "solar", type: "annular",
+    vis: "Ring visible from southern Chile and Argentina, then across the South Atlantic to coastal West Africa near sunset; partial across South America and western Africa." },
+  { y: 2027, m: 2,  d: 20, body: "lunar", type: "penumbral",
+    vis: "Visible from the Americas, Europe, Africa, and Asia. Penumbral shading is subtle — expect a slight dimming of the Moon's northern or southern limb." },
+  { y: 2027, m: 8,  d: 2,  body: "solar", type: "total",
+    vis: "Totality crosses southern Spain, Gibraltar, Morocco, Algeria, Tunisia, Libya, Egypt, Saudi Arabia, Yemen, and Somalia — up to 6 min 23 s near Luxor, the longest totality on land between 1991 and 2114." },
+  { y: 2027, m: 8,  d: 17, body: "lunar", type: "penumbral",
+    vis: "Visible from East Asia, Australia, the Pacific, and the Americas. Penumbral shading is subtle." },
+  { y: 2028, m: 1,  d: 12, body: "lunar", type: "partial",
+    vis: "Visible from the Americas, Europe, and Africa." },
+  { y: 2028, m: 1,  d: 26, body: "solar", type: "annular",
+    vis: "Ring visible from the Galápagos, Ecuador, Peru, and northern Brazil, then across the Atlantic to Portugal and Spain around sunset." },
+  { y: 2028, m: 7,  d: 6,  body: "lunar", type: "partial",
+    vis: "Visible from Europe, Africa, Asia, and Australia." },
+  { y: 2028, m: 7,  d: 22, body: "solar", type: "total",
+    vis: "Totality crosses Australia from the Kimberley to Sydney, then the South Island of New Zealand — up to about 5 min 10 s." },
+  { y: 2028, m: 12, d: 31, body: "lunar", type: "total",
+    vis: "A New Year's Eve totality — the night of Dec 31 into Jan 1 in eastern time zones — visible from Europe, Africa, Asia, and Australia." },
+  { y: 2029, m: 1,  d: 14, body: "solar", type: "partial",
+    vis: "Partial eclipse visible from North and Central America." },
+  { y: 2029, m: 6,  d: 12, body: "solar", type: "partial",
+    vis: "Partial eclipse visible from high northern latitudes — the Arctic, Alaska, northern Canada, and Scandinavia." },
+  { y: 2029, m: 6,  d: 26, body: "lunar", type: "total",
+    vis: "Totality visible from the Americas, Europe, Africa, and the Middle East." },
+  { y: 2029, m: 7,  d: 11, body: "solar", type: "partial",
+    vis: "Partial eclipse visible from southern Chile and Argentina." },
+  { y: 2029, m: 12, d: 5,  body: "solar", type: "partial",
+    vis: "Partial eclipse visible from Antarctica and the southern tip of South America." },
+  { y: 2029, m: 12, d: 20, body: "lunar", type: "total",
+    vis: "Totality visible from the Americas, Europe, Africa, and Asia." },
+  { y: 2030, m: 6,  d: 1,  body: "solar", type: "annular",
+    vis: "Ring visible along a path from Algeria and Tunisia through Greece, Turkey, and Russia to northern Japan; partial across Europe, North Africa, and much of Asia." },
+  { y: 2030, m: 6,  d: 15, body: "lunar", type: "partial",
+    vis: "Visible from Europe, Africa, Asia, and Australia." },
+  { y: 2030, m: 11, d: 25, body: "solar", type: "total",
+    vis: "Totality crosses Namibia, Botswana, and South Africa, then the Indian Ocean to southeastern Australia around sunset." },
+  { y: 2030, m: 12, d: 9,  body: "lunar", type: "penumbral",
+    vis: "Visible from the Americas, Europe, Africa, and Asia. Penumbral shading is subtle." },
+];
+
+/* ---------- the ten major annual showers (IMO working-list figures, curated 2026-07) ----------
+   act: typical activity window · pm/pd: first calendar night of the typical peak
+   (peak night = pd into pd+1; none of these spans a month boundary) · zhr: typical
+   zenithal hourly rate under ideal skies. */
+const SHOWERS = [
+  { name: "Quadrantids", act: "Dec 28 – Jan 12", pm: 1, pd: 3, zhr: "~120",
+    parent: "asteroid 2003 EH1", best: "Northern hemisphere",
+    notes: "The peak is sharp — only about six hours — so timing matters. Radiant climbs after midnight." },
+  { name: "Lyrids", act: "Apr 14 – Apr 30", pm: 4, pd: 22, zhr: "~18",
+    parent: "comet C/1861 G1 (Thatcher)", best: "Northern hemisphere",
+    notes: "Occasional bright fireballs; best in the hours before dawn." },
+  { name: "Eta Aquariids", act: "Apr 19 – May 28", pm: 5, pd: 5, zhr: "~50",
+    parent: "comet 1P/Halley", best: "Southern hemisphere and tropics",
+    notes: "Fast meteors with persistent trains; the radiant only rises shortly before dawn from mid-northern latitudes." },
+  { name: "Delta Aquariids", act: "Jul 12 – Aug 23", pm: 7, pd: 30, zhr: "~25",
+    parent: "comet 96P/Machholz (probable)", best: "Southern hemisphere",
+    notes: "A broad, plateau-like maximum with faint meteors; blends into the early Perseids." },
+  { name: "Perseids", act: "Jul 17 – Aug 24", pm: 8, pd: 12, zhr: "~100",
+    parent: "comet 109P/Swift-Tuttle", best: "Northern hemisphere",
+    notes: "The classic warm-weather shower — bright, fast, lots of trains. Best after midnight." },
+  { name: "Draconids", act: "Oct 6 – Oct 10", pm: 10, pd: 8, zhr: "variable (usually ~5, rare storms)",
+    parent: "comet 21P/Giacobini-Zinner", best: "Northern hemisphere",
+    notes: "Unusual: best in the evening, since the radiant is highest at nightfall. Normally weak, but has produced storms." },
+  { name: "Orionids", act: "Oct 2 – Nov 7", pm: 10, pd: 21, zhr: "~20",
+    parent: "comet 1P/Halley", best: "both hemispheres",
+    notes: "Fast meteors from Halley's outbound stream; best in the pre-dawn hours." },
+  { name: "Leonids", act: "Nov 6 – Nov 30", pm: 11, pd: 17, zhr: "~15",
+    parent: "comet 55P/Tempel-Tuttle", best: "both hemispheres",
+    notes: "Very fast meteors. Roughly every 33 years the parent comet's return brings storm-level rates." },
+  { name: "Geminids", act: "Dec 4 – Dec 17", pm: 12, pd: 13, zhr: "~150",
+    parent: "asteroid 3200 Phaethon", best: "both hemispheres, northern favored",
+    notes: "Usually the strongest shower of the year — slow, bright, often colorful, and good from mid-evening on." },
+  { name: "Ursids", act: "Dec 17 – Dec 26", pm: 12, pd: 22, zhr: "~10",
+    parent: "comet 8P/Tuttle", best: "Northern hemisphere",
+    notes: "A quiet solstice shower from near the Little Dipper; occasional outbursts." },
+];
+
+/* ---------- items with a comparable UTC-midnight timestamp ---------- */
+const now = new Date();
+const todayU = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+const pad = n => String(n).padStart(2, "0");
+
+function allItems() {
+  const items = ECLIPSES.map(e => {
+    const t = Date.UTC(e.y, e.m - 1, e.d);
+    return { kind: "eclipse", t, iso: `${e.y}-${pad(e.m)}-${pad(e.d)}`,
+      name: `${cap(e.type)} ${e.body} eclipse`, e };
+  });
+  for (const s of SHOWERS) {
+    /* next occurrence of the typical peak night — this year, or next if it has passed */
+    let y = now.getFullYear();
+    let t = Date.UTC(y, s.pm - 1, s.pd);
+    if (t < todayU) { y += 1; t = Date.UTC(y, s.pm - 1, s.pd); }
+    items.push({ kind: "shower", t, iso: `${y}-${pad(s.pm)}-${pad(s.pd)}`, name: s.name, y, s });
+  }
+  return items.sort((a, b) => a.t - b.t || a.name.localeCompare(b.name));
+}
+
+/* ---------- rendering ---------- */
+const featuredEl = document.getElementById("featured");
+const upcomingEl = document.getElementById("upcoming");
+const pastListEl = document.getElementById("pastList");
+const pastSummaryEl = document.getElementById("pastSummary");
+let filter = "all";
+
+function cdHTML(it) {
+  const n = Math.round((it.t - todayU) / DAY);
+  if (n < 0) {
+    const ago = -n;
+    return `<div class="cd"><span class="n">${ago === 1 ? "yesterday" : `${ago} days ago`}</span></div>`;
+  }
+  if (n === 0) return `<div class="cd"><span class="n">now</span><span class="u">${it.kind === "shower" ? "peaks tonight" : "today (UTC)"}</span></div>`;
+  if (n === 1) return `<div class="cd"><span class="n">1</span><span class="u">day away</span></div>`;
+  return `<div class="cd"><span class="n">${n}</span><span class="u">days away</span></div>`;
+}
+
+function bodyHTML(it) {
+  const alink = `<p class="alink"><a href="almanac.html">Check moon phase for that night in the Sun &amp; Moon Almanac →</a></p>`;
+  if (it.kind === "eclipse") {
+    const e = it.e;
+    const d = new Date(it.t);
+    const badge = e.body === "solar" ? "sun" : "moon";
+    return `<span class="badge ${badge}">${e.body === "solar" ? "Solar eclipse" : "Lunar eclipse"} · ${Suite.esc(e.type)}</span>
+      <h3>${Suite.esc(it.name)}</h3>
+      <p class="dl">${DOW[d.getUTCDay()]}, ${MON[e.m - 1]} ${e.d}, ${e.y} — UTC date</p>
+      <p class="vis">${Suite.esc(e.vis)}</p>${alink}`;
+  }
+  const s = it.s;
+  return `<span class="badge met">Meteor shower</span>
+    <h3>${Suite.esc(s.name)}</h3>
+    <p class="dl">Active ${Suite.esc(s.act)} · ZHR ${Suite.esc(s.zhr)} · parent: ${Suite.esc(s.parent)}</p>
+    <p class="peak"><strong>Peak night ${it.y}: ${MON[s.pm - 1]} ${s.pd}–${s.pd + 1}</strong> (typical peak — exact night varies by year)</p>
+    <p class="vis">Best from the ${Suite.esc(s.best)}. ${Suite.esc(s.notes)}</p>${alink}`;
+}
+
+function cardHTML(it, cls, heroLabel) {
+  return `<article class="ev ${cls}" data-kind="${it.kind}" data-t="${it.t}" data-date="${it.iso}" data-name="${Suite.esc(it.name)}">
+    <div class="main">${heroLabel ? `<div class="k">Next up</div>` : ""}${bodyHTML(it)}</div>
+    ${cdHTML(it)}
+  </article>`;
+}
+
+function render() {
+  const items = allItems();
+  const match = it => filter === "all" || it.kind === filter;
+  const upcoming = items.filter(it => it.t >= todayU && match(it));
+  const past = items.filter(it => it.t < todayU && match(it)); // only eclipses can end up here
+  const pastAll = items.filter(it => it.t < todayU).length;
+
+  featuredEl.innerHTML = upcoming.length
+    ? cardHTML(upcoming[0], "hero", true)
+    : `<p class="note">No upcoming events match this filter.</p>`;
+  upcomingEl.innerHTML = upcoming.slice(1).map(it => cardHTML(it, "")).join("")
+    || (upcoming.length ? `<p class="note">That's the only one — see “Next up” above.</p>`
+                        : `<p class="note">Nothing to show for this filter.</p>`);
+  pastSummaryEl.textContent = `Already happened in this window (${past.length}${filter === "all" ? "" : ` of ${pastAll}`})`;
+  pastListEl.innerHTML = past.length
+    ? past.map(it => cardHTML(it, "past")).join("")
+    : `<p class="note">Nothing yet${filter === "shower" ? " — meteor showers are annual and always listed above" : ""}.</p>`;
+}
+
+/* filter re-renders announce politely */
+Suite.liveRegion(upcomingEl);
+
+document.querySelectorAll("#filters button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    filter = btn.dataset.f;
+    document.querySelectorAll("#filters button")
+      .forEach(b => b.setAttribute("aria-pressed", String(b === btn)));
+    render();
+  });
+});
+
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+deterministic boot: 1 stubbed request(s): https://api.usaspending.gov/api/v2/references/toptier_agencies/
+agencies table: 15 rows, sorted desc from an unsorted 18-row fixture
+  row 1:  "1 Department of the TreasuryTREAS $4.71T 29.7%"
+  row 15: "15 Pension Benefit Guaranty CorporationPBGC $91.08B 0.6%"
+share-of-total bars (scaled to largest): [100%, 71.8%, 44.6%, 27% ...]
+fiscal-year note: "USAspending is currently reporting fiscal year 2026 (through quarter 3) figures."
+fresh stamp: "Fetched Jul 30, 2026, 1:20 PM · cached for about a day"
+no suite.state -> designed empty card: "Choose your state above to see the federal award dollars flowing there."
+select California -> request URL: https://api.usaspending.gov/api/v2/recipient/state/06/?year=latest (CA -> FIPS 06, year=latest)
+CA stat cards: [$396.76Bprime award dollars] [432,673prime awards] [$10,035per person] [Latest 12 monthsperiod covered]
+population provenance: "Per-person figure is USAspending's, using a California population of 39,536,653 (U.S. Census Bureau, 2017 Population Estimate)."
+state profile link: https://www.usaspending.gov/state/06/latest target=_blank rel=noopener — labeled "(leaves this page)"
+suite.state written: "CA" (bare string, recalls.html-compatible)
+reload -> suite.state honored: select shows CA, cards render with zero interaction and zero new requests
+WY (null per-capita/population fixture): cards [$6.54Bprime award dollars] [8,123prime awards] [not reportedper person] [Latest 12 monthsperiod covered]
+  population note: "Population for this state: not reported by the API."
+HTTP 500 (TX) -> designed error card: "Couldn't load award data for Texas.HTTP 500. Check your connection — cached data appears here automatically once a load has succeeded."
+HTTP 429 (NY) -> visibly distinct rate-limit card: "Couldn't load award data for New York.USAspending is rate-limiting requests right now (HTTP 429). Wait a minute and try again — nothing is broken on your end."
+error-path page console: clean (only Chromium's unavoidable non-2xx network-status lines)
+offline + stale cache -> both panels render cached data with stamps:
+  agencies: "Offline — cached from Jul 29, 2026, 12:20 PM"
+  state:    "Offline — cached from Jul 29, 2026, 12:20 PM"
+a11y: label[for=stateSel]="Your state", #agBox/#stBox aria-live=polite/polite, theme aria-label="Toggle light/dark theme" aria-pressed=false, fav aria-pressed=false, bars aria-hidden=true
+mobile 390px: document scrollWidth 390 <= clientWidth 390 (no body overflow; wide table scrolls inside its own container)
+theme toggle: light -> dark, aria-pressed=true
+CONSOLE ISSUES:
+  console.error: Failed to load resource: net::ERR_FAILED
+  console.error: Failed to load resource: net::ERR_FAILED

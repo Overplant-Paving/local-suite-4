@@ -1,0 +1,8 @@
+# Live CORS + shape probe, 2026-07-30 (1 of the allowed 3; the test itself never hits the network)
+# curl -sS -D - -H 'Origin: null' 'https://archive.org/wayback/available?url=https%3A%2F%2Fexample.com%2F&timestamp=20190301'
+HTTP/2 200
+content-type: application/json
+access-control-allow-credentials: true
+access-control-allow-origin: *
+
+{"url": "https://example.com/", "archived_snapshots": {"closest": {"status": "200", "available": true, "url": "http://web.archive.org/web/20190302000151/http://www.example.com/", "timestamp": "20190302000151"}}, "timestamp": "20190301"}

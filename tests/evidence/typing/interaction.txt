@@ -1,0 +1,9 @@
+initial passage: 144 characters; safe character spans=144
+timed completion: Complete — 5 WPM at 100% accuracy.; persisted chars=24
+error accounting: Complete — 4 WPM at 92% accuracy.; wrong spans=1; accuracy=91.7%
+duration controls: 15 seconds selected with native pressed state; Ctrl+Enter restart works
+new passage: 144 -> 146 characters
+history: malformed/excess-safe bounded display=20; best score visible; clear removes suite.typing.stats
+mobile 390px horizontal overflow: false
+theme toggle: light -> dark, aria-pressed=true
+console: clean (no errors)

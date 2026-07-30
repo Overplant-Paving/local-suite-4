@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Image Toolbox · Local Suite</title>
+<link rel="stylesheet" href="../core/suite.css" data-suite-inline>
+<style>
+  body { padding: 1.4rem 1.25rem 4rem; }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  .topbar { display: flex; align-items: center; gap: 1rem; }
+  .topbar .theme-btn, .topbar .fav-btn { float: none; }
+  .topbar .theme-btn { margin-left: auto; }
+  header { margin: 1rem 0 1.2rem; }
+  h1 { font-size: 1.8rem; letter-spacing: -.02em; }
+  .tag { color: var(--muted); margin-top: .35rem; max-width: 48rem; }
+
+  .drop {
+    display: block; border: 2px dashed var(--line); border-radius: 12px; padding: 2rem 1rem;
+    text-align: center; color: var(--muted); cursor: pointer;
+    transition: border-color .15s, background .15s;
+  }
+  .drop:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .drop.over { border-color: var(--accent); background: var(--accent-soft); }
+  .drop input { display: none; }
+  .drop b { color: var(--ink); }
+
+  .err-card {
+    margin-top: 1rem; border: 1px solid var(--line); border-left: 4px solid var(--bad, #b3564d);
+    border-radius: 12px; padding: 1rem 1.1rem; background: var(--card);
+  }
+  .err-card h2 { font-size: 1rem; margin: 0 0 .3rem; }
+  .err-card p { color: var(--muted); font-size: .92rem; margin: 0; overflow-wrap: anywhere; }
+
+  .card h2 { font-size: 1.05rem; margin: 0 0 .8rem; }
+  #preview {
+    /* .card is a column flexbox — align-self keeps small images at intrinsic size
+       instead of stretching (and blurring) to the card width */
+    display: block; align-self: flex-start; max-width: 100%; height: auto; border-radius: 10px;
+    border: 1px solid var(--line); margin-top: .9rem;
+    background: repeating-conic-gradient(var(--chip) 0% 25%, var(--card) 0% 50%) 0 0 / 18px 18px;
+  }
+  .facts { display: flex; flex-wrap: wrap; gap: .5rem; }
+  .facts .chip {
+    background: var(--chip); border-radius: 999px; padding: .3rem .8rem; font-size: .85rem;
+    font-variant-numeric: tabular-nums; overflow-wrap: anywhere;
+  }
+  .facts .chip b { font-weight: 600; }
+
+  .fields { display: flex; flex-wrap: wrap; gap: .9rem 1.2rem; align-items: flex-end; }
+  .field { display: flex; flex-direction: column; gap: .3rem; }
+  .field label { font-size: .82rem; color: var(--muted); }
+  .field input[type=number], .field select {
+    background: var(--bg); color: var(--ink); border: 1px solid var(--line);
+    border-radius: 8px; padding: .45rem .6rem; font: inherit; font-size: .92rem; width: 7.2rem;
+  }
+  .field input:focus-visible, .field select:focus-visible, .lock:focus-visible input {
+    outline: 2px solid var(--accent); outline-offset: 1px;
+  }
+  .lock { display: flex; align-items: center; gap: .45rem; font-size: .9rem; padding: .45rem 0; cursor: pointer; }
+  .lock input { width: 1.05rem; height: 1.05rem; accent-color: var(--accent); }
+  .readout { margin-top: .8rem; font-size: .95rem; font-variant-numeric: tabular-nums; }
+  .readout b { font-weight: 600; }
+
+  .qrow { display: flex; align-items: center; gap: .7rem; margin-top: .9rem; max-width: 26rem; }
+  .qrow label { font-size: .82rem; color: var(--muted); white-space: nowrap; }
+  .qrow input[type=range] { flex: 1; min-width: 0; accent-color: var(--accent); }
+  .qrow output { font-variant-numeric: tabular-nums; font-size: .9rem; min-width: 2.2rem; text-align: right; }
+  .qnote { color: var(--muted); font-size: .82rem; margin-top: .4rem; }
+
+  .result { margin-top: 1rem; font-size: .95rem; font-variant-numeric: tabular-nums; }
+  .result .delta-down { color: var(--good, #2c7a4b); }
+  .result .delta-up { color: var(--bad, #b3564d); }
+  .meta-note {
+    margin-top: 1rem; padding: .7rem .9rem; border-radius: 10px; background: var(--accent-soft);
+    font-size: .85rem;
+  }
+  .btn {
+    border: 1px solid var(--accent); background: var(--accent); color: var(--bg);
+    border-radius: 8px; padding: .5rem 1rem; cursor: pointer; font: inherit; font-size: .92rem;
+    margin-top: 1rem;
+  }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .hidden { display: none !important; }
+  footer { margin-top: 2.5rem; }
+  @media (max-width: 480px) {
+    .field input[type=number], .field select { width: 6rem; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="index.html">← suite</a>
+    <button class="theme-btn" id="themeBtn" title="Toggle light/dark">◐ theme</button>
+  </div>
+  <header>
+    <h1>Image Toolbox</h1>
+    <p class="tag">Resize, convert, and re-encode photos entirely in your browser — nothing is uploaded, and the re-encoded file carries no EXIF metadata.</p>
+  </header>
+
+  <label class="drop" id="drop" role="button" tabindex="0" aria-label="Choose an image file, or drop one here">
+    <input type="file" id="fileInput" accept="image/*">
+    <div><b>Drop an image here</b> or click to choose one.</div>
+    <div style="font-size:.82rem;margin-top:.35rem">It never leaves your machine — all processing is local. JPEG, PNG, WebP, GIF, and anything else your browser can decode.</div>
+  </label>
+
+  <div class="err-card hidden" id="errCard" role="alert">
+    <h2>Couldn’t read that file</h2>
+    <p id="errMsg"></p>
+  </div>
+
+  <div id="workspace" class="hidden">
+    <div class="card" style="margin-top:1rem">
+      <h2>Original</h2>
+      <div class="facts" id="facts">
+        <span class="chip" id="factName"></span>
+        <span class="chip"><b>Dimensions</b> <span id="factDims"></span></span>
+        <span class="chip"><b>Size</b> <span id="factSize"></span></span>
+        <span class="chip"><b>Type</b> <span id="factType"></span></span>
+      </div>
+      <canvas id="preview" aria-label="Preview of the loaded image"></canvas>
+    </div>
+
+    <div class="card" style="margin-top:1rem">
+      <h2>Resize</h2>
+      <div class="fields">
+        <div class="field">
+          <label for="outW">Width (px)</label>
+          <input type="number" id="outW" min="1" max="8192" step="1" inputmode="numeric">
+        </div>
+        <div class="field">
+          <label for="outH">Height (px)</label>
+          <input type="number" id="outH" min="1" max="8192" step="1" inputmode="numeric">
+        </div>
+        <div class="field">
+          <label for="outPct">Scale (%)</label>
+          <input type="number" id="outPct" min="1" max="400" step="1" inputmode="numeric">
+        </div>
+        <label class="lock" for="lock">
+          <input type="checkbox" id="lock" checked>
+          Lock aspect ratio
+        </label>
+      </div>
+      <div class="readout" id="dimOut"></div>
+    </div>
+
+    <div class="card" style="margin-top:1rem">
+      <h2>Convert &amp; export</h2>
+      <div class="fields">
+        <div class="field">
+          <label for="format">Output format</label>
+          <select id="format">
+            <option value="image/jpeg">JPEG</option>
+            <option value="image/png">PNG</option>
+            <option value="image/webp">WebP</option>
+          </select>
+        </div>
+      </div>
+      <div class="qrow">
+        <label for="quality">Quality</label>
+        <input type="range" id="quality" min="1" max="100" step="1" value="90">
+        <output id="qualityVal" for="quality">90</output>
+      </div>
+      <p class="qnote" id="qNote"></p>
+      <div class="result" id="result" data-enc="0"></div>
+      <p class="meta-note">Privacy note: re-encoding through a canvas does not carry EXIF metadata (location, camera, capture time) into the output — the downloaded file is a clean image. This tool cannot selectively edit EXIF fields; it simply produces a file that has none.</p>
+      <button class="btn" id="download" disabled>Download</button>
+    </div>
+  </div>
+
+  <footer>Fully offline — images never leave your machine, and nothing is stored. Encoding uses your browser’s built-in canvas codecs.</footer>
+</div>
+
+<script src="../core/suite.js" data-suite-inline></script>
+<script>
+"use strict";
+Suite.theme.init();
+
+const $ = id => document.getElementById(id);
+const drop = $("drop"), fileInput = $("fileInput");
+const errCard = $("errCard"), errMsg = $("errMsg");
+const workspace = $("workspace"), preview = $("preview");
+const outW = $("outW"), outH = $("outH"), outPct = $("outPct"), lock = $("lock");
+const dimOut = Suite.liveRegion($("dimOut"));
+const format = $("format"), quality = $("quality"), qualityVal = $("qualityVal"), qNote = $("qNote");
+const result = Suite.liveRegion($("result"));
+const dlBtn = $("download");
+
+const MAX_DIM = 8192;            /* well under Chromium's canvas edge limit */
+const PREVIEW_MAX_W = 880;       /* backing-store cap; CSS scales it down further */
+
+const state = {
+  bitmap: null,   /* full-resolution ImageBitmap of the loaded file */
+  name: "",       /* original filename */
+  size: 0,        /* original byte size */
+  type: "",       /* original MIME type */
+  blob: null,     /* last successful encode */
+  blobDims: null, /* dims of that encode */
+};
+let encodeSeq = 0, encodeTimer = 0;
+
+function fmtBytes(n) {
+  if (n < 1024) return n + " B";
+  if (n < 1024 * 1024) return (n / 1024).toFixed(1) + " KB";
+  return (n / (1024 * 1024)).toFixed(2) + " MB";
+}
+const clampDim = n => Math.min(MAX_DIM, Math.max(1, Math.round(n)));
+
+/* ---------- loading ---------- */
+function showError(msg) {
+  errMsg.textContent = msg;
+  errCard.classList.remove("hidden");
+  workspace.classList.add("hidden");
+  resetState();
+}
+function resetState() {
+  encodeSeq++;                       /* invalidate any in-flight encode */
+  clearTimeout(encodeTimer);
+  if (state.bitmap) { state.bitmap.close(); state.bitmap = null; }
+  state.blob = null; state.blobDims = null;
+  dlBtn.disabled = true;
+}
+
+function handleFile(file) {
+  if (!file) return;
+  errCard.classList.add("hidden");
+  if (!file.type.startsWith("image/")) {
+    showError(`“${file.name}” is ${file.type || "an unknown type"}, not an image. ` +
+      "Pick a JPEG, PNG, WebP, GIF, or another image format your browser understands.");
+    return;
+  }
+  /* Decode with createImageBitmap rather than an <img src=blob:>: the generated CSP
+     is img-src 'self' data:, which blocks blob: image URLs. A bitmap decode is not an
+     image-source fetch, and it leaves canvases untainted for toBlob re-encoding. */
+  createImageBitmap(file).then(bmp => {
+    resetState();
+    state.bitmap = bmp;
+    state.name = file.name;
+    state.size = file.size;
+    state.type = file.type;
+    $("factName").textContent = file.name;
+    $("factDims").textContent = `${bmp.width} × ${bmp.height} px`;
+    $("factSize").textContent = fmtBytes(file.size);
+    $("factType").textContent = file.type;
+
+    /* preview: capped backing store, drawn from the retained full-res bitmap */
+    const s = Math.min(1, PREVIEW_MAX_W / bmp.width);
+    preview.width = Math.max(1, Math.round(bmp.width * s));
+    preview.height = Math.max(1, Math.round(bmp.height * s));
+    preview.getContext("2d").drawImage(bmp, 0, 0, preview.width, preview.height);
+
+    /* reset controls for the new image */
+    outW.value = bmp.width; outH.value = bmp.height; outPct.value = 100;
+    lock.checked = true;
+    if (["image/jpeg", "image/png", "image/webp"].includes(file.type)) format.value = file.type;
+    else format.value = "image/png";   /* lossless default for exotic inputs (GIF, AVIF…) */
+    onFormat();
+    updateReadout();
+    workspace.classList.remove("hidden");
+    scheduleEncode();
+  }).catch(() => {
+    showError(`“${file.name}” claims to be an image (${file.type}) but couldn’t be decoded. ` +
+      "It may be corrupted or in a format this browser doesn’t support.");
+  });
+}
+
+fileInput.addEventListener("change", () => { handleFile(fileInput.files[0]); fileInput.value = ""; });
+drop.addEventListener("dragover", e => { e.preventDefault(); drop.classList.add("over"); });
+drop.addEventListener("dragleave", () => drop.classList.remove("over"));
+drop.addEventListener("drop", e => {
+  e.preventDefault(); drop.classList.remove("over");
+  if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+});
+drop.addEventListener("keydown", e => {
+  if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileInput.click(); }
+});
+
+/* ---------- resize math ---------- */
+function currentDims() {
+  const w = clampDim(+outW.value || (state.bitmap ? state.bitmap.width : 1));
+  const h = clampDim(+outH.value || (state.bitmap ? state.bitmap.height : 1));
+  return { w, h };
+}
+function updateReadout() {
+  if (!state.bitmap) return;
+  const { w, h } = currentDims();
+  const W = state.bitmap.width, H = state.bitmap.height;
+  const uniform = Math.abs(w / W - h / H) < 0.005;
+  const pct = uniform ? ` (${Math.round((w / W) * 1000) / 10}%)` : " (aspect changed)";
+  dimOut.textContent = "";
+  const bold = document.createElement("b");
+  bold.textContent = `${w} × ${h}`;
+  dimOut.append(`${W} × ${H} → `, bold, pct);
+}
+function syncPct() {
+  if (!state.bitmap) return;
+  const { w, h } = currentDims();
+  const uniform = Math.abs(w / state.bitmap.width - h / state.bitmap.height) < 0.005;
+  outPct.value = uniform ? Math.round((w / state.bitmap.width) * 100) : "";
+}
+outW.addEventListener("input", () => {
+  if (!state.bitmap || !(+outW.value > 0)) return;
+  if (lock.checked) outH.value = clampDim(+outW.value * state.bitmap.height / state.bitmap.width);
+  syncPct(); updateReadout(); scheduleEncode();
+});
+outH.addEventListener("input", () => {
+  if (!state.bitmap || !(+outH.value > 0)) return;
+  if (lock.checked) outW.value = clampDim(+outH.value * state.bitmap.width / state.bitmap.height);
+  syncPct(); updateReadout(); scheduleEncode();
+});
+outPct.addEventListener("input", () => {
+  if (!state.bitmap || !(+outPct.value > 0)) return;
+  const p = +outPct.value / 100;   /* percent always scales uniformly from the original */
+  outW.value = clampDim(state.bitmap.width * p);
+  outH.value = clampDim(state.bitmap.height * p);
+  updateReadout(); scheduleEncode();
+});
+lock.addEventListener("change", () => {
+  /* re-locking snaps height back to the original aspect, keyed off width */
+  if (lock.checked && state.bitmap && +outW.value > 0) {
+    outH.value = clampDim(+outW.value * state.bitmap.height / state.bitmap.width);
+    syncPct(); updateReadout(); scheduleEncode();
+  }
+});
+
+/* ---------- encode ---------- */
+function lossy() { return format.value === "image/jpeg" || format.value === "image/webp"; }
+function onFormat() {
+  quality.disabled = !lossy();
+  qNote.textContent = format.value === "image/png"
+    ? "PNG is lossless — the quality slider doesn’t apply."
+    : (format.value === "image/jpeg"
+      ? "JPEG has no transparency; transparent areas become white."
+      : "WebP keeps transparency and usually encodes smaller than JPEG.");
+}
+format.addEventListener("change", () => { onFormat(); scheduleEncode(); });
+quality.addEventListener("input", () => { qualityVal.textContent = quality.value; scheduleEncode(); });
+
+function scheduleEncode() {
+  clearTimeout(encodeTimer);
+  encodeTimer = setTimeout(encode, 150);
+}
+function extFor(mime) { return { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" }[mime]; }
+function encode() {
+  if (!state.bitmap) return;
+  const seq = ++encodeSeq;
+  const { w, h } = currentDims();
+  dlBtn.disabled = true;
+  result.textContent = "Encoding…";
+  const c = document.createElement("canvas");
+  c.width = w; c.height = h;
+  const ctx = c.getContext("2d");
+  if (format.value === "image/jpeg") { ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, w, h); }
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(state.bitmap, 0, 0, w, h);
+  c.toBlob(blob => {
+    if (seq !== encodeSeq) return;          /* superseded by a newer request */
+    if (!blob) {
+      result.textContent = "This browser couldn’t encode that format — try PNG.";
+      return;
+    }
+    state.blob = blob;
+    state.blobDims = { w, h };
+    /* blob.type is reported honestly: if a browser can't encode WebP it falls back to PNG */
+    const label = { "image/jpeg": "JPEG", "image/png": "PNG", "image/webp": "WebP" }[blob.type] || blob.type;
+    const bold = document.createElement("b");
+    bold.textContent = label;
+    result.textContent = "";
+    result.append(bold, ` · ${w} × ${h} px · ${fmtBytes(blob.size)} — `);
+    const d = (blob.size - state.size) / state.size * 100;
+    if (Math.abs(d) < 0.5) {
+      result.append("≈ same size as the original");
+    } else {
+      const span = document.createElement("span");
+      span.className = d < 0 ? "delta-down" : "delta-up";
+      span.textContent = `${Math.abs(d).toFixed(0)}% ${d < 0 ? "smaller" : "larger"}`;
+      result.append(span, " than the original");
+    }
+    result.dataset.enc = String(seq);
+    dlBtn.disabled = false;
+  }, format.value, lossy() ? +quality.value / 100 : undefined);
+}
+
+/* ---------- download (object-URL download links are CSP-fine; only blob: IMG src is blocked) ---------- */
+dlBtn.addEventListener("click", () => {
+  if (!state.blob) return;
+  const base = state.name.replace(/\.[^.\/]+$/, "") || "image";
+  const url = URL.createObjectURL(state.blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${base}-${state.blobDims.w}x${state.blobDims.h}.${extFor(state.blob.type) || "img"}`;
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+});
+</script>
+</body>
+</html>

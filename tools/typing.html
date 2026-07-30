@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Typing Speed Trainer · Local Suite</title>
+<link rel="stylesheet" href="../core/suite.css" data-suite-inline>
+<style>
+  body { padding: 1.4rem 1.25rem 4rem; }
+  .wrap { max-width: 880px; margin: 0 auto; }
+  .topbar { display: flex; align-items: center; gap: 1rem; }
+  .topbar .theme-btn, .topbar .fav-btn { float: none; }
+  .topbar .theme-btn { margin-left: auto; }
+  header { margin: 1rem 0 1.15rem; }
+  h1 { font-size: 1.8rem; letter-spacing: -.02em; }
+  .tag, .sub, .note { color: var(--muted); }
+  .tag { margin-top: .35rem; max-width: 48rem; }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 1.1rem 1.2rem 1.2rem; box-shadow: var(--shadow); margin-bottom: 1rem;
+  }
+  .toolbar { display: flex; align-items: center; gap: .55rem; flex-wrap: wrap; }
+  .toolbar .label { color: var(--muted); font-size: .8rem; margin-right: .1rem; }
+  button {
+    font: inherit; cursor: pointer; border: 1px solid var(--line); border-radius: 9px;
+    padding: .45rem .75rem; background: var(--bg); color: var(--ink);
+  }
+  button:hover { border-color: var(--accent); }
+  button[aria-pressed="true"], .primary {
+    background: var(--accent); border-color: var(--accent); color: var(--bg); font-weight: 700;
+  }
+  .metrics {
+    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .6rem;
+    margin: 1rem 0;
+  }
+  .metric {
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: .65rem .75rem; min-width: 0;
+  }
+  .metric strong { display: block; font-size: 1.28rem; font-variant-numeric: tabular-nums; }
+  .metric span { color: var(--muted); font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; }
+  .prompt {
+    font: 1.15rem/1.85 ui-monospace, SFMono-Regular, Consolas, monospace;
+    background: var(--bg); border: 1px solid var(--line); border-radius: 11px;
+    padding: 1rem; min-height: 8.2rem; white-space: pre-wrap; overflow-wrap: anywhere;
+  }
+  .prompt .correct { color: var(--forest); background: var(--forest-soft); }
+  .prompt .wrong { color: var(--danger); background: color-mix(in srgb, var(--danger) 16%, transparent); text-decoration: underline; }
+  .prompt .current { outline: 2px solid var(--accent); outline-offset: 1px; border-radius: 2px; }
+  textarea {
+    width: 100%; min-height: 7rem; resize: vertical; margin-top: .8rem;
+    font: 1rem/1.55 ui-monospace, SFMono-Regular, Consolas, monospace;
+    color: var(--ink); background: var(--bg); border: 1px solid var(--line);
+    border-radius: 11px; padding: .8rem;
+  }
+  textarea:focus { border-color: var(--accent); }
+  textarea[disabled] { opacity: .72; cursor: not-allowed; }
+  .actions { display: flex; gap: .55rem; flex-wrap: wrap; margin-top: .75rem; align-items: center; }
+  .status { min-height: 1.4em; margin-top: .65rem; color: var(--muted); }
+  .status.done { color: var(--forest); font-weight: 700; }
+  .history-head { display: flex; align-items: center; justify-content: space-between; gap: .7rem; }
+  .history-head h2 { font-size: 1.05rem; }
+  .history { list-style: none; margin-top: .7rem; }
+  .history li {
+    display: grid; grid-template-columns: minmax(7rem, 1fr) repeat(3, auto);
+    gap: .8rem; padding: .48rem 0; border-bottom: 1px solid var(--line); align-items: baseline;
+  }
+  .history li:last-child { border-bottom: 0; }
+  .history time, .history .empty { color: var(--muted); font-size: .82rem; }
+  .history b { font-variant-numeric: tabular-nums; }
+  footer { margin-top: 2.2rem; text-align: center; color: var(--muted); font-size: .83rem; }
+  @media (max-width: 600px) {
+    body { padding: .9rem .75rem 3rem; }
+    .card { padding: .9rem; }
+    .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .prompt { font-size: 1rem; line-height: 1.7; min-height: 10rem; }
+    .history li { grid-template-columns: 1fr auto; gap: .25rem .7rem; }
+    .history li time { grid-column: 1 / -1; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="index.html">← suite</a>
+    <button class="theme-btn" id="themeBtn" title="Toggle light/dark">◐ theme</button>
+  </div>
+  <header>
+    <h1>Typing Speed Trainer</h1>
+    <p class="tag">Timed, local typing practice with live words per minute and accuracy. Nothing you type is sent anywhere.</p>
+  </header>
+
+  <section class="card" aria-label="Typing test">
+    <div class="toolbar">
+      <span class="label" id="durationLabel">Test length</span>
+      <div id="durations" role="group" aria-labelledby="durationLabel"></div>
+      <button id="newPassage">New passage</button>
+    </div>
+    <div class="metrics" aria-label="Live typing statistics">
+      <div class="metric"><strong id="time">30</strong><span>seconds left</span></div>
+      <div class="metric"><strong id="wpm">0</strong><span>net WPM</span></div>
+      <div class="metric"><strong id="accuracy">100%</strong><span>accuracy</span></div>
+      <div class="metric"><strong id="progress">0%</strong><span>passage</span></div>
+    </div>
+    <div class="prompt" id="prompt" aria-label="Text to type"></div>
+    <label class="sub" for="typingInput">Type the passage here. The clock starts with your first character.</label>
+    <textarea id="typingInput" aria-describedby="typingStatus" autocomplete="off" autocapitalize="off" spellcheck="false"></textarea>
+    <div class="actions">
+      <button class="primary" id="restart">Restart this test</button>
+      <span class="note">Ctrl/⌘ + Enter restarts without changing the passage.</span>
+    </div>
+    <div class="status" id="typingStatus" aria-live="polite">Ready — start typing when you are comfortable.</div>
+  </section>
+
+  <section class="card" aria-label="Recent typing results">
+    <div class="history-head">
+      <h2>Recent results</h2>
+      <button id="clearHistory">Clear history</button>
+    </div>
+    <p class="sub" id="best">No completed test yet.</p>
+    <ol class="history" id="history"></ol>
+  </section>
+
+  <footer>No network · passages are embedded · up to 20 completed results stay in <code>suite.typing.stats</code>.</footer>
+</div>
+
+<script src="../core/suite.js" data-suite-inline></script>
+<script>
+"use strict";
+Suite.theme.init();
+
+const PASSAGES = [
+  "Good tools disappear into the work. They keep the important controls nearby, explain unusual choices, and leave the person using them in charge.",
+  "A quiet morning can hold many small discoveries: fresh tracks near the creek, a changing wind, and the first bright edge of sunlight on the trees.",
+  "Measure twice, make the next step small, and record what changed. Careful progress is usually faster than repeating a hurried mistake.",
+  "Public information is most useful when its source, age, and limits are visible. A clear timestamp can be as important as the number beside it.",
+  "The library stayed open through the rain. Inside, maps covered one table while a patient reader followed an old railway across three states.",
+  "Practice is not a performance. Slow down enough to notice each error, keep your shoulders relaxed, and let accuracy build speed over time.",
+  "A recipe becomes dependable when quantities, temperatures, and timing are written plainly. Good notes turn one successful meal into many.",
+  "Before leaving the trailhead, check the forecast, carry water, and tell someone your route. Simple preparation leaves more room to enjoy the day."
+];
+const DURATIONS = [15, 30, 60];
+const STORE = "suite.typing.stats";
+const promptEl = document.getElementById("prompt");
+const input = document.getElementById("typingInput");
+const statusEl = document.getElementById("typingStatus");
+const timeEl = document.getElementById("time");
+const wpmEl = document.getElementById("wpm");
+const accuracyEl = document.getElementById("accuracy");
+const progressEl = document.getElementById("progress");
+const durationEl = document.getElementById("durations");
+const historyEl = document.getElementById("history");
+const bestEl = document.getElementById("best");
+
+let passageIndex = 0;
+let duration = 30;
+let startedAt = null;
+let timer = null;
+let finished = false;
+let lastMetrics = {wpm: 0, accuracy: 100, correct: 0, typed: 0, elapsed: 0};
+const DBG = window.__typing = { elapsedOverride: null, passage: "", metrics: lastMetrics };
+function now() { return DBG.elapsedOverride === null ? performance.now() : DBG.elapsedOverride; }
+function stats() {
+  const s = Suite.store.get(STORE, []);
+  return Array.isArray(s) ? s.filter(x => x && Number.isFinite(+x.wpm)).slice(0, 20) : [];
+}
+function saveStats(rows) {
+  if (!Suite.store.set(STORE, rows.slice(0, 20))) {
+    statusEl.textContent = "Result calculated, but local storage is unavailable.";
+  }
+}
+function passage() { return PASSAGES[passageIndex]; }
+function renderPrompt() {
+  const typed = input.value;
+  promptEl.textContent = "";
+  Array.from(passage()).forEach((ch, i) => {
+    const span = document.createElement("span");
+    span.textContent = ch;
+    if (i < typed.length) span.className = typed[i] === ch ? "correct" : "wrong";
+    else if (i === typed.length && !finished) span.className = "current";
+    promptEl.append(span);
+  });
+}
+function compute() {
+  const typed = input.value;
+  let correct = 0;
+  for (let i = 0; i < typed.length; i++) if (typed[i] === passage()[i]) correct++;
+  const elapsed = startedAt === null ? 0 : Math.max(0, now() - startedAt);
+  const minutes = Math.max(elapsed / 60000, 1 / 600);
+  const accuracy = typed.length ? correct / typed.length * 100 : 100;
+  const wpm = typed.length ? Math.max(0, Math.round((correct / 5) / minutes)) : 0;
+  lastMetrics = {wpm, accuracy, correct, typed: typed.length, elapsed};
+  DBG.metrics = lastMetrics;
+  return lastMetrics;
+}
+function paintMetrics() {
+  const m = compute();
+  const left = startedAt === null ? duration : Math.max(0, Math.ceil(duration - m.elapsed / 1000));
+  timeEl.textContent = String(left);
+  wpmEl.textContent = String(m.wpm);
+  accuracyEl.textContent = Math.round(m.accuracy) + "%";
+  progressEl.textContent = Math.min(100, Math.round(m.typed / passage().length * 100)) + "%";
+  return left;
+}
+function drawDurations() {
+  durationEl.textContent = "";
+  DURATIONS.forEach(seconds => {
+    const button = document.createElement("button");
+    button.textContent = seconds + " sec";
+    button.dataset.seconds = String(seconds);
+    button.setAttribute("aria-pressed", String(seconds === duration));
+    button.addEventListener("click", () => {
+      duration = seconds;
+      restart(false);
+      drawDurations();
+    });
+    durationEl.append(button);
+  });
+}
+function drawHistory() {
+  const rows = stats();
+  historyEl.textContent = "";
+  if (!rows.length) {
+    const li = document.createElement("li");
+    li.className = "empty";
+    li.textContent = "Completed tests will appear here.";
+    historyEl.append(li);
+    bestEl.textContent = "No completed test yet.";
+    return;
+  }
+  const best = rows.reduce((a, b) => +a.wpm >= +b.wpm ? a : b);
+  bestEl.textContent = "Best: " + best.wpm + " WPM at " + Math.round(best.accuracy) + "% accuracy.";
+  rows.forEach(row => {
+    const li = document.createElement("li");
+    const tm = document.createElement("time");
+    tm.dateTime = new Date(row.at).toISOString();
+    tm.textContent = new Date(row.at).toLocaleString(undefined, {month: "short", day: "numeric", hour: "numeric", minute: "2-digit"});
+    const speed = document.createElement("b");
+    speed.textContent = row.wpm + " WPM";
+    const acc = document.createElement("span");
+    acc.textContent = Math.round(row.accuracy) + "% accurate";
+    const len = document.createElement("span");
+    len.textContent = row.duration + " sec";
+    li.append(tm, speed, acc, len);
+    historyEl.append(li);
+  });
+}
+function start() {
+  if (startedAt !== null || finished) return;
+  startedAt = now();
+  statusEl.textContent = "Test running — keep your eyes on the passage.";
+  timer = setInterval(tick, 100);
+}
+function tick() {
+  if (finished) return;
+  const left = paintMetrics();
+  if (startedAt !== null && (left <= 0 || input.value.length >= passage().length)) finish();
+}
+function finish() {
+  if (finished || startedAt === null) return;
+  finished = true;
+  clearInterval(timer);
+  timer = null;
+  const m = compute();
+  paintMetrics();
+  input.disabled = true;
+  statusEl.className = "status done";
+  statusEl.textContent = "Complete — " + m.wpm + " WPM at " + Math.round(m.accuracy) + "% accuracy.";
+  const rows = stats();
+  rows.unshift({at: Date.now(), wpm: m.wpm, accuracy: +m.accuracy.toFixed(1), duration, chars: m.typed});
+  saveStats(rows);
+  drawHistory();
+  renderPrompt();
+}
+function restart(focus = true) {
+  clearInterval(timer);
+  timer = null;
+  startedAt = null;
+  finished = false;
+  DBG.elapsedOverride = null;
+  input.disabled = false;
+  input.value = "";
+  statusEl.className = "status";
+  statusEl.textContent = "Ready — start typing when you are comfortable.";
+  DBG.passage = passage();
+  renderPrompt();
+  paintMetrics();
+  if (focus) input.focus();
+}
+function nextPassage() {
+  passageIndex = (passageIndex + 1) % PASSAGES.length;
+  restart();
+}
+input.addEventListener("input", () => {
+  if (input.value.length > passage().length) input.value = input.value.slice(0, passage().length);
+  if (input.value && startedAt === null) start();
+  renderPrompt();
+  tick();
+});
+input.addEventListener("keydown", e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+    e.preventDefault();
+    restart();
+  }
+});
+document.getElementById("restart").addEventListener("click", () => restart());
+document.getElementById("newPassage").addEventListener("click", nextPassage);
+document.getElementById("clearHistory").addEventListener("click", () => {
+  Suite.store.remove(STORE);
+  drawHistory();
+  statusEl.className = "status";
+  statusEl.textContent = "Typing history cleared.";
+});
+DBG.setElapsed = ms => { DBG.elapsedOverride = ms; tick(); };
+DBG.finish = finish;
+DBG.restart = restart;
+
+drawDurations();
+drawHistory();
+restart(false);
+</script>
+</body>
+</html>

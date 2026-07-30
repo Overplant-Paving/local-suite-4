@@ -234,5 +234,41 @@
     "sparkline(U.slice(-24),css(\"--accent\"))": "local-only expression, recorded verified-clean with reasoning in tests/evidence/jobs/report.md",
     "sparkline(P.slice(-24),css(\"--c2\"))": "local-only expression, recorded verified-clean with reasoning in tests/evidence/jobs/report.md",
     "sparkline(C.slice(-24),css(\"--c3\"))": "local-only expression, recorded verified-clean with reasoning in tests/evidence/jobs/report.md"
+  },
+  "savings.html": {
+    "fmt$(R.final)": "fmt$ accepts only a computed number and returns a locale-formatted currency string",
+    "fmt$(R.contrib)": "fmt$ accepts only a computed number and returns a locale-formatted currency string",
+    "fmt$(R.growth)": "fmt$ accepts only a computed number and returns a locale-formatted currency string",
+    "fmt$(R.realFinal)": "fmt$ accepts only a computed number and returns a locale-formatted currency string",
+    "s.infl > 0 ? `<div class=\"stat alt\"><b id=\"realBal\">${fmt$(R.realFinal)}</b><span>In today's dollars</span></div>` : \"\"": "fixed markup selected by a numeric input; the only value is passed through the numeric currency formatter",
+    "fmt$(s.goal)": "goal is a finite number parsed from a local number input and passed through the currency formatter",
+    "fmtElapsed(R.goalMonth)": "computed integer month count passed through a fixed local duration formatter",
+    "R.goalMonth": "computed integer month count",
+    "s.years * 12": "arithmetic on a clamped numeric input",
+    "s.years": "clamped numeric input",
+    "s.years === 1 ? \"\" : \"s\"": "literal-only plural suffix",
+    "fmt$(s.goal - R.final)": "arithmetic result passed through the numeric currency formatter",
+    "W": "fixed local SVG width constant",
+    "H": "fixed local SVG height constant",
+    "grid": "SVG markup generated solely from computed numeric coordinates and fixed class names",
+    "labels": "SVG text markup generated solely from computed numeric years and currency-axis labels",
+    "path(\"real\")": "SVG path string generated from finite simulated numeric coordinates",
+    "showReal ? `<path class=\"ln ln-real\" data-series=\"real\" d=\"${path(\"real\")}\"/>` : \"\"": "fixed SVG markup with a path generated solely from finite simulated numbers",
+    "path(\"bal\")": "SVG path string generated from finite simulated numeric coordinates"
+  },
+  "skyevents.html": {
+    "filter === \"shower\" ? \" — meteor showers are annual and always listed above\" : \"\"": "literal-only explanatory suffix selected by a fixed filter id"
+  },
+  "spending.html": {
+    "statV(fmtMoney(total), total == null)": "statV escapes its text argument; total is a parsed finite API number passed through fmtMoney",
+    "statV(count == null ? \"not reported\" : count.toLocaleString(\"en-US\"), count == null)": "statV escapes its text argument; count is a parsed finite API number or a fixed literal",
+    "statV(percap == null ? \"not reported\" : \"$\" + Math.round(percap).toLocaleString(\"en-US\"), percap == null)": "statV escapes its text argument; percap is a parsed finite API number or a fixed literal",
+    "statV(\"Latest 12 months\", false, true)": "statV escapes a fixed local label"
+  },
+  "tropical.html": {
+    "isErr ? \" err\" : \"\"": "literal-only CSS class suffix"
+  },
+  "weatherhistory.html": {
+    "r.stale ? \" stale\" : \"\"": "literal-only CSS class suffix"
   }
 }

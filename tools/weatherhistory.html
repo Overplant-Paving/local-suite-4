@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Weather Time Machine · Local Suite</title>
+<link rel="stylesheet" href="../core/suite.css" data-suite-inline>
+<style>
+  /* tool accents: high/low/wet + error text (3-layer, same pattern as core) */
+  :root{ --high:#c65f3f; --low:#3a6ea8; --wet:#3a7d9e; --err:#b0472f; }
+  @media (prefers-color-scheme: dark){
+    :root{ --high:#e07a58; --low:#6b9dd6; --wet:#6fa8c9; --err:#c2715f; }
+  }
+  :root[data-theme="light"]{ --high:#c65f3f; --low:#3a6ea8; --wet:#3a7d9e; --err:#b0472f; }
+  :root[data-theme="dark"]{ --high:#e07a58; --low:#6b9dd6; --wet:#6fa8c9; --err:#c2715f; }
+
+  body{ padding:1.4rem 1.25rem 4rem; }
+  .wrap{ max-width:860px; margin:0 auto; }
+  .topbar{ display:flex; align-items:center; gap:1rem; }
+  .topbar .theme-btn, .topbar .fav-btn{ float:none; }
+  .topbar .theme-btn{ margin-left:auto; }
+  header{ margin:1rem 0 1.2rem; }
+  h1{ font-size:1.8rem; letter-spacing:-.02em; }
+  .tag{ color:var(--muted); margin-top:.35rem; max-width:48rem; }
+
+  /* controls card (core .card is a flex column; this tool wants a plain block) */
+  .card{ background:var(--card); border:1px solid var(--line); border-radius:14px;
+    padding:1.1rem 1.15rem; box-shadow:var(--shadow); margin-top:.9rem;
+    display:block; flex-direction:row; gap:normal; }
+  .card h2{ font-size:.78rem; text-transform:uppercase; letter-spacing:.08em;
+    color:var(--muted); font-weight:600; margin-bottom:.8rem; }
+  .placebar{ display:flex; align-items:center; gap:.6rem; flex-wrap:wrap; margin-bottom:.9rem; }
+  .placebar .name{ font-weight:600; font-size:1.02rem; }
+  .chip{ font-size:.7rem; text-transform:uppercase; letter-spacing:.05em; color:var(--muted);
+    background:var(--chip); padding:.15rem .5rem; border-radius:999px; white-space:nowrap; }
+  .mini{ border:1px solid var(--line); background:var(--card); color:var(--accent);
+    border-radius:999px; padding:.25rem .7rem; cursor:pointer; font-size:.8rem; }
+  .mini:hover{ border-color:var(--accent); }
+  .row{ display:flex; gap:.7rem; align-items:flex-end; flex-wrap:wrap; }
+  .field{ flex:1 1 200px; min-width:0; }
+  .field.narrow{ flex:0 1 190px; }
+  label{ font-size:.82rem; color:var(--muted); display:block; margin-bottom:.25rem; }
+  input{ width:100%; padding:.55rem .7rem; font-size:1rem; color:var(--ink);
+    border:1px solid var(--line); border-radius:10px; background:var(--bg); outline:none; }
+  input:focus{ border-color:var(--accent); }
+  .btn{ border:1px solid var(--accent); background:var(--accent); color:var(--bg);
+    border-radius:10px; padding:.55rem .9rem; cursor:pointer; font-weight:600;
+    font-size:.9rem; white-space:nowrap; flex:0 0 auto; }
+  .btn:hover{ filter:brightness(1.06); }
+  .hint{ font-size:.82rem; color:var(--muted); margin-top:.5rem; }
+  .err{ color:var(--err); font-size:.85rem; margin-top:.4rem; }
+  .res{ margin-top:.7rem; display:flex; flex-direction:column; gap:.4rem; }
+  .place-opt{ display:flex; justify-content:space-between; align-items:center; gap:.8rem;
+    width:100%; text-align:left; border:1px solid var(--line); border-radius:11px;
+    padding:.55rem .75rem; background:var(--bg); color:var(--ink); cursor:pointer; font-size:.92rem; }
+  .place-opt:hover{ background:var(--accent-soft); border-color:var(--accent); }
+  .place-opt .pn{ font-weight:600; }
+  .place-opt .pd{ color:var(--muted); font-size:.82rem; }
+  .place-opt .pc{ font:.78rem ui-monospace, Menlo, Consolas, monospace; color:var(--accent); white-space:nowrap; }
+
+  /* day card */
+  .daytitle{ font-size:1.25rem; font-weight:600; }
+  .daysub{ color:var(--muted); font-size:.9rem; margin-top:.15rem; }
+  .headline{ font-size:1.35rem; font-weight:600; margin:.7rem 0 .1rem; color:var(--accent); }
+  .stats{ display:grid; grid-template-columns:repeat(auto-fit,minmax(108px,1fr)); gap:.7rem; margin-top:.9rem; }
+  .stat{ background:var(--accent-soft); border-radius:10px; padding:.7rem .8rem; text-align:center; min-width:0; }
+  .stat .sl{ font-size:.7rem; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); }
+  .stat .sv{ font-size:1.45rem; font-weight:600; line-height:1.1; margin-top:.2rem; overflow-wrap:anywhere; }
+  .stat .sx{ font-size:.76rem; color:var(--muted); }
+  .stat.high .sv{ color:var(--high); } .stat.low .sv{ color:var(--low); } .stat.wet .sv{ color:var(--wet); }
+  .stamp{ font-size:.8rem; color:var(--muted); margin-top:.8rem; }
+  .stamp.stale{ color:var(--err); }
+  .msg{ padding:1.2rem .4rem; text-align:center; color:var(--muted); }
+  .msg .big{ font-size:1.05rem; color:var(--ink); margin-bottom:.4rem; }
+
+  /* context chart */
+  #ctxChart{ width:100%; height:auto; display:block; }
+  .sentences{ margin-top:.7rem; font-size:.92rem; line-height:1.55; }
+  .sentences b.warm{ color:var(--high); } .sentences b.cold{ color:var(--low); } .sentences b.wet{ color:var(--wet); }
+  .legend{ display:flex; gap:1.1rem; flex-wrap:wrap; font-size:.8rem; color:var(--muted); margin-top:.5rem; }
+  .legend i{ display:inline-block; width:.8rem; height:.8rem; border-radius:2px; margin-right:.3rem; vertical-align:-1px; }
+  footer{ margin-top:2.5rem; font-size:.82rem; padding-top:1rem; }
+  .hidden{ display:none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="index.html">← suite</a>
+    <button class="theme-btn" id="themeBtn" title="Toggle light/dark">◐ theme</button>
+  </div>
+  <header>
+    <h1>Weather Time Machine</h1>
+    <p class="tag">What the weather actually was on any date since 1940, anywhere — and how that
+      calendar day has run over the last ten years.</p>
+  </header>
+
+  <section class="card">
+    <h2>Place &amp; date</h2>
+    <div class="placebar">
+      <span class="name" id="placeName">No location yet</span>
+      <span class="chip hidden" id="placeChip"></span>
+      <button class="mini hidden" id="useSavedBtn">use my saved location</button>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label for="q">Look anywhere (doesn't change your saved location)</label>
+        <input id="q" placeholder="Lisbon · Tokyo · Duluth, MN" autocomplete="off">
+      </div>
+      <button class="btn" id="qGo">Search</button>
+      <div class="field narrow">
+        <label for="dateIn">Date</label>
+        <input type="date" id="dateIn" min="1940-01-01">
+      </div>
+    </div>
+    <div class="res" id="qRes"></div>
+    <div class="err" id="dateErr" role="status"></div>
+    <div class="hint">History runs from Jan 1, 1940 to about five days ago — ERA5 is published
+      with a lag, so the most recent days aren't in yet.</div>
+  </section>
+
+  <section class="card" id="dayCard">
+    <div class="msg">Pick a place and date to look back.</div>
+  </section>
+
+  <section class="card hidden" id="ctxCard"></section>
+
+  <footer>
+    ERA5 reanalysis via <a href="https://open-meteo.com/en/docs/historical-weather-api" target="_blank" rel="noopener">Open-Meteo</a>
+    (archive-api.open-meteo.com) — modeled history, not a station record; values can differ from a
+    nearby station's observations. Place search: Open-Meteo geocoding. Everything is fetched
+    keylessly and cached on this device for 24&nbsp;hours; nothing about you leaves the browser
+    except the coordinates and dates in the requests.
+  </footer>
+</div>
+
+<script src="../core/suite.js" data-suite-inline></script>
+<script>
+"use strict";
+
+Suite.theme.init();
+
+const $ = s => document.querySelector(s);
+const esc = Suite.esc;
+
+/* manifest cacheTtlMin: 1440 — one day. Yesterday's 1940–2026 history does not change. */
+const TTL = 1440 * 60 * 1000;
+const ARCHIVE = "https://archive-api.open-meteo.com/v1/archive";
+const GEO = "https://geocoding-api.open-meteo.com/v1/search";
+
+/* ---- WMO weather interpretation codes (WW), the set Open-Meteo documents ---- */
+const WMO = {
+  0:"Clear sky", 1:"Mainly clear", 2:"Partly cloudy", 3:"Overcast",
+  45:"Fog", 48:"Depositing rime fog",
+  51:"Light drizzle", 53:"Drizzle", 55:"Dense drizzle",
+  56:"Light freezing drizzle", 57:"Dense freezing drizzle",
+  61:"Slight rain", 63:"Rain", 65:"Heavy rain",
+  66:"Light freezing rain", 67:"Heavy freezing rain",
+  71:"Slight snowfall", 73:"Snowfall", 75:"Heavy snowfall", 77:"Snow grains",
+  80:"Slight rain showers", 81:"Rain showers", 82:"Violent rain showers",
+  85:"Slight snow showers", 86:"Heavy snow showers",
+  95:"Thunderstorm", 96:"Thunderstorm with slight hail", 99:"Thunderstorm with heavy hail"
+};
+
+/* ---- date helpers (ISO strings throughout; no Date-UTC parsing pitfalls) ---- */
+const pad2 = n => String(n).padStart(2, "0");
+const isoOf = d => d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
+const MIN_DATE = "1940-01-01";
+/* ERA5 is published with a ~5-day lag; the archive API fills in behind it. Be honest
+   and cap the picker rather than serving a wall of nulls for the last few days. */
+const MAX_DATE = isoOf(new Date(Date.now() - 5 * 86400000));
+function fmtDateLong(iso){
+  const [y, m, d] = iso.split("-").map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString([], { weekday:"long", year:"numeric", month:"long", day:"numeric" });
+}
+function fmtMonthDay(iso){
+  const [y, m, d] = iso.split("-").map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString([], { month:"long", day:"numeric" });
+}
+function fmtClockISO(t){ // "2019-07-15T05:37" -> locale clock time
+  const hm = String(t).split("T")[1];
+  if (!hm) return "—";
+  const [h, mi] = hm.split(":").map(Number);
+  return new Date(2000, 0, 1, h, mi).toLocaleTimeString([], { hour:"numeric", minute:"2-digit" });
+}
+function fmtWhen(t){
+  const d = new Date(t);
+  const clock = d.toLocaleTimeString([], { hour:"numeric", minute:"2-digit" });
+  return new Date().toDateString() === d.toDateString()
+    ? clock : clock + " " + d.toLocaleDateString([], { month:"short", day:"numeric" });
+}
+/* Ten years back, same calendar date. Feb 29 minus 10 years may not exist, so the
+   window opens on Feb 28 — every leap-day row in between is still inside the range. */
+function ctxStart(iso){
+  const [y, m, d] = iso.split("-").map(Number);
+  if (m === 2 && d === 29) return (y - 10) + "-02-28";
+  return (y - 10) + "-" + pad2(m) + "-" + pad2(d);
+}
+
+/* ---- cache hygiene: ctx envelopes hold ~10 years of daily rows (~100 KB each).
+   Keep the newest few per family so browsing dates can't creep toward the quota.
+   Pruning only ever touches suite.cache.weatherhistory.* keys. ---- */
+const KEEP = { "suite.cache.weatherhistory.ctx.": 4, "suite.cache.weatherhistory.day.": 24 };
+function pruneCache(){
+  try {
+    for (const prefix in KEEP){
+      const ks = [];
+      for (let i = 0; i < localStorage.length; i++){
+        const k = localStorage.key(i);
+        if (k && k.startsWith(prefix)) ks.push(k);
+      }
+      if (ks.length <= KEEP[prefix]) continue;
+      ks.map(k => {
+          const e = Suite.store.get(k);
+          return { k, t: (e && typeof e === "object" && typeof e.t === "number") ? e.t : 0 };
+        })
+        .sort((a, b) => a.t - b.t)
+        .slice(0, ks.length - KEEP[prefix])
+        .forEach(x => Suite.store.remove(x.k));
+    }
+  } catch (e) { /* pruning must never break a load */ }
+}
+
+/* ---- state ---- */
+let place = null;      // {lat, lon, label, saved} — saved:true means it IS the suite location
+let chosenDate = null; // ISO string
+let loadToken = 0;
+let lastCtx = null;    // for theme-flip redraw (chart colors resolve from CSS vars at draw time)
+
+Suite.liveRegion($("#dayCard"));
+Suite.liveRegion($("#ctxCard"));
+Suite.liveRegion($("#qRes"));
+Suite.liveRegion($("#dateErr"));
+
+function savedLoc(){ return Suite.location.get(); }
+
+function renderPlaceBar(){
+  const chip = $("#placeChip"), useBtn = $("#useSavedBtn");
+  if (!place){
+    $("#placeName").textContent = "No location yet";
+    chip.classList.add("hidden");
+    useBtn.classList.toggle("hidden", !savedLoc());
+    return;
+  }
+  $("#placeName").textContent = place.label || (place.lat + ", " + place.lon);
+  chip.textContent = place.saved ? "saved location" : "searched — saved location unchanged";
+  chip.classList.remove("hidden");
+  useBtn.classList.toggle("hidden", place.saved || !savedLoc());
+}
+
+/* ---- date validation ---- */
+function validateDate(v){
+  if (!v) return "Pick a date.";
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return "Pick a date.";
+  if (v < MIN_DATE) return "ERA5 reanalysis starts January 1, 1940 — no earlier days exist in this dataset.";
+  if (v > MAX_DATE) return "ERA5 runs about five days behind real time — the latest available day is " + MAX_DATE + ".";
+  return null;
+}
+
+/* ---- load: two requests, independently rendered.
+   1) The chosen day alone (start_date = end_date = D): full daily detail.
+   2) The 10-year context as ONE request spanning D−10y…D with just three daily
+      variables, filtered client-side to the same month-day. The API has no
+      "same day each year" mode, and one request per year would be 11 round
+      trips; ~3,650 rows ≈ 100 KB once per place+date, cached 24 h, is the
+      cheaper trade for the API and for the user. ---- */
+async function load(){
+  const dateErr = validateDate($("#dateIn").value);
+  $("#dateErr").textContent = dateErr || "";
+  if (dateErr) return;
+  chosenDate = $("#dateIn").value;
+  if (!place){ renderNoPlace(); return; }
+
+  const token = ++loadToken;
+  const d = chosenDate, lat = place.lat, lon = place.lon;
+  const ck = lat + "x" + lon + "." + d;
+  $("#dayCard").innerHTML = `<div class="msg"><div class="big">Looking back…</div>Fetching ${esc(fmtDateLong(d))} for ${esc(place.label)}.</div>`;
+  $("#ctxCard").classList.add("hidden");
+
+  const dayUrl = ARCHIVE + "?latitude=" + lat + "&longitude=" + lon
+    + "&start_date=" + d + "&end_date=" + d
+    + "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,snowfall_sum,wind_speed_10m_max,sunrise,sunset"
+    + "&temperature_unit=fahrenheit&precipitation_unit=inch&wind_speed_unit=mph&timezone=auto";
+  const ctxUrl = ARCHIVE + "?latitude=" + lat + "&longitude=" + lon
+    + "&start_date=" + ctxStart(d) + "&end_date=" + d
+    + "&daily=temperature_2m_max,temperature_2m_min,precipitation_sum"
+    + "&temperature_unit=fahrenheit&precipitation_unit=inch&timezone=auto";
+
+  const [dayR, ctxR] = await Promise.allSettled([
+    Suite.fetchJSON(dayUrl, { cacheKey: "weatherhistory.day." + ck, ttl: TTL, timeout: 15000 }),
+    Suite.fetchJSON(ctxUrl, { cacheKey: "weatherhistory.ctx." + ck, ttl: TTL, timeout: 20000 })
+  ]);
+  if (token !== loadToken) return; // a newer place/date superseded this load
+  if (dayR.status === "fulfilled") renderDay(dayR.value, d); else renderDayError(dayR.reason, d);
+  if (ctxR.status === "fulfilled") renderCtx(ctxR.value, d); else renderCtxError(ctxR.reason);
+  pruneCache();
+}
+
+function renderNoPlace(){
+  $("#ctxCard").classList.add("hidden");
+  $("#dayCard").innerHTML = `<div class="msg"><div class="big">No place chosen yet</div>
+    Search any place above${esc(savedLoc() ? ", or use your saved location" : "")} — or allow location
+    access when asked and the suite remembers it for every tool.</div>`;
+}
+
+function friendlyError(e){
+  const m = (e && e.message) || String(e);
+  if (m.includes("HTTP 429")) return "Rate limited by Open-Meteo (HTTP 429) — wait a minute and try again.";
+  if (m.startsWith("HTTP ")) return "Open-Meteo answered with an error (" + m + "). Try again shortly.";
+  if (m.includes("timed out")) return "The request timed out. Check your connection and try again.";
+  return "Couldn't reach Open-Meteo (" + m + "). Check your connection and try again.";
+}
+
+function renderDayError(e, d){
+  $("#dayCard").innerHTML = `<div class="msg"><div class="big">Couldn't load ${esc(fmtDateLong(d))}</div>
+    ${esc(friendlyError(e))}<br><br>Nothing is cached for this place and date yet.</div>`;
+}
+function renderCtxError(e){
+  const card = $("#ctxCard");
+  card.classList.remove("hidden");
+  card.innerHTML = `<h2>This date across 10 years</h2>
+    <div class="msg">${esc(friendlyError(e))}</div>`;
+}
+
+/* ---- main card: the chosen day ---- */
+function num(x, digits){ return (x == null || !isFinite(x)) ? null : (+x).toFixed(digits); }
+function renderDay(r, d){
+  const daily = r.v && r.v.daily;
+  const has = daily && Array.isArray(daily.time) && daily.time.length;
+  const card = $("#dayCard");
+  if (!has || daily.temperature_2m_max[0] == null){
+    card.innerHTML = `<div class="msg"><div class="big">No data for ${esc(fmtDateLong(d))} here</div>
+      ERA5 has no values for this spot on this date — very recent days may not be in yet.</div>`;
+    return;
+  }
+  const hi = num(daily.temperature_2m_max[0], 1), lo = num(daily.temperature_2m_min[0], 1);
+  const pr = num(daily.precipitation_sum && daily.precipitation_sum[0], 2);
+  const sn = num(daily.snowfall_sum && daily.snowfall_sum[0], 1);
+  const wind = num(daily.wind_speed_10m_max && daily.wind_speed_10m_max[0], 0);
+  const code = daily.weather_code ? daily.weather_code[0] : null;
+  const sky = (code != null && WMO[code]) ? WMO[code] : null;
+  const sunrise = daily.sunrise && daily.sunrise[0] ? fmtClockISO(daily.sunrise[0]) : null;
+  const sunset = daily.sunset && daily.sunset[0] ? fmtClockISO(daily.sunset[0]) : null;
+
+  card.innerHTML = `
+    <div class="daytitle">${esc(fmtDateLong(d))}</div>
+    <div class="daysub">${esc(place.label)} · ${esc(num(place.lat, 2))}, ${esc(num(place.lon, 2))}</div>
+    <div class="headline" id="skyLine">${esc(sky || "Conditions unknown")}${sky && code != null ? ` <span style="color:var(--muted);font-size:.8rem;font-weight:400">WMO ${esc(code)}</span>` : ""}</div>
+    <div class="stats">
+      <div class="stat high"><div class="sl">High</div><div class="sv">${esc(hi != null ? hi + "°" : "—")}</div><div class="sx">°F</div></div>
+      <div class="stat low"><div class="sl">Low</div><div class="sv">${esc(lo != null ? lo + "°" : "—")}</div><div class="sx">°F</div></div>
+      <div class="stat wet"><div class="sl">Precip</div><div class="sv">${esc(pr != null ? pr : "—")}</div><div class="sx">in</div></div>
+      <div class="stat wet"><div class="sl">Snowfall</div><div class="sv">${esc(sn != null ? sn : "—")}</div><div class="sx">in</div></div>
+      <div class="stat"><div class="sl">Max wind</div><div class="sv">${esc(wind != null ? wind : "—")}</div><div class="sx">mph</div></div>
+      <div class="stat"><div class="sl">Sunrise</div><div class="sv" style="font-size:1.05rem;padding-top:.35rem">${esc(sunrise || "—")}</div><div class="sx">local</div></div>
+      <div class="stat"><div class="sl">Sunset</div><div class="sv" style="font-size:1.05rem;padding-top:.35rem">${esc(sunset || "—")}</div><div class="sx">local</div></div>
+    </div>
+    <div class="stamp${r.stale ? " stale" : ""}" id="dayStamp">${r.stale
+      ? "Offline — cached from " + esc(fmtWhen(r.t))
+      : (r.fromCache ? "From today's cache (" + esc(fmtWhen(r.t)) + ")" : "Fetched " + esc(fmtWhen(r.t)))}</div>`;
+}
+
+/* ---- context: same month-day, previous 10 years + the chosen year ---- */
+function renderCtx(r, d){
+  const card = $("#ctxCard");
+  card.classList.remove("hidden");
+  const daily = r.v && r.v.daily;
+  if (!daily || !Array.isArray(daily.time)){
+    renderCtxError(new Error("archive returned no daily rows")); return;
+  }
+  const mmdd = d.slice(5);
+  const year = +d.slice(0, 4);
+  /* client-side filter: keep only rows whose MM-DD matches the chosen date */
+  const byYear = {};
+  for (let i = 0; i < daily.time.length; i++){
+    if (daily.time[i].slice(5) !== mmdd) continue;
+    byYear[+daily.time[i].slice(0, 4)] = {
+      hi: daily.temperature_2m_max[i],
+      lo: daily.temperature_2m_min[i],
+      pr: daily.precipitation_sum ? daily.precipitation_sum[i] : null
+    };
+  }
+  const years = [];
+  for (let y = year - 10; y <= year; y++) years.push({ year: y, v: byYear[y] || null });
+
+  const prior = years.filter(x => x.year < year && x.v && x.v.hi != null);
+  let warm = null, cold = null, wet = null, sum = 0;
+  for (const x of prior){
+    if (!warm || x.v.hi > warm.v.hi) warm = x;
+    if (!cold || x.v.hi < cold.v.hi) cold = x;
+    sum += x.v.hi;
+    if (x.v.pr != null && (!wet || x.v.pr > wet.v.pr)) wet = x;
+  }
+  const avg = prior.length ? sum / prior.length : null;
+  const thisYear = years.find(x => x.year === year);
+
+  card.innerHTML = `
+    <h2>This date across 10 years</h2>
+    <p class="hint" style="margin:0 0 .6rem">Daily high on ${esc(fmtMonthDay(d))}, ${esc(year - 10)}–${esc(year)}${esc(mmdd === "02-29" ? " — Feb 29 only exists in leap years, so most of the ten are blank" : "")}.</p>
+    <svg id="ctxChart" viewBox="0 0 680 190" role="img" aria-label="Bar chart of the daily high on this calendar date for each of the last ten years"></svg>
+    <div class="legend">
+      <span><i style="background:var(--high)"></i>${esc(year)} (chosen)</span>
+      <span><i style="background:var(--line)"></i>prior years</span>
+    </div>
+    <div class="sentences" id="ctxSentences"></div>`;
+
+  const sent = $("#ctxSentences");
+  const addSentence = (parts) => {
+    const p = document.createElement("div");
+    for (const part of parts){
+      if (typeof part === "string"){ p.append(part); }
+      else { const b = document.createElement("b"); b.className = part.c; b.textContent = part.t; p.append(b); }
+    }
+    sent.append(p);
+  };
+  if (prior.length){
+    addSentence(["Warmest of the ten: ", { c:"warm", t: warm.year + " (" + warm.v.hi.toFixed(1) + "°)" },
+      " · coldest: ", { c:"cold", t: cold.year + " (" + cold.v.hi.toFixed(1) + "°)" }, "."]);
+    if (wet && wet.v.pr > 0)
+      addSentence(["Wettest of the ten: ", { c:"wet", t: wet.year + " (" + wet.v.pr.toFixed(2) + " in)" }, "."]);
+    else
+      addSentence(["None of the ten prior years recorded measurable precipitation on this date."]);
+    if (avg != null && thisYear && thisYear.v && thisYear.v.hi != null)
+      addSentence(["Ten-year average high: " + avg.toFixed(1) + "° — " + year + " came in at " +
+        thisYear.v.hi.toFixed(1) + "° (" + (thisYear.v.hi >= avg ? "+" : "−") +
+        Math.abs(thisYear.v.hi - avg).toFixed(1) + "°)."]);
+  } else {
+    addSentence(["No prior-year values came back for this calendar date."]);
+  }
+  if (r.stale){
+    const s = document.createElement("div");
+    s.className = "stamp stale";
+    s.textContent = "Offline — cached from " + fmtWhen(r.t);
+    sent.append(s);
+  }
+
+  lastCtx = { years, year };
+  drawCtxChart(years, year);
+}
+
+function drawCtxChart(years, chosenYear){
+  const svg = $("#ctxChart");
+  if (!svg) return;
+  const css = getComputedStyle(document.documentElement);
+  const highC = (css.getPropertyValue("--high") || "#c65f3f").trim();
+  const lineC = (css.getPropertyValue("--line") || "#e4e0d6").trim();
+  const mutedC = (css.getPropertyValue("--muted") || "#5f6670").trim();
+  const inkC = (css.getPropertyValue("--ink") || "#23282e").trim();
+
+  const W = 680, H = 190, pad = { l: 8, r: 8, t: 18, b: 22 };
+  const vals = years.filter(x => x.v && x.v.hi != null).map(x => x.v.hi);
+  svg.textContent = "";
+  if (!vals.length){
+    svg.innerHTML = `<text x="20" y="30" fill="${esc(mutedC)}" font-size="12">No data</text>`;
+    return;
+  }
+  let vmax = Math.max(...vals), vmin = Math.min(...vals);
+  if (vmax === vmin){ vmax += 1; vmin -= 1; }
+  const span = vmax - vmin;
+  vmax += span * 0.15; vmin -= span * 0.25; // headroom for value labels, floor below bars
+  const n = years.length;
+  const slot = (W - pad.l - pad.r) / n;
+  const barW = Math.min(40, slot * 0.55);
+  const Y = v => pad.t + (1 - (v - vmin) / (vmax - vmin)) * (H - pad.t - pad.b);
+
+  /* all values are numbers derived from the API's numeric arrays — no strings enter the SVG */
+  let s = "";
+  years.forEach((x, i) => {
+    const cx = pad.l + slot * i + slot / 2;
+    const yLbl = H - 7;
+    s += `<text x="${cx.toFixed(1)}" y="${yLbl}" text-anchor="middle" font-size="10" fill="${mutedC}">${String(x.year).slice(2)}</text>`;
+    if (!x.v || x.v.hi == null){
+      s += `<text x="${cx.toFixed(1)}" y="${(H - pad.b - 4).toFixed(1)}" text-anchor="middle" font-size="10" fill="${mutedC}">·</text>`;
+      return;
+    }
+    const hi = +x.v.hi;
+    const y = Y(hi), y0 = Y(vmin);
+    const isChosen = x.year === chosenYear;
+    s += `<rect class="bar${isChosen ? " chosen" : ""}" data-year="${x.year}" x="${(cx - barW / 2).toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${Math.max(2, y0 - y).toFixed(1)}" rx="3" fill="${isChosen ? highC : lineC}"/>`;
+    s += `<text x="${cx.toFixed(1)}" y="${(y - 5).toFixed(1)}" text-anchor="middle" font-size="10" fill="${isChosen ? inkC : mutedC}">${hi.toFixed(0)}°</text>`;
+  });
+  svg.innerHTML = s;
+}
+/* chart colors resolve from CSS variables at draw time — redraw on theme flip.
+   Suite.theme.init() registered its toggle first, so the theme has flipped by now. */
+$("#themeBtn").addEventListener("click", () => { if (lastCtx) drawCtxChart(lastCtx.years, lastCtx.year); });
+
+/* ---- place search (geocoding-api) — picking a result never touches suite.location ---- */
+$("#qGo").addEventListener("click", doSearch);
+$("#q").addEventListener("keydown", e => { if (e.key === "Enter") doSearch(); });
+async function doSearch(){
+  const q = $("#q").value.trim();
+  const box = $("#qRes");
+  if (!q){ box.innerHTML = `<div class="err">Type a place name.</div>`; return; }
+  box.innerHTML = `<div class="hint" style="margin-top:0">Searching…</div>`;
+  try {
+    const r = await Suite.fetchJSON(GEO + "?name=" + encodeURIComponent(q) + "&count=5&language=en&format=json", { timeout: 12000 });
+    const results = r.v.results || [];
+    box.textContent = "";
+    if (!results.length){ box.innerHTML = `<div class="hint" style="margin-top:0">No places matched "${esc(q)}".</div>`; return; }
+    for (const x of results){
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "place-opt";
+      const info = document.createElement("span");
+      const pn = document.createElement("span"); pn.className = "pn"; pn.textContent = x.name;
+      const pd = document.createElement("span"); pd.className = "pd";
+      pd.textContent = " " + [x.admin1, x.country].filter(Boolean).join(", ");
+      info.append(pn, pd);
+      const pc = document.createElement("span"); pc.className = "pc";
+      pc.textContent = (+x.latitude).toFixed(2) + ", " + (+x.longitude).toFixed(2);
+      btn.append(info, pc);
+      btn.addEventListener("click", () => {
+        place = { lat: +x.latitude, lon: +x.longitude,
+          label: [x.name, x.admin1, x.country].filter(Boolean).join(", "), saved: false };
+        box.textContent = "";
+        $("#q").value = "";
+        renderPlaceBar();
+        load();
+      });
+      box.append(btn);
+    }
+  } catch (e){
+    box.innerHTML = `<div class="err">Place search failed — ${esc(friendlyError(e))}</div>`;
+  }
+}
+
+/* ---- back to the saved suite location ---- */
+$("#useSavedBtn").addEventListener("click", () => {
+  const l = savedLoc();
+  if (!l) return;
+  place = { lat: l.lat, lon: l.lon, label: l.label || (l.lat + ", " + l.lon), saved: true };
+  renderPlaceBar();
+  load();
+});
+
+$("#dateIn").addEventListener("change", load);
+
+/* ---- boot ---- */
+(function boot(){
+  const dateIn = $("#dateIn");
+  dateIn.min = MIN_DATE;
+  dateIn.max = MAX_DATE;
+  dateIn.value = MAX_DATE; // the most recent complete day in ERA5
+  const l = savedLoc();
+  if (l) place = { lat: l.lat, lon: l.lon, label: l.label || (l.lat + ", " + l.lon), saved: true };
+  renderPlaceBar();
+  load();
+})();
+
+/* First run: no location saved anywhere yet — ask the browser once and reload into
+   the normal view. Inert when a location exists, when the user turned detection off
+   in Settings, or when a previous request was refused (core: Suite.location). */
+Suite.location.autoBoot();
+</script>
+</body>
+</html>

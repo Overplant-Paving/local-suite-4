@@ -1,0 +1,152 @@
+ok   unknown favorite id ignored, known one renders
+ok   recents with only unknown ids stays hidden
+ok   hub card star has aria-label
+ok   hub star toggles storage + pressed state
+ok   unfavoriting from the Favorites section works
+ok   search hides the quick-access sections
+ok   clearing the search restores Favorites
+ok   tool chrome star is a native button with aria-pressed
+ok   opening a tool records it first in recents
+ok   keyboard Enter toggles the chrome star
+ok   cross-tab: hub favorites updated live
+ok   cross-tab: hub recents updated live
+ok   recents dedupe + most-recent-first
+ok   recents bounded at 10, newest kept
+ok   hub + settings excluded from recents
+ok   clear empties recents + hides section + announces
+ok   mobile 390px: sections render, no horizontal overflow
+ok   zero console/page errors
+
+favorites-recents: PASS
+built flight tracker: PASS {"title":"AA100","route":["JFK","LAX"],"mapVisible":true,"keyExposed":false,"cspAllowsProvider":true,"positionSource":"Airplanes.live ADS-B · Position updated less than a minute ago","cached":true,"precipCells":7,"wxPanels":true,"metarDecoded":true}
+installed Chrome not found; using Playwright Chromium for local verification
+evidence written to tests/evidence/flight/
+NPS official Swagger inventory — 2026-07-30T18:01:41.021Z
+source: https://www.nps.gov/subjects/developer/customcf/swagger.json?03142019
+basePath: /api/v1
+official GET paths: 29
+application registry paths: 29
+added upstream: none
+missing upstream / stale in app: none
+exact match: true
+
+/activities
+/activities/parks
+/alerts
+/amenities
+/amenities/parksplaces
+/amenities/parksvisitorcenters
+/articles
+/campgrounds
+/events
+/feespasses
+/lessonplans
+/mapdata/parkboundaries/{sitecode}
+/multimedia/audio
+/multimedia/galleries
+/multimedia/galleries/assets
+/multimedia/videos
+/newsreleases
+/parkinglots
+/parks
+/passportstamplocations
+/people
+/places
+/roadevents
+/thingstodo
+/topics
+/topics/parks
+/tours
+/visitorcenters
+/webcams
+
+{
+  "title": "National Parks Explorer · Local Suite",
+  "park": "Yellowstone National Park",
+  "healthRows": 29,
+  "healthOk": 29,
+  "nativeSectionButtons": true,
+  "nativeParkButtons": true,
+  "cspAllowsApi": true,
+  "cspAllowsImages": true,
+  "keyVisible": false,
+  "horizontalOverflow": false,
+  "galleryPickerOptions": 2,
+  "endpointCount": 29,
+  "allHeaderAuth": true,
+  "queryLeak": false,
+  "galleryScoped": true,
+  "consoleIssues": [],
+  "authSuppression": {
+    "requests": 3,
+    "paths": [
+      "/campgrounds",
+      "/parks"
+    ],
+    "keyVisible": false
+  },
+  "rateSuppression": {
+    "requests": 3,
+    "paths": [
+      "/campgrounds",
+      "/parks"
+    ],
+    "keyVisible": false
+  }
+}
+installed Chrome not found; using Playwright Chromium for local verification
+evidence written to tests/evidence/parks/
+ok   five cards render
+ok   card 1: Bathhouse Brigade
+ok   card 1 art inlined as data URI, decoded, meaningful alt
+ok   card 1 external links are noopener+_blank
+ok   card 2: Bathhouse Brigade — Mobile Detail
+ok   card 2 art inlined as data URI, decoded, meaningful alt
+ok   card 2 external links are noopener+_blank
+ok   card 3: Chromatic Chains — Desktop Edition
+ok   card 3 art inlined as data URI, decoded, meaningful alt
+ok   card 3 external links are noopener+_blank
+ok   card 4: Chromatic Chains — Mobile Edition
+ok   card 4 art inlined as data URI, decoded, meaningful alt
+ok   card 4 external links are noopener+_blank
+ok   card 5: DOOM (1993) — Shareware
+ok   card 5 art inlined as data URI, decoded, meaningful alt
+ok   card 5 external links are noopener+_blank
+ok   playable labels say what happens
+ok   DOOM card credits id Software and disclaims open source
+ok   no network request escapes the page on load
+ok   card art link is keyboard-focusable
+ok   file:// zero console/page errors
+ok   file:// zero CSP violations
+ok   mobile 390px: no horizontal overflow
+ok   hosted mode: five cards, art decodes
+ok   hosted zero console/page errors
+ok   hosted zero CSP violations
+
+arcade: PASS
+built hub, theme=light
+built hub, theme=dark
+theme button click → light (flips)
+
+categories rendered (11):
+  ☀️ Weather & Sky 12 tools
+  🌎 Earth & Nature 7 tools
+  🚀 Space & Flight 10 tools
+  🏛️ Civic & Government 8 tools
+  💵 Money & Economy 8 tools
+  🩺 Health & Safety 7 tools
+  📚 Reference & Lookup 12 tools
+  🕰️ Time & Planning 6 tools
+  📍 Local Life 7 tools
+  🧰 Utilities & Toys 22 tools
+  🕹️ Games & Arcade 1 tool
+
+sum of per-category counts: 100  (manifest: 100 tools + hub)
+absent from built hub — "Meteor Patrol": YES
+absent from built hub — "work in progress": YES
+absent from built hub — "in the workshop": YES
+console errors on the built hub: 0
+
+source-hub guard card present: true  border-style: dashed
+source-hub guard heading: "This is the source hub — the built suite lives in dist/"
+console errors on the source hub: 0

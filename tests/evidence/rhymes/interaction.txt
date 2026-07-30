@@ -1,0 +1,24 @@
+initial designed state: prompt card with example chips [day, ocean, heart, moon]
+Enter submit -> 1 request, query string "?rel_rhy=day&max=80&md=ps" (rel_rhy=day&max=80&md=ps)
+count line: "10 words — rhymes · “day”"
+syllable groups: "1 syllable · 3" (3 chips) · "2 syllables · 5" (5 chips) · "3 syllables · 2" (2 chips)
+a11y: 9 relation buttons, exactly one aria-pressed=true — [Rhymes=true, Near rhymes=false, Sounds like=false, Means like=false, Synonyms=false, Antonyms=false, Adjectives for it=false, Nouns it describes=false, Often follows it=false]
+a11y: input aria-label="Word to search", #rels role="group"
+cache written: suite.cache.rhymes.rel_rhy.day = {t, v[10]}
+chip "gray" click -> input="gray", request "?rel_rhy=gray&max=80&md=ps", count line "4 words — rhymes · “gray”"
+re-search "day" within 7-day TTL -> served from cache, request count still 2
+relation switch to "Means like" -> re-query with same word: "?ml=day&max=80&md=ps"
+POS mini-chips: daytime[n] · sidereal day[n] · daylight[n] · solar[adj]
+aria-pressed moved with the switch: now [Means like]
+copy-all with navigator.clipboard removed -> fallback ran, note: "Copied 4 words"
+empty fixture (ml=zzzz) -> designed no-match card: "No results — means like · “zzzz”.Datamuse came back empty. Try a simpler form of the word, or a different relation above."
+route-fulfilled 500 -> designed error card: "Datamuse returned HTTP 500 for “kaboom”. Try again shortly.Your earlier lookups stay available offline for 7 days."
+route-fulfilled 429 -> distinct rate-limit card: "Rate-limited by Datamuse (HTTP 429) — wait a moment and try again.Your earlier lookups stay available offline for 7 days."
+offline + expired cache -> stale results render with stamp: "Offline — cached results from Jul 22, 1:20 PM."
+  stale view still grouped: "1 syllable · 3" (3) · "2 syllables · 5" (5) · "3 syllables · 2" (2)
+restored fresh-cache view, no stale stamp, count line: "10 words — rhymes · “day”"
+mobile 390x844: scrollWidth 390 <= clientWidth 390 (no horizontal overflow)
+total stubbed datamuse requests: 7 — [?rel_rhy=day&max=80&md=ps | ?rel_rhy=gray&max=80&md=ps | ?ml=day&max=80&md=ps | ?ml=zzzz&max=80&md=ps | ?rel_rhy=kaboom&max=80&md=ps | ?rel_rhy=toofast&max=80&md=ps | ?rel_rhy=zzzz&max=80&md=ps]
+theme toggle: light -> dark, aria-pressed=true
+CONSOLE ISSUES:
+  console.error: Failed to load resource: net::ERR_FAILED

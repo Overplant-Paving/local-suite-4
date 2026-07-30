@@ -1,0 +1,8 @@
+{
+  "note": "new-in-v2 tool — no v1 original; parity N/A",
+  "v2": {
+    "suite.savings.v1": "{\"table\":true,\"start\":\"10000\",\"monthly\":\"500\",\"apy\":\"6\",\"years\":\"10\",\"infl\":\"2.5\",\"goal\":\"100000\"}",
+    "suite.theme": "dark",
+    "suite.hub.recents": "[{\"id\":\"savings\",\"t\":1785435608971}]"
+  }
+}

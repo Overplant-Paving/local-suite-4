@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Forecast Discussion Reader · Local Suite</title>
+<link rel="stylesheet" href="../core/suite.css" data-suite-inline>
+<style>
+  body { padding: 1.4rem 1.25rem 4rem; }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  .topbar { display: flex; align-items: center; gap: 1rem; }
+  .topbar .theme-btn, .topbar .fav-btn { float: none; }
+  .topbar .theme-btn { margin-left: auto; }
+  header { margin: 1rem 0 1.2rem; }
+  h1 { font-size: 1.8rem; letter-spacing: -.02em; }
+  .tag { color: var(--muted); margin-top: .35rem; max-width: 48rem; }
+  [hidden] { display: none !important; } /* .card sets display:flex, which would defeat the UA rule */
+
+  /* ---- meta card: office, issuance, freshness, earlier-discussion picker ---- */
+  .meta { display: flex; align-items: flex-start; gap: .8rem; flex-wrap: wrap; }
+  .office {
+    font-family: ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
+    font-size: .95rem; font-weight: 600; letter-spacing: .06em;
+    background: var(--accent-soft); color: var(--accent);
+    padding: .35rem .7rem; border-radius: 10px;
+  }
+  .meta-text { min-width: 0; flex: 1; }
+  #officeLine { font-weight: 600; overflow-wrap: break-word; }
+  #issuedLine { color: var(--muted); font-size: .85rem; margin-top: .1rem; }
+  .linkbtn {
+    background: none; border: none; color: var(--accent); cursor: pointer;
+    font-size: .85rem; text-decoration: underline; text-underline-offset: 2px;
+    padding: .2rem 0; white-space: nowrap;
+  }
+  .stamp { font-size: .8rem; color: var(--muted); }
+  .stamp.stale {
+    color: var(--ink);
+    background: color-mix(in srgb, #c47f2d 16%, var(--card));
+    border: 1px solid color-mix(in srgb, #c47f2d 45%, transparent);
+    border-radius: 8px; padding: .3rem .6rem; align-self: flex-start;
+  }
+  .picker { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+  .picker label { font-size: .85rem; color: var(--muted); white-space: nowrap; }
+  .picker select {
+    flex: 1; min-width: 0; max-width: 24rem;
+    padding: .5rem .7rem; border: 1px solid var(--line); border-radius: 9px;
+    background: var(--bg); color: var(--ink); font-size: .9rem;
+  }
+
+  /* ---- the discussion itself: collapsible sections ---- */
+  #afd { margin-top: 1rem; display: flex; flex-direction: column; gap: .6rem; }
+  #afd details { background: var(--card); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); }
+  #afd summary {
+    cursor: pointer; padding: .75rem 1rem; list-style: none;
+    display: flex; align-items: baseline; gap: .6rem; flex-wrap: wrap;
+  }
+  #afd summary::-webkit-details-marker { display: none; }
+  #afd summary::before { content: "▸"; color: var(--muted); font-size: .8rem; }
+  #afd details[open] summary::before { content: "▾"; }
+  .sec-name { font-weight: 700; letter-spacing: .05em; font-size: .95rem; }
+  .sec-time { color: var(--muted); font-size: .78rem; letter-spacing: .03em; }
+  .sec-body { padding: 0 1rem 1rem; }
+  .sec-body p { margin: .6rem 0 0; max-width: 72ch; overflow-wrap: break-word; line-height: 1.6; }
+  .sec-body pre {
+    margin: .6rem 0 0; overflow-x: auto;
+    font-family: ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
+    font-size: .8rem; line-height: 1.6;
+    background: var(--chip); border-radius: 8px; padding: .7rem .85rem;
+  }
+  #afd > pre { /* headerless-product fallback: whole text, preformatted, never blank */
+    overflow-x: auto; font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: .8rem; background: var(--card); border: 1px solid var(--line);
+    border-radius: 12px; padding: .9rem 1rem;
+  }
+
+  /* ---- states ---- */
+  #state { margin-top: 1rem; }
+  #state .card h2 { font-size: 1.1rem; }
+  #state .card p { color: var(--muted); font-size: .92rem; max-width: 60ch; }
+  .detail { font-size: .78rem; }
+  .btn {
+    border: 1px solid var(--line); background: var(--accent); color: var(--bg);
+    border-radius: 9px; padding: .55rem 1rem; cursor: pointer;
+    font-weight: 600; font-size: .9rem; align-self: flex-start;
+  }
+  .btn:hover { filter: brightness(1.08); }
+  .ziprow { display: flex; gap: .5rem; }
+  .ziprow input { flex: 1; min-width: 0; }
+  .hint { font-size: .8rem; color: var(--muted); }
+  .skel {
+    height: .9rem; border-radius: 6px;
+    background: linear-gradient(90deg, var(--chip) 0%, color-mix(in srgb, var(--ink) 8%, var(--card)) 50%, var(--chip) 100%);
+    background-size: 200% 100%; animation: sh 1.3s infinite;
+  }
+  @keyframes sh { to { background-position: -200% 0; } }
+  .loadnote { font-size: .85rem; color: var(--muted); }
+
+  footer { font-size: .82rem; line-height: 1.6; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="index.html">← suite</a>
+    <button class="theme-btn" id="themeBtn" title="Toggle light/dark">◐ theme</button>
+  </div>
+  <header>
+    <h1>Forecast Discussion Reader</h1>
+    <p class="tag">Your local forecast office's Area Forecast Discussion — the meteorologist's own narrative, readable and archived hourly.</p>
+  </header>
+
+  <section class="card" id="metaCard" hidden aria-label="Discussion source and issuance">
+    <div class="meta">
+      <span class="office" id="officeChip" title="NWS forecast office (CWA) code">—</span>
+      <div class="meta-text">
+        <div id="officeLine">…</div>
+        <div id="issuedLine">…</div>
+      </div>
+      <button type="button" class="linkbtn" id="changeBtn" aria-expanded="false">change location</button>
+    </div>
+    <div class="stamp" id="stamp"></div>
+    <div class="picker" id="pickerRow">
+      <label for="prodSel">Earlier discussions</label>
+      <select id="prodSel"></select>
+    </div>
+  </section>
+
+  <div id="state"></div>
+  <article id="afd" aria-label="Area Forecast Discussion text"></article>
+
+  <footer>An Area Forecast Discussion (AFD) is the plain-text write-up in which the local NWS office explains the reasoning behind its forecast.
+  Data: National Weather Service · api.weather.gov · ZIP lookup zippopotam.us · nothing leaves this page but those requests.</footer>
+</div>
+<script src="../core/suite.js" data-suite-inline></script>
+<script>
+"use strict";
+Suite.theme.init();
+
+const $ = s => document.querySelector(s);
+const esc = Suite.esc;
+
+/* Chain: /points/{lat},{lon} → properties.cwa (WFO) → /products/types/AFD/locations/{cwa}
+   → newest-first @graph → /products/{id} → productText.
+   TTLs: the office for a point essentially never changes (7 d); the product list follows
+   the manifest cacheTtlMin of 60; an issued product is immutable (24 h). */
+const PT_TTL = 7 * 24 * 60 * 60 * 1000;
+const LIST_TTL = 60 * 60 * 1000;
+const PROD_TTL = 24 * 60 * 60 * 1000;
+
+const stateEl = Suite.liveRegion($("#state"));
+const afdEl = Suite.liveRegion($("#afd"));
+const stampEl = Suite.liveRegion($("#stamp"));
+const metaCard = $("#metaCard");
+const officeChip = $("#officeChip");
+const officeLine = $("#officeLine");
+const issuedLine = $("#issuedLine");
+const pickerRow = $("#pickerRow");
+const prodSel = $("#prodSel");
+const changeBtn = $("#changeBtn");
+
+let loc = Suite.location.get();
+let cwa = null;          // WFO code, e.g. OKX
+let locDesc = "";        // display label for the point the office covers
+let graph = [];          // last 5 products, newest first
+
+/* ---- freshness bookkeeping (same pattern as weather.html) ---- */
+let usedStale = false, oldestT = null;
+function resetFreshness(){ usedStale = false; oldestT = null; }
+function note(r){
+  if (r.stale) usedStale = true;
+  oldestT = oldestT == null ? r.t : Math.min(oldestT, r.t);
+  return r.v;
+}
+function paintStamp(){
+  if (oldestT == null){ stampEl.textContent = ""; stampEl.className = "stamp"; return; }
+  if (usedStale){
+    stampEl.className = "stamp stale";
+    stampEl.textContent = "Offline — cached from " + fmtAbs(oldestT);
+  } else {
+    stampEl.className = "stamp";
+    stampEl.textContent = "Updated " + fmtAbs(oldestT);
+  }
+}
+
+function fmtAbs(t){
+  return new Date(t).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+}
+function fmtRel(t){
+  const m = Math.round((Date.now() - t) / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return m + " min ago";
+  const h = Math.round(m / 60);
+  if (h < 48) return h + " h ago";
+  return Math.round(h / 24) + " days ago";
+}
+const slugId = id => String(id).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+
+/* ---- AFD parsing ----
+   Products are hard-wrapped uppercase-marker text: sections open with lines like
+   ".SYNOPSIS..." / ".SHORT TERM /THROUGH TONIGHT/...", are separated by "&&" lines,
+   and the product ends at "$$" (forecaster signatures follow — dropped). */
+function parseAFD(text){
+  const lines = String(text || "").replace(/\r/g, "").split("\n");
+  const cut = lines.findIndex(l => l.trim() === "$$");
+  const src = cut >= 0 ? lines.slice(0, cut) : lines;
+  const secRe = /^\.([A-Z][A-Z0-9 \/&'().,-]*?)\.\.\.\s*(.*)$/;
+  const sections = [];
+  let cur = null, officeName = "";
+  for (const raw of src){
+    const line = raw.replace(/\s+$/, "");
+    const m = line.match(secRe);
+    if (m){
+      cur = { title: m[1].trim(), lines: [] };
+      if (m[2]) cur.lines.push(m[2]);
+      sections.push(cur);
+      continue;
+    }
+    if (line.trim() === "&&"){ cur = null; continue; }   // strip section separators
+    if (cur) cur.lines.push(line);
+    else if (!officeName && /national weather service/i.test(line)) officeName = line.trim();
+  }
+  return { officeName, sections };
+}
+
+/* Unwrap the hard line breaks within a paragraph so text reflows on mobile;
+   blank lines are the real paragraph boundaries. */
+function paragraphs(lines){
+  const paras = []; let cur = [];
+  for (const ln of lines){
+    if (!ln.trim()){ if (cur.length){ paras.push(cur); cur = []; } continue; }
+    cur.push(ln.trim());
+  }
+  if (cur.length) paras.push(cur);
+  return paras.map(p => p.join(" ").replace(/\s+/g, " "));
+}
+function trimBlank(lines){
+  let a = 0, b = lines.length;
+  while (a < b && !lines[a].trim()) a++;
+  while (b > a && !lines[b - 1].trim()) b--;
+  return lines.slice(a, b);
+}
+
+/* ---- rendering (createElement/textContent throughout — remote text never meets innerHTML) ---- */
+function renderSections(sections){
+  afdEl.replaceChildren();
+  const synIdx = sections.findIndex(s => /^SYNOPSIS/.test(s.title));
+  const firstFc = sections.findIndex((s, i) => i !== synIdx);
+  sections.forEach((s, i) => {
+    const d = document.createElement("details");
+    if (i === synIdx || i === firstFc) d.open = true;  // SYNOPSIS + first forecast section
+    const sum = document.createElement("summary");
+    const m = s.title.match(/^(.*?)\s*(\/[^/]*\/)?$/);
+    const name = document.createElement("span");
+    name.className = "sec-name";
+    name.textContent = (m && m[1]) || s.title;
+    sum.appendChild(name);
+    if (m && m[2]){
+      const tf = document.createElement("span");
+      tf.className = "sec-time";
+      tf.textContent = m[2].slice(1, -1).trim();
+      sum.appendChild(tf);
+    }
+    d.appendChild(sum);
+    const body = document.createElement("div");
+    body.className = "sec-body";
+    if (/TEMPS\/POPS/.test(s.title)){
+      /* the temps/PoPs table is columnar — keep it preformatted */
+      const pre = document.createElement("pre");
+      pre.textContent = trimBlank(s.lines).join("\n");
+      body.appendChild(pre);
+    } else {
+      for (const ptxt of paragraphs(s.lines)){
+        const p = document.createElement("p");
+        p.textContent = ptxt;
+        body.appendChild(p);
+      }
+    }
+    d.appendChild(body);
+    afdEl.appendChild(d);
+  });
+}
+
+function renderProduct(prod){
+  const parsed = parseAFD(prod.productText || "");
+  const t = Date.parse(prod.issuanceTime);
+  officeLine.textContent =
+    (parsed.officeName || (cwa ? "NWS forecast office " + cwa : "NWS forecast office")) +
+    (locDesc ? " · for " + locDesc : "");
+  issuedLine.textContent = isFinite(t)
+    ? "Issued " + fmtRel(t) + " · " + fmtAbs(t)
+    : "Issuance time unavailable";
+  if (!parsed.sections.length){
+    afdEl.replaceChildren();
+    const pre = document.createElement("pre");
+    pre.textContent = prod.productText || "(empty product)";
+    afdEl.appendChild(pre);
+    return;
+  }
+  renderSections(parsed.sections);
+}
+
+function paintSelect(){
+  prodSel.replaceChildren();
+  graph.forEach((g, i) => {
+    const o = document.createElement("option");
+    o.value = g.id;
+    const t = Date.parse(g.issuanceTime);
+    o.textContent = (isFinite(t) ? fmtAbs(t) : String(g.id)) + (i === 0 ? " · latest" : "");
+    prodSel.appendChild(o);
+  });
+  pickerRow.hidden = !graph.length;
+}
+
+/* ---- states ---- */
+function showLoading(msg){
+  afdEl.replaceChildren();
+  stateEl.innerHTML = `<div class="card load">
+    <div class="skel" style="width:40%"></div>
+    <div class="skel"></div>
+    <div class="skel" style="width:85%"></div>
+    <div class="skel" style="width:70%"></div>
+    <p class="loadnote">${esc(msg || "Fetching the latest discussion…")}</p>
+  </div>`;
+}
+function showError(e){
+  afdEl.replaceChildren();
+  stampEl.textContent = ""; stampEl.className = "stamp";
+  /* cold failure (office/list never loaded): the meta card would be all
+     placeholders — hide it. On a product-switch failure the meta is real. */
+  if (!graph.length) metaCard.hidden = true;
+  const msg = String((e && e.message) || e || "unknown error");
+  const rate = msg.includes("429");
+  stateEl.innerHTML = `<div class="card err">
+    <h2>${esc(rate ? "Rate-limited by the weather service" : "Couldn't reach the forecast office")}</h2>
+    <p>${esc(rate
+      ? "api.weather.gov is asking for a pause. Wait a minute and try again — nothing is wrong with your setup."
+      : "The National Weather Service API didn't answer and nothing usable is cached yet. Check your connection, then try again.")}</p>
+    <p class="detail mono">${esc(msg)}</p>
+    <button type="button" class="btn" id="retryBtn">Try again</button>
+  </div>`;
+  $("#retryBtn").addEventListener("click", () => load());
+}
+function renderZipCard(intro){
+  stateEl.innerHTML = `<div class="card nl">
+    <h2>Set your location</h2>
+    <p>${esc(intro)}</p>
+    <form id="zipForm">
+      <label for="zip">US ZIP code</label>
+      <div class="ziprow">
+        <input id="zip" class="search" inputmode="numeric" maxlength="5" placeholder="90012" autocomplete="postal-code">
+        <button type="submit" class="btn">Look up</button>
+      </div>
+    </form>
+    <p class="hint" id="zipHint">Coordinates come from zippopotam.us and are shared with the rest of the suite.</p>
+  </div>`;
+  Suite.liveRegion($("#zipHint"));
+  $("#zipForm").addEventListener("submit", ev => { ev.preventDefault(); lookupZip(); });
+}
+function showNoLocation(){
+  metaCard.hidden = true;
+  renderZipCard("Forecast discussions are written by your local NWS forecast office, so the reader needs a location. The National Weather Service covers the United States and its territories.");
+}
+
+async function lookupZip(){
+  const zip = ($("#zip").value || "").trim();
+  const hint = $("#zipHint");
+  if (!/^\d{5}$/.test(zip)){ hint.textContent = "Enter a 5-digit US ZIP code."; return; }
+  hint.textContent = "Looking up " + zip + "…";
+  try {
+    const r = await Suite.fetchJSON("https://api.zippopotam.us/us/" + zip, { timeout: 12000 });
+    const place = r.v.places && r.v.places[0];
+    if (!place) throw new Error("no match");
+    const next = {
+      lat: +(+place.latitude).toFixed(4),
+      lon: +(+place.longitude).toFixed(4),
+      label: place["place name"] + ", " + place["state abbreviation"]
+    };
+    if (!Suite.location.set(next)){
+      hint.textContent = "Found " + next.label + ", but the location couldn't be saved (storage is full or blocked).";
+      return;
+    }
+    changeBtn.setAttribute("aria-expanded", "false");
+    load();
+  } catch (e){
+    hint.textContent = "ZIP not found — check it and try again.";
+  }
+}
+
+/* ---- main load: points → office → product list → newest product ---- */
+async function load(){
+  loc = Suite.location.get();
+  if (!loc){ showNoLocation(); return; }
+  metaCard.hidden = false;
+  changeBtn.setAttribute("aria-expanded", "false");
+  resetFreshness();
+  showLoading("Finding your forecast office…");
+  try {
+    const pts = note(await Suite.fetchJSON(
+      `https://api.weather.gov/points/${loc.lat.toFixed(4)},${loc.lon.toFixed(4)}`,
+      { cacheKey: `discussion.point.${loc.lat.toFixed(3)}x${loc.lon.toFixed(3)}`,
+        ttl: PT_TTL, accept: "application/geo+json", tries: 2 }));
+    const P = pts.properties || {};
+    cwa = P.cwa || null;
+    if (!cwa) throw new Error("no NWS forecast office covers this point — AFDs exist for US locations only");
+    const rl = P.relativeLocation && P.relativeLocation.properties;
+    locDesc = loc.label || (rl ? rl.city + ", " + rl.state : loc.lat.toFixed(2) + ", " + loc.lon.toFixed(2));
+    officeChip.textContent = cwa;
+
+    const list = note(await Suite.fetchJSON(
+      "https://api.weather.gov/products/types/AFD/locations/" + encodeURIComponent(cwa),
+      { cacheKey: "discussion.list." + cwa, ttl: LIST_TTL, tries: 2 }));
+    graph = (list["@graph"] || []).slice(0, 5);   // newest first from the API
+    paintSelect();
+    if (!graph.length){
+      stateEl.innerHTML = `<div class="card err">
+        <h2>No discussions right now</h2>
+        <p>Office ${esc(cwa)} has no archived Area Forecast Discussions at the moment — unusual, but it happens around product transitions. Try again shortly.</p>
+      </div>`;
+      paintStamp();
+      return;
+    }
+    await loadProduct(graph[0].id, true);
+  } catch (e){ showError(e); }
+}
+
+async function loadProduct(id, keepFreshness){
+  if (!keepFreshness){ resetFreshness(); showLoading("Fetching discussion…"); }
+  try {
+    const prod = note(await Suite.fetchJSON(
+      "https://api.weather.gov/products/" + encodeURIComponent(id),
+      { cacheKey: "discussion.prod." + slugId(id), ttl: PROD_TTL, tries: 2 }));
+    stateEl.innerHTML = "";
+    renderProduct(prod);
+    if (prodSel.value !== id) prodSel.value = id;
+    paintStamp();
+  } catch (e){ showError(e); }
+}
+
+/* ---- events ---- */
+prodSel.addEventListener("change", () => loadProduct(prodSel.value, false));
+changeBtn.addEventListener("click", () => {
+  if (stateEl.querySelector(".nl")){
+    stateEl.innerHTML = "";
+    changeBtn.setAttribute("aria-expanded", "false");
+  } else {
+    renderZipCard("Enter a new ZIP — the location is shared with the rest of the suite.");
+    changeBtn.setAttribute("aria-expanded", "true");
+    $("#zip").focus();
+  }
+});
+window.addEventListener("storage", e => { if (e.key === "suite.location") location.reload(); });
+
+/* ---- boot ---- */
+if (loc) load(); else showNoLocation();
+/* First run: acquire the shared location once (inert when one exists, when auto
+   detection is off, or after a remembered refusal — core: Suite.location). */
+Suite.location.autoBoot();
+</script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+parser: 2+3*4  ->  = 14
+parser: (2+3)*4  ->  = 20
+parser: 2^3^2  ->  = 512
+parser: -3^2  ->  = -9
+parser: 2^-2  ->  = 0.25
+parser: 18% of 64.50  ->  = 11.61
+parser: 64.50 + 18%  ->  = 76.11
+parser: 200 - 25%  ->  = 150
+parser: 120 * 15%  ->  = 18
+parser: 50%  ->  = 0.5
+parser: 1 1/2 + 1/4  ->  = 1.75
+parser: 1,200 / 4  ->  = 300
+parser: 10/0  ->  ÷ 0 — undefined
+ans chain: line1 "6*7" = 42, line2 "ans/2 + 1" = 22
+ans after ÷0 upstream: line1 "÷ 0 — undefined", line2 "ans unavailable"
+tape a11y: input aria-label="Expression line 1", delete aria-label="Delete line 1"
+suite.calc.tape before reload: ["6*7","ans/2 + 1"]
+tape after reload: line1="6*7", line2 result "= 22"
+mode aria-pressed after Tip click: tape:false tip:true unit:false base:false dur:false
+visible section: sec-tip
+suite.calc.mode = tip
+tip equal split: Tip $18.00 (18% of $100.00) Total $118.00 Person 1 $39.34 Person 2 $39.33 Person 3 $39.33 Reconciliation: shares round down to the cent and leave $0.01 unassigned — Person 1 absorbs the odd cent so the shares sum exactly to $118.00.
+tip rounding note (bill 20.21 @ 18%): Tip $3.64 (18% of $20.21) — rounded to the cent from $3.6378 Total $23.85 Person 1 $7.95 Person 2 $7.95 Person 3 $7.95 R
+tip unequal split: Tip $0.00 (0% of $10.00) Total $10.00 Person 1 (share 1) $3.33 Person 2 (share 2) $6.67 Reconciliation: shares round down to the cent and leave $0.01 unassigned — Person 2 absorbs the odd cent so the shares sum exactly to $10.00.
+unit price: A $0.291 per oz, B $0.265 per oz — verdict: Option B is the better deal at $0.265 per oz — 9.1% cheaper than Option A.
+unit price with 3rd option in lb: Option B is the better deal at $0.265 per oz — 9.1% cheaper than Option A. Heads up: the units differ (oz vs lb), so compare like units before trusting this.
+base 255 -> 255 | 0xFF | 0b11111111 | 0o377
+round-trip 0xff -> dec 255
+two's complement of -26: 8-bit 0xE6 · 0b11100110, 16-bit 0xFFE6 · 0b1111111111100110
+0b1100 AND 0b1010 = dec 8, 0b1000
+0b1100 << 4 = 192
+base error state for 0xGG: "“0xGG” is not a valid hex number." (dec shows "—")
+duration: 1:30 + 0:45 - 0:15, running total after row2 = 2:15, Total: 2:00 (2 h 0 m)
+duration at $20/hour: At $20.00/hour: $40.00
+duration with unreadable entry: Total: 2:15 (2 h 15 m) — 1 unreadable entry not counted (use hh:mm)
+localStorage keys: suite.calc.mode,suite.calc.tape,suite.hub.recents,suite.theme
+mobile 390px, mode tape: horizontal overflow = 0px
+mobile 390px, mode tip: horizontal overflow = 0px
+mobile 390px, mode unit: horizontal overflow = 0px
+mobile 390px, mode base: horizontal overflow = 0px
+mobile 390px, mode dur: horizontal overflow = 0px
+mobile tape result: "= 42", clipped by 0px
+mobile screenshot: mobile.png (tape mode at 390x844)
+theme toggle: light -> dark, aria-pressed=true
+console: clean (no errors)

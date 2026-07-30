@@ -1,0 +1,38 @@
+NPS official Swagger inventory — 2026-07-30T18:26:56.651Z
+source: https://www.nps.gov/subjects/developer/customcf/swagger.json?03142019
+basePath: /api/v1
+official GET paths: 29
+application registry paths: 29
+added upstream: none
+missing upstream / stale in app: none
+exact match: true
+
+/activities
+/activities/parks
+/alerts
+/amenities
+/amenities/parksplaces
+/amenities/parksvisitorcenters
+/articles
+/campgrounds
+/events
+/feespasses
+/lessonplans
+/mapdata/parkboundaries/{sitecode}
+/multimedia/audio
+/multimedia/galleries
+/multimedia/galleries/assets
+/multimedia/videos
+/newsreleases
+/parkinglots
+/parks
+/passportstamplocations
+/people
+/places
+/roadevents
+/thingstodo
+/topics
+/topics/parks
+/tours
+/visitorcenters
+/webcams

@@ -1,0 +1,37 @@
+DOI path: input "doi:10.5555/12345678" -> GET https://api.crossref.org/works/10.5555%2F12345678 (no mailto/email param)
+APA exact ✓: "Lovelace, A., & Hopper, G. (2021). The Memory of Rivers. Journal of Hydrology Letters, 12(3), 101–118. https://doi.org/10.5555/12345678"
+MLA exact ✓: "Lovelace, Ada, and Grace Hopper. “The Memory of Rivers.” Journal of Hydrology Letters, vol. 12, no. 3, 2021, pp. 101–118."
+BibTeX exact ✓ (@article{lovelace2021memory}, pages 101--118, braces balanced)
+italics via <i> in preview: APA ["Journal of Hydrology Letters","12"], MLA ["Journal of Hydrology Letters"]
+status: "Found via DOI lookup."
+overlap guard: delayed title search completed last; newer DOI result remained: {"title":"Field Notes on Silence","doi":"Mara Ilves · Quiet House Press · 2019 · doi:10.5555/bk9","picks":0,"status":"Found via DOI lookup."}
+copy: clipboard.writeText attempted — APA payload is plain text (no <i>), BibTeX raw entry ✓
+  copy button feedback: "✓ copied"
+clipboard rejected -> fallback state shown: "✓ copied"
+saved to list: suite.cite.list[0] = {doi:10.5555/12345678, year:2021, authors:2} · save button: "✓ On your list"
+search path: GET https://api.crossref.org/works?query.bibliographic=signal%20processing%20at%20scale&rows=10
+picker rows: [0] Signal Processing at ScaleWei Chen, Ngozi Okafor, Luisa Duarte · 2020 · Annals of Applied Signals · journal article | [1] Field Notes on SilenceMara Ilves · 2019 · Quiet House Press · book | [2] Consortium Measurements of EverythingGiven01 Fam01, Given02 Fam02, Given03 Fam03, et al. · 2022 · Journal of Big Teams · journal article
+et-al (3 authors): APA lists Chen/Okafor/Duarte ✓ — "Chen, W., Okafor, N., & Duarte, L. (2020). Signal Processing at Scale. Annals of Applied Signals, 7(2), 55–71. https://doi.org/10.5555/etal1"
+et-al (3 authors): MLA "Chen, Wei, et al." ✓ — "Chen, Wei, et al. “Signal Processing at Scale.” Annals of Applied Signals, vol. 7, no. 2, 2020, pp. 55–71."
+repeat search -> served from cache, request count still 4; status: "Showing 3 of 5,321 matches — pick the right work. (cached just now)"
+missing fields (book): APA "Ilves, M. (2019). Field Notes on Silence. Quiet House Press. https://doi.org/10.5555/bk9" · MLA "Ilves, Mara. Field Notes on Silence. Quiet House Press, 2019." — clauses skipped, no "undefined" in the whole page ✓
+APA 21+ rule (22-author fixture): "...Fam19, G., . . . Fam22, G." ✓, no "&", MLA stays et al.
+after reload — list persisted (3): [Field Notes on Silence | Signal Processing at Scale | The Memory of Rivers] · count badge "· 3"
+export all as BibTeX -> reading-list.bib with 3 entries (3 @-entries, 739 chars) ✓
+per-item copy ✓: "Ilves, M. (2019). Field Notes on Silence. Quiet House Press. https://doi.org/10.5555/bk9"
+per-item remove ✓ — list now 2, book DOI gone
+reading-list reopen -> citations regenerated locally, status: "From your reading list — regenerated locally, no lookup needed."
+404 DOI -> designed error card: "No work found for 10.5555/nopeCrossref has no record registered under that DOI. Check it for typos — DOIs are exact, including case and punctuation."
+429 -> distinct rate-limit card: "Crossref is rate-limiting requestsToo many lookups in a short window. Wait a minute and try again — nothing is wrong with your query."
+empty results -> designed empty state: "No works matched “zzz”Crossref found nothing for that phrase. Try more of the exact title, or add an author surname."
+ADVERSARIAL record (markup in title/container/author/volume) -> inert: __xssC=null, injected els=0, markup shown as text ✓
+offline + stale cache (DOI, doi.org-prefixed input) -> "Offline — showing the cached copy from 8 days ago." ✓, citation intact
+offline + stale cache (search) -> picker renders with stamp: "Showing 3 of 5,321 matches — pick the right work. · Offline — cached results from 8 days ago"
+a11y: input label "DOI or bibliographic search — paste a DOI or type title words"; aria-live polite on #status/#results/#workSec; copy labels "Copy the APA citation as plain text" / "Copy the BibTeX entry"; remove label "Remove Signal Processing at Scale from the reading list"; theme aria-pressed=false
+storage keys (manifest-clean): suite.cache.cite.doi.10-5555-12345678, suite.cache.cite.doi.10-5555-bk9, suite.cache.cite.q.older-delayed, suite.cache.cite.q.signal-processing-at-scale, suite.cache.cite.q.zzz, suite.cite.list, suite.hub.recents, suite.theme
+mobile 390px: scrollWidth 390 <= clientWidth 390 ✓ (picker + reading list on screen)
+restored: WORK2 served from fresh cache — status "Found via DOI lookup (cached just now)."
+theme toggle: light -> dark, aria-pressed=true
+CONSOLE ISSUES:
+  console.error: Failed to load resource: net::ERR_FAILED
+  console.error: Failed to load resource: net::ERR_FAILED

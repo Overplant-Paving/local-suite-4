@@ -5,3 +5,6 @@ Desktop.ini
 
 # Playwright smoke suite dependencies (tests/ is the one npm concession)
 tests/node_modules/
+
+# Local agent orchestration logs and transient run state
+.hermes/

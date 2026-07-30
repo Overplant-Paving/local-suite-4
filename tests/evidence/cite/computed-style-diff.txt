@@ -1,0 +1,1 @@
+(new-in-v2 tool — no v1 original; parity N/A. Both-theme captures are in v2-*.png.)

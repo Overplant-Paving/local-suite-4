@@ -30,9 +30,12 @@ jobs:
       - run: npx --prefix tests playwright install --with-deps chromium
       - run: node tests/multiple-locations.mjs
       - run: node tests/location-cross-tab.mjs
+      - run: node tests/favorites-recents.mjs
       - run: node tests/flight-built.mjs
       - run: node tests/parks-built.mjs
+      - run: node tests/arcade-built.mjs
       - run: node tests/smoke.mjs
+      - run: node tests/pwa-verify.mjs coexist
   deploy:
     needs: verify
     environment:

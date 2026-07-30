@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DNS Lookup · Local Suite</title>
+<link rel="stylesheet" href="../core/suite.css" data-suite-inline>
+<style>
+  /* tool accents: agreement palette (3-layer, same pattern as core) */
+  :root { --good: #3a7d44; --warn: #b0752a; --bad: #c0503f; }
+  @media (prefers-color-scheme: dark) {
+    :root { --good: #7dc487; --warn: #d0a24d; --bad: #e0766a; }
+  }
+  :root[data-theme="light"] { --good: #3a7d44; --warn: #b0752a; --bad: #c0503f; }
+  :root[data-theme="dark"] { --good: #7dc487; --warn: #d0a24d; --bad: #e0766a; }
+
+  body { padding: 1.4rem 1.25rem 4rem; }
+  .wrap { max-width: 900px; margin: 0 auto; }
+  .topbar { display: flex; align-items: center; gap: 1rem; }
+  .topbar .theme-btn, .topbar .fav-btn { float: none; }
+  .topbar .theme-btn { margin-left: auto; }
+  header { margin: 1rem 0 1.2rem; }
+  h1 { font-size: 1.8rem; letter-spacing: -.02em; }
+  .tag { color: var(--muted); margin-top: .35rem; max-width: 48rem; }
+
+  form.lookup { display: block; padding: 1rem 1.05rem; }
+  .fields { display: flex; gap: .7rem; flex-wrap: wrap; align-items: flex-end; }
+  .f { display: flex; flex-direction: column; gap: .3rem; }
+  .f.grow { flex: 1 1 16rem; }
+  .lbl { font-size: .78rem; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 600; }
+  select#rtype {
+    padding: .64rem .6rem; border: 1px solid var(--line); border-radius: 12px;
+    background: var(--card); color: var(--ink); font-size: 1rem; box-shadow: var(--shadow);
+  }
+  button.go {
+    padding: .66rem 1.25rem; border-radius: 12px; border: 1px solid var(--accent);
+    background: var(--accent); color: var(--bg); font-size: 1rem; font-weight: 600; cursor: pointer;
+  }
+  button.go:hover { filter: brightness(1.06); }
+  .ferr { color: var(--bad); margin-top: .6rem; font-size: .92rem; }
+  .pnote { color: var(--muted); margin-top: .6rem; font-size: .85rem; }
+
+  .hist { margin-top: 1.15rem; }
+  .hist h2 { font-size: .78rem; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 600; margin-bottom: .5rem; }
+  .hchips { display: flex; flex-wrap: wrap; gap: .45rem; }
+  .hchip {
+    border: 1px solid var(--line); background: var(--chip); color: var(--ink);
+    border-radius: 999px; padding: .3rem .75rem; font-size: .85rem; cursor: pointer;
+  }
+  .hchip:hover { border-color: var(--accent); color: var(--accent); }
+
+  .qtitle { margin-top: 1.5rem; font-weight: 600; font-size: 1.02rem; word-break: break-all; }
+  .callout {
+    margin-top: .8rem; border: 1px solid var(--line); border-left: 4px solid var(--muted);
+    background: var(--card); border-radius: 10px; padding: .7rem .9rem; font-size: .93rem;
+    box-shadow: var(--shadow);
+  }
+  .callout.good { border-left-color: var(--good); }
+  .callout.warn { border-left-color: var(--warn); }
+  .callout.bad { border-left-color: var(--bad); }
+  .callout.mut { color: var(--muted); }
+
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: .9rem; margin-top: .9rem; }
+  @media (max-width: 680px) { .cols { grid-template-columns: 1fr; } }
+  .col { padding: 1rem 1.05rem; display: block; gap: normal; }
+  .col h2 { font-size: .8rem; text-transform: uppercase; letter-spacing: .07em; font-weight: 650; }
+  .rhost { color: var(--muted); font-weight: 400; text-transform: none; letter-spacing: 0; font-size: .78rem; margin-left: .3rem; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .6rem; }
+  /* status/agreement chips keep --ink text on a tinted background so both themes stay AA */
+  .chip.warn { background: color-mix(in srgb, var(--warn) 18%, var(--card)); color: var(--ink); }
+  .chip.bad { background: color-mix(in srgb, var(--bad) 18%, var(--card)); color: var(--ink); }
+  .stale {
+    margin-top: .55rem; font-size: .85rem; color: var(--ink); border-radius: 8px; padding: .4rem .6rem;
+    background: color-mix(in srgb, var(--warn) 16%, var(--card));
+    border: 1px solid color-mix(in srgb, var(--warn) 40%, transparent);
+  }
+  .errcard {
+    margin-top: .6rem; border-radius: 10px; padding: .6rem .8rem; font-size: .9rem;
+    border: 1px solid color-mix(in srgb, var(--bad) 45%, transparent);
+    background: color-mix(in srgb, var(--bad) 10%, var(--card));
+  }
+  .errcard b { display: block; margin-bottom: .15rem; }
+
+  .answers { margin-top: .7rem; }
+  .ans { padding: .6rem 0; border-top: 1px solid var(--line); }
+  .ans:first-child { border-top: none; }
+  .ans-head { display: flex; align-items: center; gap: .45rem; flex-wrap: wrap; }
+  .ans-name { font-size: .8rem; color: var(--muted); word-break: break-all;
+    font-family: ui-monospace, "Cascadia Code", Menlo, Consolas, monospace; }
+  .ans-data { margin-top: .3rem; font-size: .95rem; word-break: break-all; }
+  .chip.prio { background: var(--accent-soft); color: var(--accent); }
+  .host { margin-left: .15rem; }
+  .kv { display: grid; grid-template-columns: auto 1fr; gap: .15rem .8rem; font-size: .88rem; }
+  .kv .k { color: var(--muted); }
+  .empty { margin-top: .7rem; color: var(--muted); font-size: .92rem; }
+  footer { font-size: .82rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="index.html">← suite</a>
+    <button class="theme-btn" id="themeBtn" title="Toggle light/dark">◐ theme</button>
+  </div>
+  <header>
+    <h1>DNS Lookup</h1>
+    <p class="tag">Ask two independent public resolvers — Google and Cloudflare — for any DNS record
+      and see side by side whether the internet agrees on the answer.</p>
+  </header>
+
+  <form id="lookupForm" class="card lookup">
+    <div class="fields">
+      <label class="f grow">
+        <span class="lbl">Domain</span>
+        <input id="domain" name="domain" type="text" class="search" placeholder="example.com"
+          autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="url">
+      </label>
+      <label class="f">
+        <span class="lbl">Record type</span>
+        <select id="rtype" name="rtype">
+          <option value="A">A · IPv4 address</option>
+          <option value="AAAA">AAAA · IPv6 address</option>
+          <option value="CNAME">CNAME · alias</option>
+          <option value="MX">MX · mail servers</option>
+          <option value="TXT">TXT · text</option>
+          <option value="NS">NS · nameservers</option>
+          <option value="SOA">SOA · zone authority</option>
+          <option value="CAA">CAA · cert issuers</option>
+        </select>
+      </label>
+      <button type="submit" class="go" id="goBtn">Look up</button>
+    </div>
+    <p class="ferr" id="formErr" hidden></p>
+    <p class="pnote" id="punyNote" hidden></p>
+    <p class="pnote" id="histNote" hidden>Couldn't save this lookup to your history — browser storage looks full.</p>
+  </form>
+
+  <section class="hist" id="histWrap" hidden>
+    <h2>Recent lookups</h2>
+    <div class="hchips" id="histList"></div>
+  </section>
+
+  <div id="results">
+    <div class="qtitle mono" id="qTitle" hidden></div>
+    <div class="callout mut" id="callout">Enter a domain above — its records from both resolvers
+      appear here, compared answer for answer.</div>
+    <div class="cols">
+      <section class="card col" id="colG">
+        <h2>Google Public DNS <span class="rhost">dns.google</span></h2>
+        <div class="empty">No lookup yet.</div>
+      </section>
+      <section class="card col" id="colC">
+        <h2>Cloudflare 1.1.1.1 <span class="rhost">cloudflare-dns.com</span></h2>
+        <div class="empty">No lookup yet.</div>
+      </section>
+    </div>
+  </div>
+
+  <footer>
+    Data: <a href="https://developers.google.com/speed/public-dns/docs/doh/json" target="_blank" rel="noopener">dns.google</a>
+    and <a href="https://developers.cloudflare.com/1.1.1.1/encryption/dns-over-https/make-api-requests/dns-json/" target="_blank" rel="noopener">cloudflare-dns.com</a>
+    (DNS over HTTPS, JSON) · answers cached 10&nbsp;min. Privacy: your queries go directly to the
+    two public resolvers you see — nowhere else.
+  </footer>
+</div>
+
+<script src="../core/suite.js" data-suite-inline></script>
+<script>
+"use strict";
+
+Suite.theme.init();
+
+const $ = s => document.querySelector(s);
+const esc = Suite.esc;
+const TTL = 10 * 60000;                    // manifest cacheTtlMin: 10
+const HIST_KEY = "suite.dns.history";
+const HIST_MAX = 10;
+const TYPES = ["A", "AAAA", "CNAME", "MX", "TXT", "NS", "SOA", "CAA"];
+
+const RESOLVERS = [
+  { id: "google", label: "Google Public DNS", host: "dns.google",
+    url: (n, t) => "https://dns.google/resolve?name=" + encodeURIComponent(n) + "&type=" + t },
+  { id: "cloudflare", label: "Cloudflare 1.1.1.1", host: "cloudflare-dns.com",
+    url: (n, t) => "https://cloudflare-dns.com/dns-query?name=" + encodeURIComponent(n) + "&type=" + t },
+];
+
+/* DNS RCODE words — RFC 1035 §4.1.1 / IANA DNS RCODE registry */
+const RCODES = {
+  0: ["NOERROR", "good"], 1: ["FORMERR", "bad"], 2: ["SERVFAIL", "bad"],
+  3: ["NXDOMAIN", "warn"], 4: ["NOTIMP", "bad"], 5: ["REFUSED", "bad"],
+};
+/* RR type numbers (RFC 1035; AAAA per RFC 3596; CAA per RFC 8659) — a row's own
+   type can differ from the query, e.g. the CNAME hops inside an A answer. */
+const TYPE_NAMES = { 1: "A", 2: "NS", 5: "CNAME", 6: "SOA", 15: "MX", 16: "TXT", 28: "AAAA", 257: "CAA" };
+/* SOA rdata field order per RFC 1035 §3.3.13: MNAME RNAME SERIAL REFRESH RETRY EXPIRE MINIMUM */
+const SOA_FIELDS = ["Primary NS", "Admin mailbox", "Serial", "Refresh", "Retry", "Expire", "Minimum TTL"];
+
+const colG = $("#colG"), colC = $("#colC");
+
+/* async result containers announce their updates; the inline form error too */
+Suite.liveRegion($("#results"));
+Suite.liveRegion($("#formErr"));
+
+function stampTime(t) {
+  const d = new Date(t);
+  const sameDay = d.toDateString() === new Date().toDateString();
+  return d.toLocaleString([], sameDay
+    ? { hour: "numeric", minute: "2-digit" }
+    : { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+}
+const trimDot = s => String(s == null ? "" : s).replace(/\.$/, "");
+
+/* ---------- input: trim, lowercase, punycode via the URL parser, then validate ---------- */
+function parseDomain(raw) {
+  const typed = String(raw || "").trim();
+  if (!typed) return { err: "Type a domain name to look up." };
+  let host;
+  try {
+    /* new URL("http://" + name).hostname applies IDNA: unicode names come back as punycode */
+    host = new URL(/^[a-z][a-z0-9+.-]*:\/\//i.test(typed) ? typed : "http://" + typed)
+      .hostname.toLowerCase();
+  } catch (e) {
+    return { err: "That doesn't look like a domain name — try something like example.com." };
+  }
+  host = trimDot(host);
+  if (!host) return { err: "That doesn't look like a domain name — try something like example.com." };
+  if (host.startsWith("[") || /^\d{1,3}(\.\d{1,3}){3}$/.test(host))
+    return { err: "That's an IP address — this tool looks up names like example.com." };
+  if (host.length > 253) return { err: "That name is longer than DNS allows (253 characters)." };
+  const labels = host.split(".");
+  if (labels.length < 2) return { err: "Enter a full domain like example.com — a dot is required." };
+  /* underscores allowed: service labels like _dmarc.example.com are common TXT lookups */
+  const labRe = /^[a-z0-9_]([a-z0-9_-]{0,61}[a-z0-9_])?$/;
+  for (const l of labels) {
+    if (!labRe.test(l)) return { err: '"' + l + '" isn’t a valid domain label — letters, digits and hyphens only.' };
+  }
+  if (!/^([a-z]{2,63}|xn--[a-z0-9-]{1,59})$/.test(labels[labels.length - 1]))
+    return { err: "The last part doesn't look like a top-level domain (like .com or .org)." };
+  const puny = /(^|\.)xn--/.test(host) && !/xn--/i.test(typed);
+  return { host, puny };
+}
+
+/* ---------- history: suite.dns.history, last 10, deduped by (name, type) ---------- */
+function readHistory() {
+  const v = Suite.store.get(HIST_KEY);
+  if (!Array.isArray(v)) return [];
+  return v.filter(x => x && typeof x === "object" &&
+    typeof x.n === "string" && x.n && TYPES.includes(x.t)).slice(0, HIST_MAX);
+}
+function pushHistory(n, t) {
+  const next = [{ n, t }]
+    .concat(readHistory().filter(x => !(x.n === n && x.t === t)))
+    .slice(0, HIST_MAX);
+  const ok = Suite.store.set(HIST_KEY, next);
+  $("#histNote").hidden = ok; /* quota: degrade politely, never crash */
+  renderHistory();
+}
+function renderHistory() {
+  const list = readHistory();
+  $("#histWrap").hidden = !list.length;
+  const el = $("#histList");
+  el.textContent = "";
+  for (const h of list) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "hchip";
+    b.dataset.n = h.n;
+    b.dataset.t = h.t;
+    b.textContent = h.n + " · " + h.t;
+    b.addEventListener("click", () => {
+      $("#domain").value = h.n;
+      $("#rtype").value = h.t;
+      submitLookup();
+    });
+    el.append(b);
+  }
+}
+
+/* ---------- rendering ---------- */
+function colHeading(el, r) {
+  const h = document.createElement("h2");
+  h.innerHTML = `${esc(r.label)} <span class="rhost">${esc(r.host)}</span>`;
+  el.append(h);
+}
+
+/* TXT rdata arrives as one or more quoted chunks: "\"part one\" \"part two\"" */
+function unquoteTXT(s) {
+  const m = String(s).match(/"((?:[^"\\]|\\.)*)"/g);
+  if (!m) return String(s);
+  return m.map(x => x.slice(1, -1).replace(/\\(.)/g, "$1")).join("");
+}
+
+function dataNode(a) {
+  const div = document.createElement("div");
+  div.className = "ans-data";
+  if (a.type === 15) { /* MX rdata: "<priority> <host>" */
+    const m = String(a.data).match(/^(\d+)\s+(\S+)$/);
+    if (m) {
+      div.innerHTML = `<span class="chip prio" title="lower priority is tried first">priority ${esc(m[1])}</span>` +
+        `<span class="mono host">${esc(trimDot(m[2]))}</span>`;
+      return div;
+    }
+  }
+  if (a.type === 16) { /* TXT: shown unquoted */
+    div.classList.add("mono");
+    div.textContent = unquoteTXT(a.data);
+    return div;
+  }
+  if (a.type === 6) { /* SOA: labeled fields */
+    const parts = String(a.data).trim().split(/\s+/);
+    if (parts.length === 7) {
+      const kv = document.createElement("div");
+      kv.className = "kv";
+      SOA_FIELDS.forEach((label, i) => {
+        const k = document.createElement("div"); k.className = "k"; k.textContent = label;
+        const v = document.createElement("div"); v.className = "v mono";
+        v.textContent = i < 2 ? trimDot(parts[i]) : (i >= 3 ? parts[i] + " s" : parts[i]);
+        kv.append(k, v);
+      });
+      div.append(kv);
+      return div;
+    }
+  }
+  div.classList.add("mono");
+  div.textContent = trimDot(a.data);
+  return div;
+}
+
+function answerList(answers, qtype) {
+  const wrap = document.createElement("div");
+  wrap.className = "answers";
+  for (const a of answers) {
+    const row = document.createElement("div");
+    row.className = "ans";
+    const head = document.createElement("div");
+    head.className = "ans-head";
+    const tname = TYPE_NAMES[a.type] || ("TYPE" + a.type);
+    head.innerHTML = `<span class="ans-name">${esc(trimDot(a.name))}</span>` +
+      (tname !== qtype ? `<span class="chip">${esc(tname)}</span>` : "") +
+      `<span class="chip" title="time to live: seconds this answer may be cached">TTL ${esc(a.TTL)}s</span>`;
+    row.append(head, dataNode(a));
+    wrap.append(row);
+  }
+  return wrap;
+}
+
+function renderColumn(el, resolver, outcome, qtype) {
+  el.textContent = "";
+  colHeading(el, resolver);
+  if (!outcome.ok) {
+    const err = document.createElement("div");
+    err.className = "errcard";
+    const msg = (outcome.err && outcome.err.message) || "network error";
+    err.innerHTML = `<b>Lookup failed</b><span>${esc(resolver.label)} didn't answer (${esc(msg)}) and there's ` +
+      `no cached copy of this query yet. The other column is unaffected — try again in a moment.</span>`;
+    el.append(err);
+    return;
+  }
+  const env = outcome.env, d = env.v;
+  const [word, tone] = RCODES[d.Status] || ["RCODE " + d.Status, "bad"];
+  const chips = document.createElement("div");
+  chips.className = "chips";
+  chips.innerHTML =
+    `<span class="chip st ${esc(tone)}">${esc(word)}</span>` +
+    (d.AD
+      ? `<span class="chip good" title="the resolver validated this answer’s DNSSEC chain (AD flag set)">DNSSEC ✓ authenticated</span>`
+      : `<span class="chip" title="the resolver did not report DNSSEC validation (AD flag off)">DNSSEC not validated</span>`) +
+    (env.fromCache && !env.stale ? `<span class="chip">cached ${esc(stampTime(env.t))}</span>` : "");
+  el.append(chips);
+  if (env.stale) {
+    const s = document.createElement("div");
+    s.className = "stale";
+    s.textContent = "Offline — cached from " + stampTime(env.t) + ". Answers may have changed since.";
+    el.append(s);
+  }
+  const answers = Array.isArray(d.Answer) ? d.Answer : [];
+  if (answers.length) {
+    el.append(answerList(answers, qtype));
+  } else {
+    const note = document.createElement("div");
+    note.className = "empty";
+    note.textContent = d.Status === 3 ? "This resolver says the domain does not exist."
+      : d.Status === 0 ? "No " + qtype + " records for this name."
+      : "The resolver returned no answer (" + word + ").";
+    el.append(note);
+  }
+}
+
+/* order-insensitive compare of answer data values; DNS names are case-insensitive
+   and Google appends trailing dots where Cloudflare doesn't, so normalize both */
+function answerSet(env) {
+  return (Array.isArray(env.v.Answer) ? env.v.Answer : [])
+    .map(a => trimDot(String(a.data).trim()).toLowerCase())
+    .sort();
+}
+
+function renderCallout(g, c, qtype) {
+  const el = $("#callout");
+  el.className = "callout";
+  if (!g.ok && !c.ok) {
+    el.classList.add("bad");
+    el.textContent = "Both lookups failed — check your connection and try again.";
+    return;
+  }
+  if (!g.ok || !c.ok) {
+    el.classList.add("mut");
+    el.textContent = "Comparison unavailable — " + (!g.ok ? RESOLVERS[0] : RESOLVERS[1]).label + " did not answer.";
+    return;
+  }
+  const sg = answerSet(g.env), sc = answerSet(c.env);
+  const gs = g.env.v.Status, cs = c.env.v.Status;
+  if (gs === cs && JSON.stringify(sg) === JSON.stringify(sc)) {
+    el.classList.add("good");
+    if (sg.length) {
+      el.textContent = "Answers match — both resolvers returned the same " +
+        sg.length + " record" + (sg.length === 1 ? "" : "s") + ".";
+    } else if (gs === 3) {
+      el.textContent = "Both resolvers agree: NXDOMAIN — this domain does not exist.";
+    } else {
+      el.textContent = "Both resolvers agree: no " + qtype + " records for this name.";
+    }
+    return;
+  }
+  el.classList.add("warn");
+  const onlyG = sg.filter(x => !sc.includes(x));
+  const onlyC = sc.filter(x => !sg.includes(x));
+  const bits = ["Resolvers disagree — Google returned " + sg.length +
+    " record" + (sg.length === 1 ? "" : "s") + ", Cloudflare " + sc.length + "."];
+  if (gs !== cs) {
+    bits.push("Status: Google " + (RCODES[gs] || [gs])[0] + " vs Cloudflare " + (RCODES[cs] || [cs])[0] + ".");
+  }
+  if (onlyG.length) bits.push("Only Google: " + onlyG.slice(0, 3).join(", ") + (onlyG.length > 3 ? " …" : ""));
+  if (onlyC.length) bits.push("Only Cloudflare: " + onlyC.slice(0, 3).join(", ") + (onlyC.length > 3 ? " …" : ""));
+  el.textContent = bits.join(" ");
+}
+
+function renderLoading() {
+  const co = $("#callout");
+  co.className = "callout mut";
+  co.textContent = "Querying both resolvers…";
+  for (const [el, r] of [[colG, RESOLVERS[0]], [colC, RESOLVERS[1]]]) {
+    el.textContent = "";
+    colHeading(el, r);
+    const m = document.createElement("div");
+    m.className = "empty";
+    m.textContent = "Querying " + r.host + "…";
+    el.append(m);
+  }
+}
+
+/* ---------- the lookup itself: both resolvers in parallel ---------- */
+let seq = 0;
+async function runLookup(host, type) {
+  const my = ++seq;
+  const res = $("#results");
+  delete res.dataset.done;
+  const qt = $("#qTitle");
+  qt.textContent = host + " · " + type;
+  qt.hidden = false;
+  renderLoading();
+  pushHistory(host, type);
+  const [g, c] = await Promise.all(RESOLVERS.map(r =>
+    Suite.fetchJSON(r.url(host, type), {
+      cacheKey: "dns." + r.id + "." + type + "." + host,
+      ttl: TTL,
+      accept: "application/dns-json", /* Cloudflare requires it; Google accepts it too */
+      timeout: 10000,
+    }).then(env => ({ ok: true, env }), err => ({ ok: false, err }))));
+  if (my !== seq) return; /* a newer lookup superseded this one */
+  renderColumn(colG, RESOLVERS[0], g, type);
+  renderColumn(colC, RESOLVERS[1], c, type);
+  renderCallout(g, c, type);
+  res.dataset.done = String(my);
+}
+
+function submitLookup() {
+  const parsed = parseDomain($("#domain").value);
+  const errEl = $("#formErr"), pn = $("#punyNote");
+  if (parsed.err) {
+    errEl.textContent = parsed.err;
+    errEl.hidden = false;
+    pn.hidden = true;
+    return;
+  }
+  errEl.textContent = "";
+  errEl.hidden = true;
+  if (parsed.puny) {
+    pn.textContent = "Unicode name — looked up as " + parsed.host + " (punycode).";
+    pn.hidden = false;
+  } else {
+    pn.hidden = true;
+  }
+  runLookup(parsed.host, $("#rtype").value);
+}
+
+$("#lookupForm").addEventListener("submit", e => { e.preventDefault(); submitLookup(); });
+
+renderHistory();
+</script>
+</body>
+</html>

@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Savings &amp; Compound Interest Planner · Local Suite</title>
+<link rel="stylesheet" href="../core/suite.css" data-suite-inline>
+<style>
+  /* tool accents: --real is the "today's dollars" line. Values reuse loan.html's
+     Phase-4-audited pair (light #875510 = 4.6:1 on the card, dark #d9a153). */
+  :root { --real: #875510; }
+  @media (prefers-color-scheme: dark) { :root { --real: #d9a153; } }
+  :root[data-theme="light"] { --real: #875510; }
+  :root[data-theme="dark"] { --real: #d9a153; }
+
+  body { padding: 1.4rem 1.25rem 4rem; }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  .topbar { display: flex; align-items: center; gap: 1rem; }
+  .topbar .theme-btn, .topbar .fav-btn { float: none; }
+  .topbar .theme-btn { margin-left: auto; }
+  header { margin: 1rem 0 1.2rem; }
+  h1 { font-size: 1.8rem; letter-spacing: -.02em; }
+  .tag { color: var(--muted); margin-top: .35rem; max-width: 48rem; }
+
+  /* neutralize the core flex-card layout, loan.html-style */
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 1.1rem 1.2rem; box-shadow: var(--shadow); margin-bottom: 1.2rem; display: block; flex-direction: row; gap: normal; }
+  .card h2 { font-size: .82rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 1rem; }
+  .modelnote { color: var(--muted); font-size: .82rem; margin-top: .8rem; }
+
+  .inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: .9rem; }
+  .field label { display: block; font-size: .78rem; color: var(--muted); margin-bottom: .3rem; }
+  .field .in { display: flex; align-items: center; border: 1px solid var(--line); border-radius: 9px; background: var(--bg); overflow: hidden; }
+  .field .in span { padding: 0 .5rem; color: var(--muted); font-size: .9rem; }
+  .field input { flex: 1; width: 100%; min-width: 0; padding: .5rem .6rem; font-size: .95rem; color: var(--ink); border: 0; background: transparent; outline: none; }
+  .field .in:focus-within { border-color: var(--accent); outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .stats { display: flex; gap: 1.6rem; flex-wrap: wrap; margin-bottom: .4rem; }
+  .stat b { font-size: 1.45rem; display: block; line-height: 1.15; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .stat.alt b { color: var(--real); }
+  .stat span { font-size: .74rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+
+  .goal { margin-top: 1rem; padding: .85rem 1.05rem; border-radius: 10px; background: var(--accent-soft); color: var(--accent); font-size: .95rem; }
+  .goal.bad { background: color-mix(in srgb, var(--real) 16%, transparent); color: var(--real); }
+  .goal.hint { background: transparent; border: 1px dashed var(--line); color: var(--muted); }
+  .goal b { font-variant-numeric: tabular-nums; }
+
+  svg#chart { width: 100%; height: auto; display: block; }
+  #chart .grid { stroke: var(--line); stroke-width: 1; opacity: .55; }
+  #chart .lbl { fill: var(--muted); font: 13px ui-sans-serif, system-ui, sans-serif; }
+  #chart .ln { fill: none; stroke-width: 2.4; stroke-linejoin: round; }
+  #chart .ln-nominal { stroke: var(--accent); }
+  #chart .ln-real { stroke: var(--real); stroke-width: 2; stroke-dasharray: 6 5; }
+  .legend { display: flex; gap: 1.2rem; flex-wrap: wrap; margin-top: .6rem; font-size: .82rem; color: var(--muted); }
+  .legend i { display: inline-block; width: 1rem; height: 3px; border-radius: 2px; margin-right: .35rem; vertical-align: 3px; }
+  .legend .sw-nominal { background: var(--accent); }
+  .legend .sw-real { background: var(--real); }
+  #chartSummary { margin-top: .8rem; font-size: .92rem; }
+
+  .btn { border: 1px solid var(--accent); background: var(--accent); color: var(--bg); border-radius: 9px; padding: .5rem .9rem; cursor: pointer; font-size: .92rem; }
+  .btn.ghost { background: var(--card); color: var(--accent); }
+  .btn:hover { filter: brightness(1.05); }
+  .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .btn[aria-pressed="true"] { background: var(--accent); color: var(--bg); }
+  .rowbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: .6rem; margin-bottom: .8rem; }
+  .rowbar h2 { margin: 0; }
+
+  .scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; max-height: 420px; overflow-y: auto; }
+  table.yearly { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: .88rem; }
+  table.yearly th, table.yearly td { padding: .4rem .7rem; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  table.yearly th { position: sticky; top: 0; background: var(--card); color: var(--muted); font-weight: 500; font-size: .74rem; text-transform: uppercase; letter-spacing: .04em; z-index: 1; }
+  table.yearly td:first-child, table.yearly th:first-child { text-align: left; }
+  .hidden { display: none; }
+  #saveNote { color: var(--muted); font-size: .8rem; margin-top: .5rem; }
+  footer { font-size: .82rem; padding-top: 1rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="index.html">← suite</a>
+    <button class="theme-btn" id="themeBtn" title="Toggle light/dark">◐ theme</button>
+  </div>
+  <header><h1>Savings &amp; Compound Interest Planner</h1>
+    <p class="tag">Compound growth with monthly contributions, inflation-adjusted balances, and "when do I reach my goal?" — computed entirely in this file.</p>
+  </header>
+
+  <div class="card">
+    <div class="rowbar"><h2>Scenario</h2><button class="btn ghost" id="resetBtn">Reset to defaults</button></div>
+    <div class="inputs">
+      <div class="field"><label for="start">Starting balance</label><div class="in"><span>$</span><input type="number" id="start" value="10000" min="0" step="500"></div></div>
+      <div class="field"><label for="monthly">Monthly contribution</label><div class="in"><span>$</span><input type="number" id="monthly" value="500" min="0" step="25"></div></div>
+      <div class="field"><label for="apy">Annual rate (APY)</label><div class="in"><input type="number" id="apy" value="6" min="0" step="0.1"><span>%</span></div></div>
+      <div class="field"><label for="years">Years</label><div class="in"><input type="number" id="years" value="10" min="1" max="60" step="1"><span>yrs</span></div></div>
+      <div class="field"><label for="infl">Inflation / yr (optional)</label><div class="in"><input type="number" id="infl" min="0" step="0.1" placeholder="2.5"><span>%</span></div></div>
+      <div class="field"><label for="goal">Goal amount (optional)</label><div class="in"><span>$</span><input type="number" id="goal" min="0" step="1000" placeholder="100000"></div></div>
+    </div>
+    <p class="modelnote">Model: interest compounds monthly (APY ÷ 12 each month) and each contribution lands at the <em>end</em> of the month. Years are capped at 1–60.</p>
+    <p id="saveNote" class="hidden">Couldn't save this scenario — browser storage is full. The planner still works; it just won't remember these numbers.</p>
+  </div>
+
+  <div class="card">
+    <div class="stats" id="stats"></div>
+    <div class="goal" id="goalOut"></div>
+  </div>
+
+  <div class="card">
+    <h2>Balance over time</h2>
+    <div id="chartBox" aria-hidden="true"></div>
+    <div class="legend" id="legend"></div>
+    <p id="chartSummary"></p>
+  </div>
+
+  <div class="card">
+    <div class="rowbar">
+      <h2 id="tableHead">Year-by-year table</h2>
+      <button class="btn ghost" id="tableBtn" aria-pressed="false" aria-controls="tableWrap">Show table</button>
+    </div>
+    <div class="scroll hidden" id="tableWrap">
+      <table class="yearly" id="yearly" aria-describedby="tableHead"></table>
+    </div>
+  </div>
+
+  <footer>No network — everything is computed on your machine and saved only in this browser. Estimates only; returns are assumed constant, taxes and fees are not modeled.</footer>
+</div>
+
+<script src="../core/suite.js" data-suite-inline></script>
+<script>
+"use strict";
+Suite.theme.init();
+
+const $ = id => document.getElementById(id);
+const KEY = "suite.savings.v1";
+const DEFAULTS = { start: "10000", monthly: "500", apy: "6", years: "10", infl: "", goal: "", table: false };
+const INPUTS = ["start", "monthly", "apy", "years", "infl", "goal"];
+
+/* ---- formatting ---- */
+const fmt$ = n => (n < 0 ? "-$" : "$") + Math.abs(Math.round(n)).toLocaleString("en-US");
+const fmtAxis = v => v >= 999500 ? "$" + (v / 1e6).toFixed(v >= 9.95e6 ? 0 : 1) + "M"
+  : v >= 1000 ? "$" + Math.round(v / 1000) + "k" : "$" + Math.round(v);
+function fmtElapsed(m) {
+  const y = Math.floor(m / 12), mo = m % 12;
+  if (!y) return mo + " mo";
+  return y + " yr" + (mo ? " " + mo + " mo" : "");
+}
+
+/* ---- inputs ---- */
+function readScenario() {
+  const num = id => { const v = +$(id).value; return isFinite(v) && v > 0 ? v : 0; };
+  let years = Math.round(+$("years").value || 0);
+  years = Math.min(60, Math.max(1, years));
+  const goalRaw = $("goal").value.trim();
+  return {
+    P: num("start"), C: num("monthly"), apy: num("apy"), years,
+    infl: num("infl"),                       // empty field -> 0 (no adjustment)
+    goal: goalRaw === "" || !isFinite(+goalRaw) ? null : Math.max(0, +goalRaw),
+  };
+}
+
+/* ---- model ----
+   End-of-month contributions: bal_m = bal_{m-1} * (1 + r) + C, r = APY/100/12.
+   Closed form (annuity-immediate): FV = P(1+r)^n + C[((1+r)^n - 1)/r]; r=0 -> P + Cn.
+   The loop below reproduces that exactly and also yields the series and per-year interest.
+   "Today's dollars" deflates month m by (1 + infl/100)^(m/12), so at the horizon the
+   real balance equals nominal / (1 + infl)^years. */
+function simulate(s) {
+  const r = s.apy / 100 / 12, n = s.years * 12, defl = 1 + s.infl / 100;
+  const rows = [{ m: 0, bal: s.P, real: s.P }];
+  const yearly = [];
+  let bal = s.P, contrib = s.P, yInterest = 0;
+  for (let m = 1; m <= n; m++) {
+    const interest = bal * r;
+    bal += interest + s.C;
+    contrib += s.C;
+    yInterest += interest;
+    rows.push({ m, bal, real: bal / Math.pow(defl, m / 12) });
+    if (m % 12 === 0) { yearly.push({ year: m / 12, contrib, interest: yInterest, bal }); yInterest = 0; }
+  }
+  const out = { rows, yearly, final: bal, contrib, growth: bal - contrib, realFinal: bal / Math.pow(defl, s.years) };
+  if (s.goal != null) {
+    const hit = rows.find(row => row.bal >= s.goal);
+    out.goalMonth = hit ? hit.m : null;                 // null -> not reached in horizon
+  }
+  return out;
+}
+
+/* ---- render ---- */
+function render() {
+  const s = readScenario();
+  const R = simulate(s);
+
+  $("stats").innerHTML = `
+    <div class="stat"><b id="finalBal">${fmt$(R.final)}</b><span>Final balance</span></div>
+    <div class="stat"><b id="totContrib">${fmt$(R.contrib)}</b><span>Total contributed</span></div>
+    <div class="stat"><b id="totGrowth">${fmt$(R.growth)}</b><span>Total growth</span></div>
+    ${s.infl > 0 ? `<div class="stat alt"><b id="realBal">${fmt$(R.realFinal)}</b><span>In today's dollars</span></div>` : ""}`;
+
+  // goal verdict — honest about "not reached"
+  const g = $("goalOut");
+  g.classList.remove("bad", "hint");
+  if (s.goal == null) {
+    g.classList.add("hint");
+    g.textContent = "Set a goal amount to see when you'd reach it.";
+  } else if (R.goalMonth === 0) {
+    g.innerHTML = `Your starting balance already meets the <b>${fmt$(s.goal)}</b> goal — month 0.`;
+  } else if (R.goalMonth != null) {
+    g.innerHTML = `You reach <b>${fmt$(s.goal)}</b> after <b>${fmtElapsed(R.goalMonth)}</b> (month ${R.goalMonth} of ${s.years * 12}).`;
+  } else {
+    g.classList.add("bad");
+    g.innerHTML = `Goal of <b>${fmt$(s.goal)}</b> is not reached in ${s.years} year${s.years === 1 ? "" : "s"} — you'd end at <b>${fmt$(R.final)}</b>, ${fmt$(s.goal - R.final)} short.`;
+  }
+
+  drawChart(s, R);
+  renderSummary(s, R);
+  renderTable(R);
+}
+
+/* ---- SVG line chart (decorative; the summary + table below are the accessible copy) ---- */
+function drawChart(s, R) {
+  const W = 1000, H = 340, padL = 70, padR = 16, padT = 14, padB = 32;
+  const iw = W - padL - padR, ih = H - padT - padB;
+  const rows = R.rows, n = rows.length;
+  const yMax = Math.max(R.final, 1);
+  const x = i => padL + (n <= 1 ? 0 : i / (n - 1) * iw);
+  const y = v => padT + ih - (v / yMax) * ih;
+  const pt = (px, py) => px.toFixed(1) + " " + py.toFixed(1);
+
+  let grid = "", labels = "";
+  for (let gl = 0; gl <= 4; gl++) {
+    const v = yMax * gl / 4, yy = y(v);
+    grid += `<line class="grid" x1="${padL}" y1="${yy.toFixed(1)}" x2="${W - padR}" y2="${yy.toFixed(1)}"/>`;
+    labels += `<text class="lbl" x="${padL - 8}" y="${(yy + 4).toFixed(1)}" text-anchor="end">${fmtAxis(v)}</text>`;
+  }
+  const yrs = s.years;
+  const step = yrs > 30 ? 10 : yrs > 12 ? 5 : yrs > 6 ? 2 : 1;
+  for (let yr = 0; yr <= yrs; yr += step) {
+    labels += `<text class="lbl" x="${x(Math.min(yr * 12, n - 1)).toFixed(1)}" y="${H - 8}" text-anchor="middle">yr ${yr}</text>`;
+  }
+  const path = key => "M " + rows.map((r, i) => pt(x(i), y(r[key]))).join(" L ");
+  const showReal = s.infl > 0;
+  $("chartBox").innerHTML = `
+    <svg id="chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" focusable="false">
+      ${grid}${labels}
+      ${showReal ? `<path class="ln ln-real" data-series="real" d="${path("real")}"/>` : ""}
+      <path class="ln ln-nominal" data-series="nominal" d="${path("bal")}"/>
+    </svg>`;
+  $("legend").innerHTML = `<span><i class="sw sw-nominal"></i>Balance</span>` +
+    (showReal ? `<span><i class="sw sw-real"></i>In today's dollars (${s.infl}% inflation)</span>` : "");
+}
+
+function renderSummary(s, R) {
+  let t = `After ${s.years} year${s.years === 1 ? "" : "s"} at ${s.apy}% APY: ${fmt$(R.final)} — ` +
+    `${fmt$(R.contrib)} contributed plus ${fmt$(R.growth)} growth.`;
+  if (s.apy === 0) t += " At 0% there is no compounding — the balance is exactly what you put in.";
+  if (s.C === 0) t += " With no monthly contribution, growth comes from compounding alone.";
+  if (s.infl > 0) t += ` Adjusted for ${s.infl}% yearly inflation, that's worth about ${fmt$(R.realFinal)} in today's dollars.`;
+  $("chartSummary").textContent = t;
+}
+
+function renderTable(R) {
+  let html = `<thead><tr><th scope="col">Year</th><th scope="col">Contributed to date</th><th scope="col">Interest that year</th><th scope="col">Balance</th></tr></thead><tbody>`;
+  R.yearly.forEach(r => {
+    html += `<tr><td>${r.year}</td><td>${fmt$(r.contrib)}</td><td>${fmt$(r.interest)}</td><td>${fmt$(r.bal)}</td></tr>`;
+  });
+  $("yearly").innerHTML = html + "</tbody>";
+}
+
+/* ---- table toggle ---- */
+function setTable(open) {
+  $("tableWrap").classList.toggle("hidden", !open);
+  const b = $("tableBtn");
+  b.setAttribute("aria-pressed", String(open));
+  b.textContent = open ? "Hide table" : "Show table";
+}
+$("tableBtn").addEventListener("click", () => {
+  const open = $("tableWrap").classList.contains("hidden");
+  setTable(open);
+  save();
+});
+
+/* ---- persistence: suite.savings.v1 holds the raw field values + table state ---- */
+function save() {
+  const o = { table: $("tableBtn").getAttribute("aria-pressed") === "true" };
+  INPUTS.forEach(id => o[id] = $(id).value);
+  const ok = Suite.store.set(KEY, o);
+  $("saveNote").classList.toggle("hidden", ok);
+}
+function loadState() {
+  const o = Suite.store.get(KEY);
+  if (o && typeof o === "object") {
+    INPUTS.forEach(id => { if (typeof o[id] === "string") $(id).value = o[id]; });
+    setTable(o.table === true);
+  }
+}
+
+$("resetBtn").addEventListener("click", () => {
+  INPUTS.forEach(id => $(id).value = DEFAULTS[id]);
+  setTable(DEFAULTS.table);
+  Suite.store.remove(KEY);
+  $("saveNote").classList.add("hidden");
+  render();
+});
+
+/* ---- a11y: announce recomputed results ---- */
+Suite.liveRegion($("stats"));
+Suite.liveRegion($("goalOut"));
+
+INPUTS.forEach(id => $(id).addEventListener("input", () => { render(); save(); }));
+
+loadState();
+render();
+</script>
+</body>
+</html>

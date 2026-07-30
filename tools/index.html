@@ -52,6 +52,14 @@
     background: var(--chip); padding: .05rem .3rem; border-radius: 5px;
   }
   .empty { color: var(--muted); text-align: center; padding: 3rem 0; display: none; }
+  /* v4 quick access: card stars + the Favorites / Recently used sections */
+  .card-fav { float: none; margin: 0 0 0 auto; padding: .1rem .5rem; font-size: .9rem; flex: none; }
+  #favSec, #recSec { margin-top: 1.6rem; }
+  #recTitle .pill { margin-left: .4rem; font-size: .72rem; padding: .16rem .6rem; vertical-align: middle; }
+  .recrow { display: flex; flex-wrap: wrap; gap: .45rem; margin-top: .8rem; }
+  .recrow a { text-decoration: none; font-size: .82rem; padding: .28rem .75rem;
+    border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 999px; }
+  .recrow a:hover { border-color: var(--accent); color: var(--accent); }
   .card.wip { opacity: .82; border-style: dashed; }
   /* a11y (Phase 4): visually-hidden live status so screen readers hear filter results */
   .sr-status { position: absolute; width: 1px; height: 1px; overflow: hidden;
@@ -88,6 +96,17 @@
 
   <p class="hint" id="originHint" hidden>Coming from the double-click files? Your data lives
     with those files, not here — export it there (Settings &rarr; Backup) and import it here.</p>
+
+  <section id="favSec" hidden aria-labelledby="favTitle">
+    <h2 id="favTitle">★ Favorites <span class="n" id="favCount"></span></h2>
+    <div class="grid" id="favGrid"></div>
+  </section>
+  <section id="recSec" hidden aria-labelledby="recTitle">
+    <h2 id="recTitle">🕘 Recently used
+      <button class="pill" id="recClear" aria-label="Clear the recently used list">clear</button>
+    </h2>
+    <div class="recrow" id="recRow"></div>
+  </section>
 
   <main id="cats"></main>
   <p class="sr-status" id="resStatus" aria-live="polite"></p>
@@ -179,7 +198,8 @@ const CAT_LABEL = {
   ref:   "📚 Reference & Lookup",
   time:  "🕰️ Time & Planning",
   local: "📍 Local Life",
-  util:  "🧰 Utilities & Toys",  /* 12 of 13 are offline; Settings makes a request when you test a key — the per-card chip is the precise truth */
+  util:  "🧰 Utilities & Toys",  /* most are offline; Settings makes a request when you test a key — the per-card chip is the precise truth */
+  games: "🕹️ Games & Arcade",   /* reopened in v4 with The Arcade after the Meteor Patrol retirement */
 };
 const CATS = Object.keys(CAT_LABEL).filter(id => TOOLS.some(t => t.cat === id));
 
@@ -223,7 +243,17 @@ function card(t) {
   const a = document.createElement("a");
   a.href = t.file;
   a.textContent = t.name;
-  h.append(dot, a);
+  const fav = document.createElement("button");
+  fav.type = "button";
+  fav.className = "fav-btn card-fav";
+  fav.dataset.tool = t.id;
+  const on = Suite.favorites.has(t.id);
+  fav.textContent = on ? "★" : "☆";
+  fav.classList.toggle("on", on);
+  fav.setAttribute("aria-pressed", String(on));
+  fav.setAttribute("aria-label", "Favorite " + t.name);
+  fav.addEventListener("click", () => { Suite.favorites.toggle(t.id); renderQuickAccess(); });
+  h.append(dot, a, fav);
   const d = document.createElement("p");
   d.className = "desc";
   d.textContent = t.desc;
@@ -301,13 +331,13 @@ function render() {
     sec.append(h2, grid);
     catsEl.append(sec);
   }
-  /* games: the meteor-patrol prototype was RETIRED, not parked (ROADMAP, 2026-07-25) — the
-     category reopens only with a purpose-built toy at full Definition of Done. Until then the
-     hub shows manifest tools and nothing else. */
+  /* games: the meteor-patrol prototype was retired in v3 (ROADMAP, 2026-07-25); the category
+     reopened in v4 with The Arcade — a manifest tool like any other, at full Definition of Done. */
   emptyEl.style.display = shown ? "none" : "block";
   /* announce the filter outcome (QUALITY.md §2: result containers are heard, not just seen) */
   document.getElementById("resStatus").textContent =
     shown ? shown + (shown === 1 ? " tool shown" : " tools shown") : "Nothing matches — try fewer filters.";
+  renderQuickAccess(); /* filters also decide whether the quick-access sections show */
 }
 
 function renderPills() {
@@ -350,6 +380,63 @@ function renderStats() {
     mk(TOOLS.filter(t => !t.key).length, "no key needed"),
   );
 }
+
+/* ==== v4 quick access: favorites + recently used ====
+   Stored ids may be stale after a tool retires — unknown ids are ignored, never
+   an error. The sections hide while any filter narrows the page, so search
+   results stay clean; the card stars keep working everywhere. */
+const byId = new Map(TOOLS.map(t => [t.id, t]));
+function relTime(t) {
+  const m = Math.max(0, Math.round((Date.now() - t) / 60000));
+  if (m < 1) return "just now";
+  if (m < 60) return m + (m === 1 ? " minute ago" : " minutes ago");
+  const h = Math.round(m / 60);
+  if (h < 24) return h + (h === 1 ? " hour ago" : " hours ago");
+  const d = Math.round(h / 24);
+  return d + (d === 1 ? " day ago" : " days ago");
+}
+function renderQuickAccess() {
+  const filtered = state.q || state.cat || state.offline || state.nokey;
+  const favs = Suite.favorites.all().map(id => byId.get(id)).filter(Boolean);
+  const favSec = document.getElementById("favSec");
+  favSec.hidden = filtered || !favs.length;
+  if (!favSec.hidden) {
+    document.getElementById("favCount").textContent =
+      favs.length + (favs.length === 1 ? " tool" : " tools");
+    const grid = document.getElementById("favGrid");
+    grid.replaceChildren();
+    favs.forEach(t => grid.append(card(t)));
+  }
+  const recs = Suite.recents.all().map(r => ({ t: byId.get(r.id), at: r.t })).filter(x => x.t);
+  const recSec = document.getElementById("recSec");
+  recSec.hidden = filtered || !recs.length;
+  if (!recSec.hidden) {
+    const row = document.getElementById("recRow");
+    row.replaceChildren();
+    for (const r of recs) {
+      const a = document.createElement("a");
+      a.href = r.t.file;
+      a.textContent = r.t.name;
+      a.title = "Opened " + relTime(r.at);
+      row.append(a);
+    }
+  }
+  /* the category cards' stars repaint in place (same data-tool hook as tool chrome) */
+  document.querySelectorAll("#cats .fav-btn[data-tool]").forEach(btn => {
+    const on = Suite.favorites.has(btn.dataset.tool);
+    btn.setAttribute("aria-pressed", String(on));
+    btn.classList.toggle("on", on);
+    btn.textContent = on ? "★" : "☆";
+  });
+}
+document.getElementById("recClear").addEventListener("click", () => {
+  Suite.recents.clear();
+  renderQuickAccess();
+  document.getElementById("resStatus").textContent = "Recently used list cleared.";
+});
+window.addEventListener("storage", e => {
+  if (e.key === "suite.hub.favorites" || e.key === "suite.hub.recents") renderQuickAccess();
+});
 
 qEl.addEventListener("input", () => { state.q = qEl.value.trim(); render(); });
 document.addEventListener("keydown", e => {

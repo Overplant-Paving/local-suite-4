@@ -87,6 +87,11 @@ Suite.locations.add(location) / .update(id, changes) / .remove(id) / .activate(i
   // suite.locations is the v3 collection; suite.location remains its active mirror so
   // every existing tool stays compatible. Active-place changes reset only unsafe
   // location-derived station/state/alert choices; safe scoped/global caches remain.
+Suite.favorites.all() / .has(id) / .toggle(id)   // suite.hub.favorites; the chrome star is
+                                   // injected beside the theme button by theme.init(), so no
+                                   // tool carries favorite markup (v4)
+Suite.recents.all() / .record(id) / .clear()     // suite.hub.recents — bounded, deduped,
+                                   // newest-first; record() refuses the hub and Settings (v4)
 Suite.key(name)                    // reads suite.key.<name>; returns {value, isDemo} with
                                    // DEMO_KEY fallback where the API offers one
 Suite.relay(url)                   // optional power-user hook: rewrites url through
@@ -149,6 +154,13 @@ Adding a tool = one manifest entry; the hub, service worker, and CSP all update 
 
 ### 4.4 `--check` gates
 
+0. **Exact v4 release identities**: the manifest contains exactly 100 distinct tool IDs, every ID
+   matches its file stem; 99, 101, duplicate-ID, and ID/file-mismatch fixtures all fail dedicated
+   negative tests.
+0a. **Source text integrity**: NUL and non-whitespace control bytes are rejected before rendering;
+    browsers replace them during HTML parsing, which would otherwise invalidate an apparently
+    correct generated CSP hash. This gate covers every tool source plus `core/suite.js` and
+    `core/suite.css`; the negative fixture injects the exact NUL regression into the shared core.
 1. **Manifest ↔ files**: every manifest entry has a `tools/` file and vice versa (hub exempt).
 2. **Markers**: every source tool has both `data-suite-inline` tags; hub has the tools marker.
 3. **Dist staleness**: rebuilt output hash equals committed `dist/` hash (ADR D9).
@@ -179,6 +191,13 @@ header comment redirects anyone who opens a dist file to the real source.
 | `suite.cache.<tool>.<key>` | `{t: epochMs, v: any}` | the cache envelope; TTL per manifest |
 | `suite.key.<name>` | string | user-supplied API keys (nasa, congress, eia, nps, finnhub, ebird, **bart** — new in v2, externalized from v1 `transit.html:163`) |
 | `suite.<tool>.*` | tool-specific | e.g. `suite.notes.*`, history lists |
+
+New in v4:
+
+| Key | Purpose |
+|---|---|
+| `suite.hub.favorites` | array of favorited tool ids; toggled by the chrome star (injected next to every tool's theme button by `Suite.theme.init()`) and by hub card stars; unknown/retired ids are ignored at render time |
+| `suite.hub.recents` | `[{id, t}]` newest-first, bounded at 10, deduplicated; written once per tool-page load (hub and Settings excluded); cleared from the hub |
 
 New in v2:
 

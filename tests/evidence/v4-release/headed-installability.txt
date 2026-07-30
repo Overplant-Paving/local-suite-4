@@ -1,0 +1,9 @@
+Chromium: 149.0.7827.0
+Executable: /home/intelligence-zero/.cache/ms-playwright/chromium-1228/chrome-linux/chrome
+Manifest: http://127.0.0.1:8032/manifest.webmanifest
+Manifest parse errors: []
+Installability errors: []
+State: {"title":"Local Suite · Command Center","manifest":"http://127.0.0.1:8032/manifest.webmanifest","serviceWorkerRegistered":true,"serviceWorkerControlsPage":true,"cacheNames":["suite-v4-7b1e93e11021"],"installPromptEvents":1}
+Console/page errors: []
+Screenshot: /home/intelligence-zero/Development/local-suite-4/tests/evidence/v4-release/headed-installability.png
+HEADED INSTALLABILITY VERIFICATION OK

@@ -5,8 +5,12 @@ native park-option button semantics: true
 selected park: Yellowstone National Park; active storage: yell
 overview cards: 7; hero image visible: true
 alerts: resources=1, expected content=true
+boundary GeoJSON drawn as outline: paths=3, note has area=true
+resource-specific visit output + pagination: campground sites/accessibility, parking wait, event recurrence; pageNumber 2, no start
+WZDx core_details decoded with visible LineString geometry: true
 visit: resources=8, expected content=true
 explore: resources=4, expected content=true
+standard pagination: articles next used start=24, limit=24; previous restored page 1
 learn: resources=5, expected content=true
 media: resources=4, expected content=true
 reference: resources=6, expected content=true
@@ -17,10 +21,12 @@ gallery asset picker options: 2
 remote URL protocol filtering: true
 fresh cache reload made no NPS requests: true
 invalid-key state shown: true
-offline stale visit resources: 8
+offline stale visit resources: 7
+boundary (uncached by design) shows its explicit offline state: true
 mobile viewport horizontal overflow: false
 theme toggle: light -> dark, aria-pressed=true
 CONSOLE ISSUES:
+  console.error: Failed to load resource: net::ERR_FAILED
   console.error: Failed to load resource: net::ERR_FAILED
   console.error: Failed to load resource: net::ERR_FAILED
   console.error: Failed to load resource: net::ERR_FAILED

@@ -1,0 +1,13 @@
+{
+  "note": "new-in-v2 tool — no v1 original; parity N/A",
+  "v2": {
+    "suite.hub.recents": "[{\"id\":\"tropical\",\"t\":1785435661348}]",
+    "suite.location": "{\"lat\":25.7743,\"lon\":-80.1937,\"label\":\"Miami, FL\"}",
+    "suite.cache.tropical.two.atlantic": "{\"t\":1785435661237,\"v\":{\"@id\":\"https://api.weather.gov/products/f81c2a\",\"id\":\"f81c2a\",\"wmoCollectiveId\":\"ABNT20\",\"issuingOffice\":\"KNHC\",\"issuanceTime\"…(1355 chars)",
+    "suite.location.autoDenied": "\"denied\"",
+    "suite.cache.tropical.two.list": "{\"t\":1785435661237,\"v\":{\"@graph\":[{\"@id\":\"https://api.weather.gov/products/f81c2a\",\"id\":\"f81c2a\",\"wmoCollectiveId\":\"ABNT20\",\"issuingOffice\":\"KNHC\",\"is…(952 chars)",
+    "suite.cache.tropical.two.pacific": "{\"t\":1785435661237,\"v\":{\"@id\":\"https://api.weather.gov/products/c77e14\",\"id\":\"c77e14\",\"wmoCollectiveId\":\"ABPZ20\",\"issuingOffice\":\"KNHC\",\"issuanceTime\"…(561 chars)",
+    "suite.cache.tropical.alerts.25.774x-80.194": "{\"t\":1785435661237,\"v\":{\"type\":\"FeatureCollection\",\"features\":[{\"id\":\"urn:oid:2.49.0.1.840.0.hurricane-watch\",\"type\":\"Feature\",\"properties\":{\"id\":\"urn…(1031 chars)",
+    "suite.theme": "dark"
+  }
+}

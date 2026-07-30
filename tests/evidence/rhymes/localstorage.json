@@ -1,0 +1,12 @@
+{
+  "note": "new-in-v2 tool — no v1 original; parity N/A",
+  "v2": {
+    "suite.hub.recents": "[{\"id\":\"rhymes\",\"t\":1785435649251}]",
+    "suite.cache.rhymes.rel_rhy.zzzz": "{\"t\":1785435649424,\"v\":[]}",
+    "suite.cache.rhymes.rel_rhy.day": "{\"t\":1785435649537,\"v\":[{\"word\":\"convey\",\"score\":66045,\"numSyllables\":2,\"tags\":[\"v\"]},{\"word\":\"display\",\"score\":56049,\"numSyllables\":2,\"tags\":[\"n\",\"v\"…(678 chars)",
+    "suite.cache.rhymes.rel_rhy.gray": "{\"t\":1785435649024,\"v\":[{\"word\":\"day\",\"score\":51043,\"numSyllables\":1,\"tags\":[\"n\"]},{\"word\":\"play\",\"score\":45038,\"numSyllables\":1,\"tags\":[\"n\",\"v\"]},{\"w…(274 chars)",
+    "suite.cache.rhymes.ml.zzzz": "{\"t\":1785435649209,\"v\":[]}",
+    "suite.theme": "dark",
+    "suite.cache.rhymes.ml.day": "{\"t\":1785435649124,\"v\":[{\"word\":\"daytime\",\"score\":3006,\"numSyllables\":2,\"tags\":[\"syn\",\"n\",\"results_type:primary_rel\"]},{\"word\":\"sidereal day\",\"score\":…(323 chars)"
+  }
+}

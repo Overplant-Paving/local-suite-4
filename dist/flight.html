@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-//3u9UqhTrL2EMZ/TV460clarzwH88eQnv7QrSzebl4=' 'sha256-tcqJlD59p42DNv/gJFes2sEseytCV6PBg1CFK/uyNnU='; style-src 'unsafe-inline'; img-src 'self' data: https://api.aviationstack.com https://api.airplanes.live; media-src https://api.aviationstack.com https://api.airplanes.live; connect-src https://api.aviationstack.com https://api.airplanes.live; worker-src 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-Ds0QuX1uI88hf1B1wDFNcSC+BBXhkuxAEemF8VACbAU=' 'sha256-RP2XiwkS6dy5yPLsuB8WqC+b/NTp+YtTMx3cAEN3/sY='; style-src 'unsafe-inline'; img-src 'self' data: https://api.aviationstack.com https://api.airplanes.live https://api.weather.gov https://api.open-meteo.com; media-src https://api.aviationstack.com https://api.airplanes.live https://api.weather.gov https://api.open-meteo.com; connect-src https://api.aviationstack.com https://api.airplanes.live https://api.weather.gov https://api.open-meteo.com; worker-src 'self'; manifest-src 'self'">
 <link rel="manifest" href="manifest.webmanifest">
 <title>Flight Tracker · Local Suite</title>
 <style>
@@ -66,6 +66,12 @@ a { color: var(--accent); }
   color: var(--ink); border-radius: 999px; padding: .35rem .8rem;
   cursor: pointer; font-size: .85rem;
 }
+.fav-btn {
+  float: right; border: 1px solid var(--line); background: var(--card);
+  color: var(--muted); border-radius: 999px; padding: .35rem .6rem;
+  cursor: pointer; font-size: .85rem; margin-right: .45rem; line-height: 1.2;
+}
+.fav-btn.on { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
 .card {
   background: var(--card); border: 1px solid var(--line); border-radius: 14px;
   padding: 1rem 1.05rem .9rem; box-shadow: var(--shadow);
@@ -150,6 +156,21 @@ textarea:focus-visible, summary:focus-visible, [tabindex]:focus-visible {
   .mapcard { overflow:hidden; padding:.65rem; }
   svg { display:block; width:100%; height:auto; border-radius:10px; background:var(--sky); }
   .mapmeta { display:flex; justify-content:space-between; flex-wrap:wrap; gap:.5rem; color:var(--muted); font-size:.78rem; padding:.55rem .25rem 0; }
+  .mapviews { display:flex; align-items:center; gap:.45rem; flex-wrap:wrap; padding:0 .25rem .55rem; }
+  .viewbtn { background:var(--card); color:var(--muted); border:1px solid var(--line); border-radius:999px; padding:.28rem .7rem; font-size:.78rem; }
+  .viewbtn[aria-pressed="true"] { background:var(--accent); border-color:var(--accent); color:var(--bg); }
+  .wxstamp { margin-left:auto; color:var(--muted); font-size:.74rem; }
+  .legend { display:flex; flex-wrap:wrap; gap:.7rem; color:var(--muted); font-size:.72rem; padding:.5rem .25rem 0; }
+  .legend .lg { display:inline-block; width:.8rem; height:.8rem; border-radius:3px; vertical-align:-2px; margin-right:.28rem; }
+  .lg1{background:#8fd0f0}.lg2{background:#4b9fd8}.lg3{background:#2f6bb0}.lg4{background:#7a4bbf}
+  .lgs{background:transparent;border:1.5px dashed var(--err);}
+  .legend[hidden] { display:none; }
+  .wxpanels { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; }
+  .wxpanel h3 { font-size:.95rem; }
+  .wxbody { color:var(--muted); font-size:.86rem; display:grid; gap:.28rem; }
+  .wxbody b { color:var(--ink); font-weight:600; }
+  .wxbody .stampline { font-size:.75rem; }
+  @media(max-width:640px){ .wxpanels{grid-template-columns:1fr} }
   .tracker-controls { display:flex; flex-direction:row; align-items:end; gap:.65rem; flex-wrap:wrap; }
   .tracker-controls label { width:11rem; }
   .fresh { margin-left:auto; color:var(--muted); font-size:.8rem; }
@@ -211,9 +232,24 @@ textarea:focus-visible, summary:focus-visible, [tabindex]:focus-visible {
     <section class="metrics" id="metrics" aria-label="Flight telemetry"></section>
 
     <section class="mapcard" id="mapCard" aria-labelledby="mapTitle">
-      <h2 class="sr-only" id="mapTitle">Aircraft position</h2>
-      <svg id="map" viewBox="0 0 360 180" role="img" aria-label="World map with aircraft position"></svg>
+      <h2 class="sr-only" id="mapTitle">Aircraft position and weather</h2>
+      <div class="mapviews" role="group" aria-label="Map view">
+        <button class="viewbtn" id="viewWx" aria-pressed="true">Weather map</button>
+        <button class="viewbtn" id="viewWorld" aria-pressed="false">World view</button>
+        <span class="wxstamp" id="wxStamp" aria-live="polite"></span>
+      </div>
+      <svg id="map" viewBox="0 0 360 180" role="img" aria-label="Map with aircraft position and weather"></svg>
+      <div class="legend" id="wxLegend" hidden>
+        <span><i class="lg lg1"></i>light</span><span><i class="lg lg2"></i>moderate</span>
+        <span><i class="lg lg3"></i>heavy</span><span><i class="lg lg4"></i>intense precipitation</span>
+        <span><i class="lg lgs"></i>SIGMET hazard</span>
+      </div>
       <div class="mapmeta"><span id="coords"></span><span id="positionAge"></span></div>
+    </section>
+
+    <section class="wxpanels" id="wxPanels" hidden aria-label="Airport weather">
+      <div class="card wxpanel"><h3 id="depWxTitle">Departure weather</h3><div id="depWx" class="wxbody"></div></div>
+      <div class="card wxpanel"><h3 id="arrWxTitle">Arrival weather</h3><div id="arrWx" class="wxbody"></div></div>
     </section>
 
     <section class="card flight-card tracker-controls" aria-label="Tracker controls">
@@ -231,11 +267,11 @@ textarea:focus-visible, summary:focus-visible, [tabindex]:focus-visible {
   </main>
 
   <footer>
-    Status and ETA: Aviationstack. Position fallback: Airplanes.live ADS-B. Availability varies by airline, region, coverage, flight phase, and account tier. “Live” means the latest provider report—not continuous radar. Never use this page for operational or safety decisions.
+    Status and ETA: Aviationstack. Position fallback: Airplanes.live ADS-B. Weather map: Open-Meteo precipitation grid with NWS Aviation Weather SIGMETs; airport conditions from NWS observations (US-served stations). Availability varies by airline, region, coverage, flight phase, and account tier. “Live” means the latest provider report—not continuous radar. Never use this page for operational or safety decisions.
   </footer>
 </div>
 <script>
-/* Local Suite v3 — core/suite.js
+/* Local Suite v4 — core/suite.js
    One IIFE, one global. Small, boring, dependency-free. Spec: ARCHITECTURE.md §3. */
 (() => {
 "use strict";
@@ -321,6 +357,7 @@ const theme = {
       btn.addEventListener("click", theme.toggle);
     });
     paintThemeButtons();
+    initToolChrome();
   },
   toggle() {
     const next = activeTheme() === "dark" ? "light" : "dark";
@@ -741,6 +778,87 @@ function key(name) {
   return { value: null, isDemo: false };
 }
 
+/* ---- favorites & recently used: suite-wide quick access (v4) ----
+   suite.hub.favorites is an array of tool ids; suite.hub.recents is
+   [{id, t}] newest-first, bounded. The per-tool chrome star is injected next
+   to the theme button by theme.init() — every built page already calls it, so
+   no tool needed new markup. The hub renders its own card stars plus the
+   Favorites and Recently used sections; it is excluded here (and Settings is
+   excluded from recents) so "recently used" stays about actual tools. */
+const FAV_KEY = "suite.hub.favorites";
+const RECENTS_KEY = "suite.hub.recents";
+const RECENTS_MAX = 10;
+
+function toolId() {
+  try {
+    const file = decodeURIComponent((location.pathname.split("/").pop() || ""));
+    const m = file.match(/^([a-z][a-z0-9-]*)\.html$/);
+    if (m) return m[1];
+    /* a hosted scope root ("…/local-suite-4/") serves the hub */
+    return /\/$/.test(location.pathname) ? "index" : null;
+  } catch (e) { return null; }
+}
+
+const favorites = {
+  all() {
+    const v = store.get(FAV_KEY);
+    return Array.isArray(v) ? v.filter(x => typeof x === "string" && x) : [];
+  },
+  has(id) { return favorites.all().includes(id); },
+  /* returns the new state; a write that does not stick reports the old one */
+  toggle(id) {
+    if (typeof id !== "string" || !id) return false;
+    const cur = favorites.all();
+    const next = cur.includes(id) ? cur.filter(x => x !== id) : cur.concat(id);
+    return store.set(FAV_KEY, next) ? next.includes(id) : cur.includes(id);
+  }
+};
+
+const recents = {
+  all() {
+    const v = store.get(RECENTS_KEY);
+    if (!Array.isArray(v)) return [];
+    return v.filter(x => x && typeof x === "object" &&
+      typeof x.id === "string" && x.id && isFinite(x.t)).slice(0, RECENTS_MAX);
+  },
+  record(id) {
+    if (typeof id !== "string" || !id || id === "index" || id === "settings") return false;
+    const next = [{ id, t: Date.now() }]
+      .concat(recents.all().filter(x => x.id !== id)).slice(0, RECENTS_MAX);
+    return store.set(RECENTS_KEY, next);
+  },
+  clear() { return store.remove(RECENTS_KEY); }
+};
+
+function paintFavButtons() {
+  document.querySelectorAll(".fav-btn[data-tool]").forEach(btn => {
+    const on = favorites.has(btn.dataset.tool);
+    btn.setAttribute("aria-pressed", String(on));
+    btn.classList.toggle("on", on);
+    btn.textContent = on ? "★" : "☆";
+  });
+}
+
+/* Runs once from theme.init() on every page except the hub: notes the visit in
+   recents and adds the chrome star beside the theme button. */
+function initToolChrome() {
+  const id = toolId();
+  if (!id || id === "index") return;
+  recents.record(id);
+  const anchor = document.querySelector("#themeBtn, .theme-btn");
+  if (!anchor || document.querySelector(".fav-btn")) return;
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "fav-btn";
+  btn.dataset.tool = id;
+  btn.title = "Favorite this tool";
+  btn.setAttribute("aria-label", "Favorite this tool — favorites appear first on the suite hub");
+  btn.addEventListener("click", () => { favorites.toggle(id); paintFavButtons(); });
+  anchor.insertAdjacentElement("afterend", btn);
+  paintFavButtons();
+  window.addEventListener("storage", e => { if (e.key === FAV_KEY) paintFavButtons(); });
+}
+
 /* ---- optional power-user relay (API-AND-RELAY.md §6) ----
    Unset for everyone by default: tools use their link-out/embedded paths. */
 function relay(url) {
@@ -750,7 +868,8 @@ function relay(url) {
   return b + (b.includes("?") ? "&" : "?") + "url=" + encodeURIComponent(url);
 }
 
-window.Suite = { theme, fetchJSON, store, esc, liveRegion, location: loc, locations, key, relay };
+window.Suite = { theme, fetchJSON, store, esc, liveRegion, location: loc, locations,
+  favorites, recents, key, relay };
 
 /* ---- PWA registration (PWA.md §1) — inert from file://, forever ----
    The .catch keeps a failed registration from ever costing console noise on a
@@ -796,6 +915,166 @@ function drawMap(live) {
     const plane=svgEl("path",{d:"M0 -6 L2 -1 L7 1 L7 3 L2 2 L1 7 L-1 7 L-2 2 L-7 3 L-7 1 L-2 -1 Z",fill:cs.getPropertyValue("--plane").trim(),stroke:"white","stroke-width":".45"});
     g.append(plane); svg.append(g);
   }
+}
+/* ---- v4 flight weather: Open-Meteo precip grid + NWS SIGMETs/METARs ----
+   All keyless + CORS-open, so the map works from file:// with no new setup.
+   Each layer caches under suite.cache.flight.wx.* with its own TTL and shows
+   its own stale/unavailable state; Aviationstack cache identities unchanged. */
+const NWS="https://api.weather.gov";
+const OM="https://api.open-meteo.com/v1/forecast";
+const WX_TTL={grid:5*60*1000,sigmets:10*60*1000,metar:10*60*1000,station:7*24*60*60*1000,outlook:30*60*1000};
+const WMO_TEXT={0:"clear",1:"mostly clear",2:"partly cloudy",3:"overcast",45:"fog",48:"icing fog",51:"light drizzle",53:"drizzle",55:"heavy drizzle",61:"light rain",63:"rain",65:"heavy rain",66:"freezing rain",67:"freezing rain",71:"light snow",73:"snow",75:"heavy snow",77:"snow grains",80:"showers",81:"showers",82:"violent showers",85:"snow showers",86:"snow showers",95:"thunderstorm",96:"thunderstorm w/ hail",99:"thunderstorm w/ hail"};
+let wx={view:"wx",grid:null,gridCenter:null,sigmets:null,stale:false};
+const normLon=l=>{l=((l+180)%360+360)%360-180;return l===-180?180:l;};
+function cellColor(mm,code){
+  if(numeric(mm)&&+mm>0){ const p=+mm; return p<.5?"#8fd0f0":p<2?"#4b9fd8":p<8?"#2f6bb0":"#7a4bbf"; }
+  if([95,96,99].includes(+code)) return "#7a4bbf";
+  if([71,73,75,77,85,86].includes(+code)) return "#9db8e8";
+  return null;
+}
+function fixRing(ring){ /* NWS aviation SIGMETs emit [lat,lon]; GeoJSON says [lon,lat]. Decide per ring. */
+  const latLonOrder=ring.some(p=>Math.abs(p[1])>90)||!ring.some(p=>Math.abs(p[0])>90);
+  return ring.map(p=>latLonOrder?{lat:+p[0],lon:+p[1]}:{lat:+p[1],lon:+p[0]});
+}
+function drawRegion(live){
+  const svg=$("#map"); svg.textContent="";
+  const cs=getComputedStyle(document.documentElement);
+  const clat=Math.max(-82,Math.min(82,+live.latitude)), clon=normLon(+live.longitude);
+  const LSPAN=16,TSPAN=8;
+  const X=lon=>{let d=normLon(lon-clon); return 180+d*(360/LSPAN);};
+  const Y=lat=>90-(lat-clat)*(180/TSPAN);
+  if(wx.grid){ for(const c of wx.grid){ const col=cellColor(c.precip,c.code); if(!col) continue;
+    svg.append(svgEl("rect",{x:X(c.lon-1),y:Y(c.lat+1),width:360/LSPAN*2,height:180/TSPAN*2,fill:col,opacity:".5"})); } }
+  const gridCol=cs.getPropertyValue("--grid").trim();
+  for(let dl=-8;dl<=8;dl+=2) svg.append(svgEl("line",{x1:X(clon+dl),y1:0,x2:X(clon+dl),y2:180,stroke:gridCol,"stroke-width":".4",opacity:dl?".6":"1"}));
+  for(let dt=-4;dt<=4;dt+=2) svg.append(svgEl("line",{x1:0,y1:Y(clat+dt),x2:360,y2:Y(clat+dt),stroke:gridCol,"stroke-width":".4",opacity:dt?".6":"1"}));
+  for(let dl=-8;dl<8;dl+=4){ const t=svgEl("text",{x:X(clon+dl)+1.5,y:177,"font-size":"6",fill:cs.getPropertyValue("--muted").trim()}); t.textContent=Math.round(normLon(clon+dl))+"°"; svg.append(t); }
+  for(let dt=-4;dt<=4;dt+=4){ const t=svgEl("text",{x:2,y:Y(clat+dt)-1.5,"font-size":"6",fill:cs.getPropertyValue("--muted").trim()}); t.textContent=(clat+dt).toFixed(0)+"°"; svg.append(t); }
+  if(wx.sigmets){ for(const s of wx.sigmets){ for(const ring of s.rings){
+    const inView=ring.some(p=>Math.abs(normLon(p.lon-clon))<=LSPAN&&Math.abs(p.lat-clat)<=TSPAN);
+    if(!inView) continue;
+    const d="M"+ring.map((p,i)=>(i?"L":"")+X(p.lon).toFixed(1)+" "+Y(p.lat).toFixed(1)).join(" ")+"Z";
+    const path=svgEl("path",{d,fill:cs.getPropertyValue("--err").trim(),"fill-opacity":".08",stroke:cs.getPropertyValue("--err").trim(),"stroke-width":".8","stroke-dasharray":"3 2"});
+    const tt=document.createElementNS(SVGNS,"title"); tt.textContent="SIGMET"+(s.hazard?" · "+s.hazard:""); path.append(tt);
+    svg.append(path); } } }
+  const g=svgEl("g",{transform:`translate(${X(clon)} ${Y(clat)}) rotate(${numeric(live.direction)?+live.direction:0})`});
+  g.append(svgEl("circle",{r:"7",fill:"none",stroke:cs.getPropertyValue("--plane").trim(),"stroke-width":"1.3",opacity:".55"}));
+  g.append(svgEl("path",{d:"M0 -8 L2.7 -1.3 L9.3 1.3 L9.3 4 L2.7 2.7 L1.3 9.3 L-1.3 9.3 L-2.7 2.7 L-9.3 4 L-9.3 1.3 L-2.7 -1.3 Z",fill:cs.getPropertyValue("--plane").trim(),stroke:"white","stroke-width":".5"}));
+  svg.append(g);
+}
+function redrawMap(){
+  const live=current&&current.live, hasPos=live&&numeric(live.latitude)&&numeric(live.longitude);
+  const regional=wx.view==="wx"&&hasPos;
+  $("#viewWx").setAttribute("aria-pressed",String(wx.view==="wx"));
+  $("#viewWorld").setAttribute("aria-pressed",String(wx.view!=="wx"));
+  $("#wxLegend").hidden=!regional;
+  $("#map").setAttribute("aria-label",regional?"Regional weather map centered on the aircraft: precipitation cells, SIGMET hazard outlines, aircraft position":"World map with aircraft position");
+  if(regional) drawRegion(live); else drawMap(hasPos?live:null);
+}
+function wxLine(label,value){ return value?"<div><b>"+Suite.esc(label)+"</b> "+Suite.esc(value)+"</div>":""; }
+function cToF(v){ return numeric(v)?Math.round(+v*9/5+32)+"°F":null; }
+function windMph(measure){
+  if(!measure||!numeric(measure.value)) return null;
+  const v=+measure.value,u=String(measure.unitCode||"");
+  if(u.includes("m_s")) return v*2.23694;
+  if(u.includes("mi_h")) return v;
+  if(u.includes("kt")) return v*1.15078;
+  return v*0.621371; /* NWS also uses wmoUnit:km_h-1 */
+}
+function renderMetar(el,ob,stale,t){
+  const p=ob||{};
+  const clouds=(Array.isArray(p.cloudLayers)?p.cloudLayers:[]).slice(0,2).map(l=>{
+    const amt=l&&l.amount?String(l.amount):""; const base=l&&l.base&&numeric(l.base.value)?Math.round(+l.base.value*3.28084).toLocaleString()+" ft":"";
+    return (amt+" "+base).trim(); }).filter(Boolean).join(", ");
+  const speed=windMph(p.windSpeed),gust=windMph(p.windGust);
+  const wind=numeric(speed)?
+    Math.round(speed)+" mph"+(numeric(p.windDirection&&p.windDirection.value)?" from "+Math.round(+p.windDirection.value)+"°":"")+(numeric(gust)?", gusting "+Math.round(gust):""):null;
+  const vis=numeric(p.visibility&&p.visibility.value)?(+p.visibility.value/1609.344).toFixed(1)+" mi":null;
+  el.innerHTML=
+    wxLine("Conditions",p.textDescription||null)+
+    wxLine("Temperature",cToF(p.temperature&&p.temperature.value))+
+    wxLine("Wind",wind)+wxLine("Visibility",vis)+wxLine("Clouds",clouds||null)+
+    (p.rawMessage?'<div class="mono" style="font-size:.72rem;overflow-wrap:anywhere">'+Suite.esc(p.rawMessage)+"</div>":"")+
+    '<div class="stampline">'+(stale?"Offline — cached METAR from ":"Observed ")+
+    Suite.esc(p.timestamp?relative(p.timestamp):"time unknown")+" · NWS"+
+    (stale?" · fetched "+Suite.esc(new Date(t).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})):"")+"</div>";
+}
+async function metarPanel(el,titleEl,code,name){
+  titleEl.textContent=(name||"Airport")+" ("+code+")";
+  el.textContent="Loading current conditions…";
+  try{
+    const r=await Suite.fetchJSON(`${NWS}/stations/${encodeURIComponent(code)}/observations/latest`,
+      {cacheKey:"flight.wx.metar."+code.toLowerCase(),ttl:WX_TTL.metar,timeout:10000});
+    renderMetar(el,r.v&&r.v.properties,r.stale,r.t);
+  }catch(e){
+    el.innerHTML=`<div>Current conditions aren't available from NWS for ${Suite.esc(code)} — coverage is mostly US airports.</div>`;
+  }
+}
+async function outlookPanel(code,arrTimeIso){
+  const ms=timeMs(arrTimeIso); if(!Number.isFinite(ms)) return;
+  try{
+    const st=await Suite.fetchJSON(`${NWS}/stations/${encodeURIComponent(code)}`,
+      {cacheKey:"flight.wx.station."+code.toLowerCase(),ttl:WX_TTL.station,timeout:10000});
+    const c=st.v&&st.v.geometry&&st.v.geometry.coordinates; if(!c) return;
+    const r=await Suite.fetchJSON(`${OM}?latitude=${(+c[1]).toFixed(3)}&longitude=${(+c[0]).toFixed(3)}&hourly=temperature_2m,precipitation_probability,wind_speed_10m,wind_gusts_10m,weather_code&forecast_days=3&timezone=UTC`,
+      {cacheKey:"flight.wx.outlook."+code.toLowerCase(),ttl:WX_TTL.outlook,timeout:10000});
+    const h=r.v&&r.v.hourly; if(!h||!Array.isArray(h.time)) return;
+    const want=new Date(ms).toISOString().slice(0,13)+":00";
+    const i=h.time.indexOf(want); if(i<0) return;
+    const bits=[WMO_TEXT[h.weather_code[i]]||null,
+      numeric(h.temperature_2m[i])?Math.round(h.temperature_2m[i]*9/5+32)+"°F":null,
+      numeric(h.wind_speed_10m[i])?"wind "+Math.round(h.wind_speed_10m[i]*0.621371)+" mph"+(numeric(h.wind_gusts_10m[i])?" gusting "+Math.round(h.wind_gusts_10m[i]*0.621371):""):null,
+      numeric(h.precipitation_probability[i])?h.precipitation_probability[i]+"% chance of precipitation":null].filter(Boolean);
+    if(!bits.length) return;
+    const div=document.createElement("div");
+    div.className="stampline";
+    div.textContent="Outlook near arrival ("+new Date(ms).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})+" local): "+bits.join(" · ")+" — Open-Meteo"+(r.stale?" (cached)":"");
+    $("#arrWx").append(div);
+  }catch(e){/* outlook is a bonus line; its absence is not an error state */}
+}
+async function loadWeather(f,seq){
+  const live=f.live, hasPos=live&&numeric(live.latitude)&&numeric(live.longitude);
+  const dep=f.departure||{}, arr=f.arrival||{};
+  const depCode=String(dep.icao||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
+  const arrCode=String(arr.icao||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
+  $("#wxPanels").hidden=!(depCode||arrCode);
+  const panels=[];
+  if(depCode) panels.push(metarPanel($("#depWx"),$("#depWxTitle"),depCode,dep.airport?dep.airport:"Departure"));
+  else { $("#depWxTitle").textContent="Departure weather"; $("#depWx").textContent="The provider didn't report an ICAO airport code, so conditions can't be looked up."; }
+  if(arrCode) panels.push(metarPanel($("#arrWx"),$("#arrWxTitle"),arrCode,arr.airport?arr.airport:"Arrival"));
+  else { $("#arrWxTitle").textContent="Arrival weather"; $("#arrWx").textContent="The provider didn't report an ICAO airport code, so conditions can't be looked up."; }
+  if(hasPos){
+    const clat=Math.max(-82,Math.min(82,+live.latitude)), clon=normLon(+live.longitude);
+    const lats=[],lons=[];
+    for(let dt=-3;dt<=3;dt+=2) for(let dl=-7;dl<=7;dl+=2){ lats.push(Math.max(-89,Math.min(89,clat+dt)).toFixed(2)); lons.push(normLon(clon+dl).toFixed(2)); }
+    const gridKey="flight.wx.grid."+clat.toFixed(0)+"x"+clon.toFixed(0);
+    const gridReq=Suite.fetchJSON(`${OM}?latitude=${lats.join(",")}&longitude=${lons.join(",")}&current=precipitation,weather_code`,
+      {cacheKey:gridKey,ttl:WX_TTL.grid,timeout:12000}).then(r=>{
+        const rows=Array.isArray(r.v)?r.v:[r.v];
+        return {response:r,grid:rows.map((p,i)=>({lat:+lats[i],lon:+lons[i],precip:p&&p.current?p.current.precipitation:null,code:p&&p.current?p.current.weather_code:null}))};
+      },()=>null);
+    const sigReq=Suite.fetchJSON(`${NWS}/aviation/sigmets`,
+      {cacheKey:"flight.wx.sigmets",ttl:WX_TTL.sigmets,timeout:12000}).then(r=>{
+        const feats=(r.v&&Array.isArray(r.v.features))?r.v.features:[];
+        return {response:r,sigmets:feats.filter(x=>x&&x.geometry&&x.geometry.type==="Polygon"&&Array.isArray(x.geometry.coordinates))
+          .map(x=>({hazard:x.properties&&x.properties.hazard||null,rings:x.geometry.coordinates.map(fixRing)}))};
+      },()=>null);
+    const [g,s]=await Promise.all([gridReq,sigReq]);
+    if(seq!==requestSeq) return;
+    wx.grid=g?g.grid:null;
+    wx.sigmets=s?s.sigmets:null;
+    wx.stale=Boolean((g&&g.response.stale)||(s&&s.response.stale));
+    const t=g&&g.response.t?g.response.t:(s&&s.response.t?s.response.t:null);
+    $("#wxStamp").textContent=(wx.grid||wx.sigmets)
+      ?("Weather layer "+(wx.stale?"cached ":"")+(t?new Date(t).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"}):"")+" · Open-Meteo + NWS SIGMETs")
+      :"Weather layer unavailable right now — showing position only";
+    redrawMap();
+  } else {
+    wx.grid=null; wx.sigmets=null;
+    $("#wxStamp").textContent="";
+  }
+  if(arrCode) outlookPanel(arrCode,(arr.actual||arr.estimated||arr.scheduled));
+  await Promise.all(panels);
 }
 function localDate() { const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
 function normalizeFlight(v){ return String(v||"").toUpperCase().replace(/[\s-]+/g,""); }
@@ -866,7 +1145,7 @@ function render(f, envelope){
   else if(arrPrimary) eta="See airport-local time";
   metrics.append(metric(etaLabel,eta),metric("Altitude",live?metersFeet(live.altitude):"Not reported"),metric("Ground speed",live?kmhMph(live.speed_horizontal):"Not reported"),metric("Aircraft",(f.aircraft&&(f.aircraft.registration||f.aircraft.iata||f.aircraft.icao))||"Not reported"));
   const hasPos=live&&numeric(live.latitude)&&numeric(live.longitude);
-  $("#mapCard").hidden=!hasPos; drawMap(hasPos?live:null);
+  $("#mapCard").hidden=!hasPos; redrawMap();
   $("#coords").textContent=hasPos?`${(+live.latitude).toFixed(3)}°, ${(+live.longitude).toFixed(3)}° · heading ${numeric(live.direction)?Math.round(+live.direction)+"°":"unknown"}`:"";
   $("#positionAge").textContent=hasPos?(live._source?live._source+" · ":"")+"Position updated "+relative(live.updated):"";
   const providerTime=envelope&&envelope.t?new Date(envelope.t):new Date();
@@ -896,6 +1175,7 @@ async function load(force=false, automatic=false){
     if(!f){ $("#result").hidden=true; setStatus("No matching "+ident+" flight was found for "+date+". Check the airline code, number, and service date.","err"); return; }
     if(!f.live){ const fallback=await positionFallback(f); if(seq!==requestSeq) return; if(fallback) f={...f,live:fallback}; }
     currentIdent=ident; currentDate=date; render(f,r);
+    loadWeather(f,seq).catch(()=>{});
     const q=new URLSearchParams({flight:ident,date}); history.replaceState(null,"",location.pathname+"?"+q);
   }catch(e){
     if(seq!==requestSeq) return;
@@ -919,7 +1199,9 @@ $("#dateIn").addEventListener("change",()=>clearTimeout(timer));
 $("#flightIn").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();load(false);}});
 $("#dateIn").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();load(false);}});
 document.addEventListener("visibilitychange",()=>{ const ms=+$("#refreshEvery").value; const same=current&&normalizeFlight($("#flightIn").value)===currentIdent&&$("#dateIn").value===currentDate; if(!document.hidden&&same&&ms&&Date.now()-lastLoadedAt>=ms) load(true,true); });
-$("#themeBtn").addEventListener("click",()=>{ if(current) drawMap(current.live); });
+$("#themeBtn").addEventListener("click",()=>{ if(current) redrawMap(); });
+$("#viewWx").addEventListener("click",()=>{ wx.view="wx"; redrawMap(); });
+$("#viewWorld").addEventListener("click",()=>{ wx.view="world"; redrawMap(); });
 $("#dateIn").value=localDate();
 const savedRefresh=String(Suite.store.get("suite.flight.refresh","0"));
 if([...$("#refreshEvery").options].some(o=>o.value===savedRefresh)) $("#refreshEvery").value=savedRefresh;

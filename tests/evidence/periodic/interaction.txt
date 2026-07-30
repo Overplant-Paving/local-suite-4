@@ -1,0 +1,22 @@
+element buttons rendered: 118 (all native <button>)
+spot-check H (1): cell "1 H" → detail has Hydrogen · 1.008 · Reactive nonmetal
+spot-check Fe (26): cell "26 Fe" → detail has Iron · 55.845 · Transition metal
+spot-check Au (79): cell "79 Au" → detail has Gold · 196.97 · Transition metal
+spot-check U (92): cell "92 U" → detail has Uranium · 238.03 · Actinide
+spot-check Si (14): cell "14 Si" → detail has Silicon · 28.085 · Metalloid
+spot-check Ne (10): cell "10 Ne" → detail has Neon · 20.180 · Noble gas
+spot-check Cs (55): cell "55 Cs" → detail has Caesium · 132.91 · Alkali metal
+spot-check Og (118): cell "118 Og" → detail has Oganesson · [294] · Noble gas
+phase facts line: Fe solid, Hg liquid, H gas, Og honestly unknown — all derived correctly
+search "iron": 1 match (Fe, z=26), 117 dimmed in place — status: "1 of 118 elements match"
+numeric search "55": 1 match (Cs) — status: "1 of 118 elements match"
+search cleared: all 118 cells undimmed
+category chip "Noble gas": aria-pressed=true, 7 shown (He, Ne, Ar, Kr, Xe, Rn, Og)
+chip + search combine: noble gas ∩ "neon" → 1 match — status: "1 of 118 elements match"
+chip toggled off: aria-pressed=false, all 118 restored; all 10 chips expose aria-pressed
+a11y: #detail aria-live=polite; search labelled; cell aria-label "Gold, element 79"
+keyboard: focused Ag (47), pressed Enter → detail shows Silver · 107.87
+mobile 390px: document 390/390 (no body overflow); .ptwrap 350→960 scrolls internally — mobile.png
+final state: Gold (79) selected for the after-interaction screenshot
+theme toggle: light -> dark, aria-pressed=true
+console: clean (no errors)

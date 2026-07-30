@@ -1,0 +1,31 @@
+first-run starter recipe: "Everyday Pancakes" (serves 4 · 7 ingredients)
+a11y: labels present for fTitle, fServings, fIngredients, fSteps, fSource
+status after save: Saved "Scaling Test Pancakes".
+viewer at 4 servings: ["2 cups flour","1 1/2 tsp baking powder","3/4 cup sugar","1 1/2 cups milk — whole","salt to taste","3 eggs"]
+meta at 6 servings: Serves 6 · quantities scaled ×1.5 from 4
+scaled 4->6: "2 cups flour" -> "3 cups flour"
+scaled 4->6: "1 1/2 tsp baking powder" -> "2 1/4 tsp baking powder"
+scaled 4->6: "3/4 cup sugar" -> "1 1/8 cup sugar"
+scaled 4->6: "1 1/2 cups milk — whole" -> "2 1/4 cups milk — whole"
+scaled 4->6: "salt to taste" -> "salt to taste"
+scaled 4->6: "3 eggs" -> "4 1/2 eggs"
+unscalable line untouched: "salt to taste" (1 1/2 -> 2 1/4 verified above)
+step 1 checked while cooking; survives servings changes; persistence checked after reload
+edit round-trip: all fields repopulate with the original text (1 1/2, 3/4, 1.5 kept verbatim)
+edited title saved: viewer shows Scaling Test Pancakes v2
+suite.recipes.v1 after reload: {"n":2,"titles":["Everyday Pancakes","Scaling Test Pancakes v2"],"keys":["id","ingredients","servings","source","steps","title","updated"]}
+after reload: content intact at base servings, step checkboxes reset (not persisted)
+export: recipes-2026-07-30.json — format=suite.recipes.v1, recipes=2
+export recipe shape verified: ["id","ingredients","servings","source","steps","title","updated"]
+import status: Imported 2 recipes (1 renamed to avoid a title collision).
+import merge: collision renamed to 'Scaling Test Pancakes v2 (2)', 'Imported Soup' added
+delete confirm dialog: Delete "Imported Soup"? This cannot be undone.
+delete: confirmed dialog, Imported Soup removed, status: Deleted "Imported Soup".
+print media computed display: {"topbar":"none","header":"none","footer":"none","actions":"none","stepper":"none","status":"none","card":"flex"}
+print screenshot (card only, no chrome): print-card.png
+a11y: stepper aria-labels, labeled import input, aria-live on #status and #vMeta
+mobile viewer 390px: scrollWidth=390 clientWidth=390
+mobile list 390px: scrollWidth=390 clientWidth=390
+final state: viewer open at 6 servings for after-interaction screenshot
+theme toggle: light -> dark, aria-pressed=true
+console: clean (no errors)

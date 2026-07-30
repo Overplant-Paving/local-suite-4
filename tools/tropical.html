@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tropical Cyclone Outlook · Local Suite</title>
+<link rel="stylesheet" href="../core/suite.css" data-suite-inline>
+<style>
+  /* Formation-chance / alert-severity text colors: the alerts.html Phase-4 AA scale.
+     Light values pass ≥4.5:1 on --card; dark values double as text and stay light. */
+  :root {
+    --extreme: #b5179e; --severe: #d1341f; --moderate: #a35f08;
+    --minor: #85690a; --unknown: #626a78; --clear: #3a7d44; --sev-ink: #fff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --extreme: #e05bc8; --severe: #ec6a55; --moderate: #e2a24f;
+      --minor: #d9bd52; --unknown: #8b93a1; --clear: #7dc487; --sev-ink: #15171b;
+    }
+  }
+  :root[data-theme="light"] {
+    --extreme: #b5179e; --severe: #d1341f; --moderate: #a35f08;
+    --minor: #85690a; --unknown: #626a78; --clear: #3a7d44; --sev-ink: #fff;
+  }
+  :root[data-theme="dark"] {
+    --extreme: #e05bc8; --severe: #ec6a55; --moderate: #e2a24f;
+    --minor: #d9bd52; --unknown: #8b93a1; --clear: #7dc487; --sev-ink: #15171b;
+  }
+  body { padding: 1.4rem 1.25rem 4rem; }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  .topbar { display: flex; align-items: center; gap: 1rem; }
+  .topbar .theme-btn, .topbar .fav-btn { float: none; }
+  .topbar .theme-btn { margin-left: auto; }
+  header { margin: 1rem 0 1.2rem; }
+  h1 { font-size: 1.8rem; letter-spacing: -.02em; }
+  .tag { color: var(--muted); margin-top: .35rem; max-width: 48rem; }
+  h2 { font-size: 1.05rem; letter-spacing: -.01em; margin: 1.6rem 0 .7rem; }
+  .panelrow { display: flex; align-items: baseline; gap: .6rem .9rem; flex-wrap: wrap; }
+  .panelrow .stamp { font-size: .8rem; color: var(--muted); margin-left: auto; }
+  .basins { display: grid; grid-template-columns: 1fr; gap: .9rem; }
+  .basin { padding-bottom: 1rem; }
+  .basin .head { display: flex; align-items: baseline; gap: .5rem .8rem; flex-wrap: wrap; }
+  .basin h3 { font-size: 1rem; letter-spacing: -.01em; }
+  .basin .issued { font-size: .8rem; color: var(--muted); }
+  .basin .issued strong { color: var(--ink); font-weight: 600; }
+  .stamp.off { color: var(--moderate); font-weight: 600; }
+  .chip.calm { background: color-mix(in srgb, var(--clear) 14%, var(--card));
+    color: var(--clear); font-weight: 600; }
+  .prodtext {
+    font-family: ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
+    font-size: .82rem; line-height: 1.6; font-weight: 300;
+    max-height: 24rem; overflow-y: auto; overflow-wrap: anywhere;
+    border-top: 1px dashed var(--line); padding-top: .6rem;
+  }
+  .prodtext p { white-space: pre-wrap; margin: 0 0 .85em; }
+  .prodtext p:last-child { margin-bottom: 0; }
+  .pct { font-weight: 700; }
+  .pct-low  { color: var(--minor); }
+  .pct-med  { color: var(--moderate); }
+  .pct-high { color: var(--severe); }
+  .locline { color: var(--muted); font-size: .9rem; margin: -.2rem 0 .7rem; }
+  .locline strong { color: var(--ink); font-weight: 600; }
+  .banner {
+    border-radius: 14px; padding: .9rem 1.1rem; margin-bottom: .8rem;
+    box-shadow: var(--shadow); display: flex; align-items: center; gap: .9rem;
+    border: 1px solid var(--line); background: var(--card);
+  }
+  .banner.clearly { border-color: color-mix(in srgb, var(--clear) 40%, transparent);
+    background: color-mix(in srgb, var(--clear) 12%, var(--card)); }
+  .banner .count {
+    font-size: 1.5rem; font-weight: 800; line-height: 1; padding: .18rem .6rem;
+    border-radius: 12px; color: var(--sev-ink); flex: none;
+  }
+  .banner .big { font-size: 1.05rem; font-weight: 700; letter-spacing: -.01em; }
+  .banner .sub { color: var(--muted); font-size: .86rem; margin-top: .15rem; }
+  .cards { display: flex; flex-direction: column; gap: .8rem; }
+  .alert {
+    background: var(--card); border: 1px solid var(--line);
+    border-left: 6px solid var(--unknown); border-radius: 14px;
+    box-shadow: var(--shadow); overflow: hidden;
+  }
+  .alert summary { list-style: none; cursor: pointer; padding: .85rem 1.05rem;
+    display: flex; align-items: flex-start; gap: .7rem; }
+  .alert summary::-webkit-details-marker { display: none; }
+  .sev-badge {
+    font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+    color: var(--sev-ink); padding: .2rem .5rem; border-radius: 6px; flex: none; margin-top: .15rem;
+  }
+  .a-main { flex: 1; min-width: 0; }
+  .a-event { font-size: 1.02rem; font-weight: 700; letter-spacing: -.01em; }
+  .a-meta { color: var(--muted); font-size: .82rem; margin-top: .2rem;
+    display: flex; flex-wrap: wrap; gap: .3rem .9rem; }
+  .a-headline { color: var(--ink); font-size: .88rem; margin-top: .35rem; opacity: .92; }
+  .chev { color: var(--muted); font-size: .8rem; margin-top: .3rem; flex: none; transition: transform .15s; }
+  .alert[open] .chev { transform: rotate(90deg); }
+  .a-body { padding: 0 1.05rem 1rem; border-top: 1px dashed var(--line); }
+  .a-body h4 { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em;
+    color: var(--muted); margin: .9rem 0 .3rem; }
+  .a-body p { white-space: pre-wrap; font-size: .9rem; line-height: 1.55; }
+  .a-body .instruction { background: var(--accent-soft); border-radius: 10px;
+    padding: .7rem .85rem; color: var(--ink); }
+  .card-msg {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    box-shadow: var(--shadow); padding: 1.4rem 1.3rem; text-align: center; color: var(--muted);
+  }
+  .card-msg .big { font-size: 1.1rem; color: var(--ink); margin-bottom: .35rem; font-weight: 600; }
+  .card-msg.err { border-left: 6px solid var(--severe); }
+  .btn {
+    border: none; border-radius: 10px; padding: .55rem 1rem; cursor: pointer;
+    font-size: .92rem; font-weight: 600; background: var(--accent); color: var(--bg);
+    margin-top: .9rem;
+  }
+  footer { font-size: .82rem; }
+  @media (max-width: 480px) { body { padding: 1.1rem .8rem 3.5rem; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="index.html">← suite</a>
+    <button class="theme-btn" id="themeBtn" title="Toggle light/dark">◐ theme</button>
+  </div>
+  <header>
+    <h1>Tropical Cyclone Outlook</h1>
+    <p class="tag">The National Hurricane Center's latest Atlantic and Pacific outlooks, read straight
+      from the wire, plus any active tropical alerts for your saved location.</p>
+  </header>
+
+  <div class="panelrow"><h2>NHC outlooks</h2><span class="stamp" id="outStamp"></span></div>
+  <div class="basins" id="outlooks">
+    <div id="outAtlantic"></div>
+    <div id="outPacific"></div>
+  </div>
+
+  <div class="panelrow"><h2>Tropical alerts for your area</h2><span class="stamp" id="alStamp"></span></div>
+  <p class="locline" id="locLine"></p>
+  <div id="alertsBox"></div>
+
+  <footer>
+    Data: National Weather Service / National Hurricane Center · api.weather.gov.
+    Outlooks and alerts are cached for up to 60 minutes. Never use this page for
+    life-safety decisions — follow official warnings from NHC and your local authorities.
+  </footer>
+</div>
+
+<script src="../core/suite.js" data-suite-inline></script>
+<script>
+"use strict";
+Suite.theme.init();
+
+const $ = s => document.querySelector(s);
+const esc = Suite.esc;
+const TTL = 60 * 60 * 1000; /* manifest cacheTtlMin: 60 */
+const API = "https://api.weather.gov";
+
+const outEl = Suite.liveRegion($("#outlooks"));
+const outStamp = Suite.liveRegion($("#outStamp"));
+const alBox = Suite.liveRegion($("#alertsBox"));
+const alStamp = Suite.liveRegion($("#alStamp"));
+const locLine = $("#locLine");
+
+/* ---------- time helpers ---------- */
+function relTime(ms) {
+  const s = Math.round((Date.now() - ms) / 1000);
+  if (s < 60) return "just now";
+  if (s < 3600) return Math.floor(s / 60) + " min ago";
+  if (s < 86400) return Math.floor(s / 3600) + " hr ago";
+  const d = Math.floor(s / 86400);
+  return d + (d === 1 ? " day ago" : " days ago");
+}
+function fmtAbs(ms) {
+  return new Date(ms).toLocaleString([], {
+    weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit"
+  });
+}
+function errText(e) {
+  const m = String((e && e.message) || e || "request failed");
+  if (m.includes("HTTP 429")) return "the weather service is rate-limiting requests (HTTP 429) — wait a minute and try again";
+  return m;
+}
+
+/* ---------- panel 1: NHC Tropical Weather Outlooks ----------
+   /products/types/TWO lists every basin's outlook (Atlantic + Eastern Pacific from
+   KNHC, Central Pacific from PHFO, plus Spanish-language copies). Basins are told
+   apart the honest way: fetch the newest product per WMO id and read the outlook's
+   own header line — "For the North Atlantic..." vs "...North Pacific...". Spanish
+   copies match neither phrase and are skipped. */
+const BASINS = {
+  atlantic: { title: "Atlantic", sub: "North Atlantic · Caribbean Sea · Gulf" },
+  pacific:  { title: "Eastern & Central Pacific", sub: "east of 180° longitude" }
+};
+function classifyBasin(text) {
+  const lines = String(text || "").split("\n");
+  let header = "";
+  for (const ln of lines) { if (/^\s*for the\b/i.test(ln)) { header = ln; break; } }
+  const probe = header || String(text || "");
+  if (/north atlantic/i.test(probe)) return "atlantic";
+  if (/north pacific/i.test(probe)) return "pacific";
+  return null;
+}
+
+function envKey(basin) { return "suite.cache.tropical.two." + basin; }
+function readEnv(key) {
+  const e = Suite.store.get(key);
+  return (e && typeof e === "object" && "t" in e && "v" in e) ? e : null;
+}
+
+/* Drop WMO routing noise ("000", "ABNT20 KNHC 301118", "TWOAT", "$$"); keep the
+   human text. Hard-wrapped prose lines (>= 55 chars) are re-joined so paragraphs
+   reflow on narrow screens; short lines (headers, forecaster) keep their breaks. */
+function cleanParagraphs(text) {
+  const keep = String(text || "").split("\n").filter(ln => {
+    const t = ln.trim();
+    return !(/^\d{3}$/.test(t) || /^[A-Z]{4}\d{2} [A-Z]{4} \d{6}/.test(t) ||
+             /^TWO[A-Z]{2}$/.test(t) || t === "$$" || t === "NNNN");
+  }).join("\n");
+  return keep.split(/\n\s*\n/).map(block => {
+    const lines = block.split("\n").map(l => l.replace(/\s+$/, "")).filter(l => l.trim());
+    let out = "";
+    for (let i = 0; i < lines.length; i++) {
+      out += lines[i].trim();
+      if (i < lines.length - 1) {
+        /* bullet lines ("* Formation chance...") always start fresh lines */
+        const nextIsBullet = /^[*-]\s/.test(lines[i + 1].trim());
+        out += (lines[i].length >= 55 && !nextIsBullet) ? " " : "\n";
+      }
+    }
+    return out;
+  }).filter(p => p.trim());
+}
+
+/* NHC formation-chance categories: low ≤ 30%, medium 40–60%, high ≥ 70%
+   (nhc.noaa.gov Tropical Weather Outlook definitions). */
+function pctClass(n) { return n >= 70 ? "pct-high" : n >= 40 ? "pct-med" : "pct-low"; }
+
+/* Product text is rendered via DOM nodes (textContent), never innerHTML, so remote
+   text is inert by construction; "NN percent" phrases become <strong class="pct">. */
+function renderProdText(container, text) {
+  container.textContent = "";
+  const re = /\b(\d{1,3})\s+percent\b/gi;
+  for (const para of cleanParagraphs(text)) {
+    const p = document.createElement("p");
+    let last = 0, m;
+    re.lastIndex = 0;
+    while ((m = re.exec(para))) {
+      if (m.index > last) p.appendChild(document.createTextNode(para.slice(last, m.index)));
+      const strong = document.createElement("strong");
+      strong.className = "pct " + pctClass(parseInt(m[1], 10));
+      strong.textContent = m[0];
+      p.appendChild(strong);
+      last = m.index + m[0].length;
+    }
+    if (last < para.length) p.appendChild(document.createTextNode(para.slice(last)));
+    container.appendChild(p);
+  }
+}
+
+function basinBox(basin) { return basin === "atlantic" ? $("#outAtlantic") : $("#outPacific"); }
+
+function renderBasin(basin, product, t, stale) {
+  const B = BASINS[basin];
+  const box = basinBox(basin);
+  const calm = /formation is not expected/i.test(product.productText || "");
+  box.innerHTML =
+    `<div class="card basin">
+      <div class="head">
+        <h3>${esc(B.title)}</h3>
+        <span class="chip">${esc(B.sub)}</span>
+        ${calm ? `<span class="chip calm">${esc("✓ no formation expected")}</span>` : ""}
+      </div>
+      <div class="issued">issued <strong>${esc(relTime(new Date(product.issuanceTime).getTime()))}</strong>
+        · ${esc(fmtAbs(new Date(product.issuanceTime).getTime()))}
+        ${stale ? `<span class="stamp off"> · Offline — cached from ${esc(relTime(t))}</span>` : ""}</div>
+      <div class="prodtext"></div>
+    </div>`;
+  renderProdText(box.querySelector(".prodtext"), product.productText);
+}
+
+function renderBasinMsg(basin, big, sub, isErr, retryId) {
+  const box = basinBox(basin);
+  box.innerHTML =
+    `<div class="card-msg${isErr ? " err" : ""}">
+      <div class="big">${esc(BASINS[basin].title)}: ${esc(big)}</div>
+      ${esc(sub)}
+      ${retryId ? `<div><button class="btn" id="${esc(retryId)}">Try again</button></div>` : ""}
+    </div>`;
+  if (retryId) { const b = $("#" + retryId); if (b) b.addEventListener("click", loadOutlooks); }
+}
+
+async function loadOutlooks() {
+  const cA = readEnv(envKey("atlantic")), cP = readEnv(envKey("pacific"));
+  const now = Date.now();
+  if (cA && cP && now - cA.t < TTL && now - cP.t < TTL) {
+    renderBasin("atlantic", cA.v, cA.t, false);
+    renderBasin("pacific", cP.v, cP.t, false);
+    outStamp.textContent = "updated " + relTime(Math.min(cA.t, cP.t));
+    return;
+  }
+  renderBasinMsg("atlantic", "Fetching…", "Contacting the National Hurricane Center.", false, null);
+  renderBasinMsg("pacific", "Fetching…", "Contacting the National Hurricane Center.", false, null);
+  outStamp.textContent = "loading…";
+
+  let list;
+  try {
+    list = await Suite.fetchJSON(API + "/products/types/TWO",
+      { cacheKey: "tropical.two.list", ttl: TTL, accept: "application/ld+json", timeout: 15000 });
+  } catch (e) {
+    finishBasin("atlantic", null, cA, e);
+    finishBasin("pacific", null, cP, e);
+    outStamp.textContent = "";
+    return;
+  }
+
+  /* newest entry per WMO collective id, then probe newest-first (max 6 fetches)
+     until both basins are identified from their header lines */
+  const byWmo = new Map();
+  for (const p of (list.v && list.v["@graph"]) || []) {
+    if (!p || !p.id || !p.issuanceTime) continue;
+    const k = p.wmoCollectiveId || p.id;
+    const prev = byWmo.get(k);
+    if (!prev || p.issuanceTime > prev.issuanceTime) byWmo.set(k, p);
+  }
+  const candidates = [...byWmo.values()]
+    .sort((a, b) => (a.issuanceTime < b.issuanceTime ? 1 : -1)).slice(0, 6);
+
+  const found = {};
+  let lastErr = null;
+  for (const c of candidates) {
+    if (found.atlantic && found.pacific) break;
+    try {
+      const r = await Suite.fetchJSON(API + "/products/" + encodeURIComponent(c.id), { timeout: 12000 });
+      const basin = classifyBasin(r.v && r.v.productText);
+      if (basin && !found[basin]) found[basin] = r.v;
+    } catch (e) { lastErr = e; }
+  }
+  finishBasin("atlantic", found.atlantic, cA, lastErr);
+  finishBasin("pacific", found.pacific, cP, lastErr);
+  outStamp.textContent = (found.atlantic || found.pacific) ? "updated just now" : "";
+}
+
+function finishBasin(basin, fresh, cached, err) {
+  if (fresh) {
+    if (!Suite.store.set(envKey(basin), { t: Date.now(), v: fresh })) {
+      /* quota full: still render, just uncached (degrade politely) */
+    }
+    renderBasin(basin, fresh, Date.now(), false);
+  } else if (cached) {
+    renderBasin(basin, cached.v, cached.t, true);
+  } else {
+    renderBasinMsg(basin, "couldn't load the outlook",
+      "The National Hurricane Center feed didn't answer" + (err ? " — " + errText(err) : "") + ".",
+      true, basin === "atlantic" ? "retryOutA" : "retryOutP");
+  }
+}
+
+/* ---------- panel 2: tropical alerts for the saved location ---------- */
+const TROP_RE = /hurricane|tropical storm|storm surge|typhoon/i;
+const SEV = {
+  Extreme:  { col: "var(--extreme)",  label: "Extreme" },
+  Severe:   { col: "var(--severe)",   label: "Severe" },
+  Moderate: { col: "var(--moderate)", label: "Moderate" },
+  Minor:    { col: "var(--minor)",    label: "Minor" },
+  Unknown:  { col: "var(--unknown)",  label: "Unknown" }
+};
+function sevOf(p) { return SEV[p.severity] || SEV.Unknown; }
+function fmtIso(iso) {
+  if (!iso) return null;
+  const d = new Date(iso);
+  return isNaN(d) ? null : d.toLocaleString([], { weekday: "short", hour: "numeric", minute: "2-digit" });
+}
+
+function renderNoLocation() {
+  locLine.textContent = "";
+  alStamp.textContent = "";
+  alBox.innerHTML =
+    `<div class="card-msg">
+      <div class="big">No location set</div>
+      This panel watches the suite's shared location for hurricane, tropical-storm,
+      storm-surge, and typhoon alerts. Set one in
+      <a href="weather.html">Weather Station</a>, <a href="alerts.html">the Alert Board</a>,
+      or the hub, and it will appear here automatically.
+    </div>`;
+}
+
+function renderTropAlerts(trop, othersCount, loc, t, stale) {
+  alStamp.textContent = stale
+    ? "Offline — cached from " + relTime(t)
+    : "updated " + relTime(t);
+  alStamp.classList.toggle("off", !!stale);
+  if (!trop.length) {
+    alBox.innerHTML =
+      `<div class="banner clearly">
+        <div class="count" style="background:var(--clear)">✓</div>
+        <div><div class="big">No tropical alerts for your area</div>
+        <div class="sub">Nothing tropical is in effect for ${esc(loc.label || "your location")} right now.${
+          othersCount ? " " + esc(othersCount) + " non-tropical alert" + (othersCount === 1 ? " is" : "s are") +
+          ` active — see the <a href="alerts.html">Severe Weather Alert Board</a>.` : ""}</div></div>
+      </div>`;
+    return;
+  }
+  const cards = trop.map(p => {
+    const sev = sevOf(p);
+    const until = fmtIso(p.ends || p.expires);
+    const meta = [];
+    if (until) meta.push("Until " + esc(until));
+    if (p.certainty && p.certainty !== "Unknown") meta.push(esc(p.certainty));
+    if (p.urgency && p.urgency !== "Unknown") meta.push(esc(p.urgency));
+    return `<details class="alert" style="border-left-color:${sev.col}">
+      <summary>
+        <span class="sev-badge" style="background:${sev.col}">${esc(sev.label)}</span>
+        <span class="a-main">
+          <span class="a-event">${esc(p.event || "Tropical alert")}</span>
+          <span class="a-meta">${meta.map(m => "<span>" + m + "</span>").join("")}</span>
+          ${p.headline ? `<span class="a-headline">${esc(p.headline)}</span>` : ""}
+        </span>
+        <span class="chev" aria-hidden="true">▶</span>
+      </summary>
+      <div class="a-body">
+        ${p.instruction ? `<h4>What to do</h4><p class="instruction">${esc(p.instruction.trim())}</p>` : ""}
+        <h4>Details</h4>
+        <p>${esc((p.description || "No further detail provided.").trim())}</p>
+        ${p.areaDesc ? `<h4>Area</h4><p>${esc(p.areaDesc)}</p>` : ""}
+      </div>
+    </details>`;
+  }).join("");
+  /* banner + cards are built as variables above/below, then concatenated with a
+     plain (non-template) assignment; every remote value inside them is esc()'d */
+  const topCol = sevOf(trop[0]).col; /* local CSS var name, not remote data */
+  const banner =
+    `<div class="banner" style="border-color:${topCol}">
+      <div class="count" style="background:${topCol}">${esc(trop.length)}</div>
+      <div><div class="big">${esc(trop.length === 1 ? "1 tropical alert" : trop.length + " tropical alerts")} in effect</div>
+      <div class="sub">${esc(loc.label || "your location")} · from the National Weather Service</div></div>
+    </div>`;
+  alBox.innerHTML = banner + '<div class="cards">' + cards + "</div>";
+}
+
+async function loadAlerts() {
+  const loc = Suite.location.get();
+  if (!loc) { renderNoLocation(); return; }
+  locLine.innerHTML = `Watching <strong>${esc(loc.label || (loc.lat + ", " + loc.lon))}</strong>`;
+  alBox.innerHTML = `<div class="card-msg"><div class="big">Checking for tropical alerts…</div>Contacting the National Weather Service.</div>`;
+  alStamp.textContent = "loading…";
+  const cacheKey = "tropical.alerts." + loc.lat.toFixed(3) + "x" + loc.lon.toFixed(3);
+  try {
+    const url = API + "/alerts/active?point=" + loc.lat.toFixed(4) + "," + loc.lon.toFixed(4);
+    const r = await Suite.fetchJSON(url, { cacheKey, ttl: TTL, accept: "application/geo+json" });
+    const feats = ((r.v && r.v.features) || []).filter(f => f && f.properties).map(f => f.properties);
+    const trop = feats.filter(p => TROP_RE.test(p.event || ""))
+      .sort((a, b) => {
+        const rank = s => ({ Extreme: 5, Severe: 4, Moderate: 3, Minor: 2 })[s] || 1;
+        return rank(b.severity) - rank(a.severity);
+      });
+    renderTropAlerts(trop, feats.length - trop.length, loc, r.t, r.stale);
+  } catch (e) {
+    alStamp.textContent = "";
+    alBox.innerHTML =
+      `<div class="card-msg err"><div class="big">Couldn't reach the alert service</div>
+        ${esc(errText(e))}. Your saved location is unchanged.
+        <div><button class="btn" id="retryAl">Try again</button></div></div>`;
+    const b = $("#retryAl"); if (b) b.addEventListener("click", loadAlerts);
+  }
+}
+
+/* ---------- boot ---------- */
+loadOutlooks();
+loadAlerts();
+/* cross-tab location changes re-check the alerts panel */
+window.addEventListener("storage", e => { if (e.key === "suite.location") loadAlerts(); });
+/* genuine cold start only: ask the browser once, then reload into the located view */
+Suite.location.autoBoot();
+</script>
+</body>
+</html>

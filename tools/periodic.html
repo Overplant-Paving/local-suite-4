@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Periodic Table · Local Suite</title>
+<link rel="stylesheet" href="../core/suite.css" data-suite-inline>
+<style>
+  body { padding: 1.4rem 1.25rem 4rem; }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+  .topbar { display: flex; align-items: center; gap: 1rem; }
+  .topbar .theme-btn, .topbar .fav-btn { float: none; }
+  .topbar .theme-btn { margin-left: auto; }
+  header { margin: 1rem 0 1.2rem; }
+  h1 { font-size: 1.8rem; letter-spacing: -.02em; }
+  .tag { color: var(--muted); margin-top: .35rem; max-width: 48rem; }
+
+  /* ---- category palette ----
+     Soft category backgrounds carry core --ink as their only text color.
+     Contrast audit (WCAG 2.x relative luminance):
+       light: --ink #23282e (L≈0.061) on the darkest pastel #c8ece6 (L≈0.78) → ≈7.5:1
+       dark:  --ink #e7e5e0 (L≈0.79) on the lightest shade #4c3c12 (L≈0.048) → ≈8.5:1
+     Every pair clears the 4.5:1 AA floor with margin in both themes. */
+  :root {
+    --cat-ak:#f6d0c8; --cat-ae:#f8e3b9; --cat-tm:#d3e2f7; --cat-pt:#dfe3e8;
+    --cat-md:#e7e8c0; --cat-nm:#d2ecce; --cat-hg:#c8ece6; --cat-ng:#e3daf6;
+    --cat-la:#f2d5f2; --cat-ac:#efd9e2;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --cat-ak:#502b20; --cat-ae:#4c3c12; --cat-tm:#24354f; --cat-pt:#363b42;
+      --cat-md:#3c3d18; --cat-nm:#24411e; --cat-hg:#17423a; --cat-ng:#35284f;
+      --cat-la:#43254a; --cat-ac:#452b35;
+    }
+  }
+  :root[data-theme="light"] {
+    --cat-ak:#f6d0c8; --cat-ae:#f8e3b9; --cat-tm:#d3e2f7; --cat-pt:#dfe3e8;
+    --cat-md:#e7e8c0; --cat-nm:#d2ecce; --cat-hg:#c8ece6; --cat-ng:#e3daf6;
+    --cat-la:#f2d5f2; --cat-ac:#efd9e2;
+  }
+  :root[data-theme="dark"] {
+    --cat-ak:#502b20; --cat-ae:#4c3c12; --cat-tm:#24354f; --cat-pt:#363b42;
+    --cat-md:#3c3d18; --cat-nm:#24411e; --cat-hg:#17423a; --cat-ng:#35284f;
+    --cat-la:#43254a; --cat-ac:#452b35;
+  }
+  .cat-ak{background:var(--cat-ak)} .cat-ae{background:var(--cat-ae)}
+  .cat-tm{background:var(--cat-tm)} .cat-pt{background:var(--cat-pt)}
+  .cat-md{background:var(--cat-md)} .cat-nm{background:var(--cat-nm)}
+  .cat-hg{background:var(--cat-hg)} .cat-ng{background:var(--cat-ng)}
+  .cat-la{background:var(--cat-la)} .cat-ac{background:var(--cat-ac)}
+
+  .controls { display:flex; flex-wrap:wrap; align-items:center; gap:.6rem; margin:1.1rem 0 .6rem; }
+  .controls .search { flex:1 1 240px; width:auto; }
+  #count { color:var(--muted); font-size:.85rem; white-space:nowrap; }
+
+  .legend { display:flex; flex-wrap:wrap; gap:.35rem .4rem; margin:0 0 1rem; }
+  .lchip { display:inline-flex; align-items:center; gap:.4rem; border:1px solid var(--line);
+    background:var(--card); color:var(--ink); border-radius:999px; padding:.28rem .7rem;
+    font-size:.8rem; cursor:pointer; }
+  .lchip:hover { border-color:var(--accent); }
+  /* active chip reuses the audited accent-on-accent-soft pair from core (.chip.good) */
+  .lchip[aria-pressed="true"] { border-color:var(--accent); background:var(--accent-soft); color:var(--accent); }
+  .dot { width:.7rem; height:.7rem; border-radius:50%; display:inline-block; flex:none; }
+
+  /* At 390 px the page body stays put; the table scrolls INSIDE this container. */
+  .ptwrap { overflow-x:auto; padding-bottom:.4rem; }
+  .ptable { display:grid; grid-template-columns:repeat(18, minmax(50px, 1fr));
+    grid-template-rows:repeat(7, auto) .55rem auto auto; gap:3px; min-width:960px; }
+  .cell { border:none; border-radius:6px; color:var(--ink); padding:.3rem .1rem .35rem;
+    cursor:pointer; text-align:center; line-height:1.15; font:inherit; }
+  .cell .num { display:block; font-size:.6rem; }
+  .cell .sym { display:block; font-weight:700; font-size:.95rem; }
+  .cell:hover, .cell.sel { box-shadow: inset 0 0 0 2px var(--accent); }
+  .cell.dim { opacity:.22; }
+  .pmark { grid-column:3; align-self:center; justify-self:end; padding-right:.35rem;
+    font-size:.62rem; color:var(--muted); }
+  .layout-note { color:var(--muted); font-size:.82rem; margin-top:.5rem; }
+
+  .detail { margin-top:1.2rem; padding:1.2rem 1.3rem; display:block; }
+  .el-head { display:flex; align-items:center; gap:1rem; flex-wrap:wrap; }
+  .el-tile { width:4.6rem; height:4.6rem; border-radius:12px; color:var(--ink); flex:none;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1.1; }
+  .el-tile .num { font-size:.72rem; }
+  .el-tile .sym { font-size:1.75rem; font-weight:700; }
+  .el-head h2 { font-size:1.55rem; letter-spacing:-.01em; }
+  .el-head .sub { color:var(--muted); font-size:.9rem; margin-top:.15rem; }
+  .catchip { display:inline-block; font-size:.72rem; padding:.14rem .6rem; border-radius:999px;
+    color:var(--ink); margin-top:.35rem; }
+  .lead { margin-top:.9rem; }
+  .lead .catline { color:var(--muted); margin-top:.25rem; }
+  .facts { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:1rem; margin-top:1.1rem; }
+  .fact .k { font-size:.72rem; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); }
+  .fact .v { font-size:1.05rem; font-weight:600; margin-top:.15rem; overflow-wrap:anywhere; }
+  .fact .v small { font-weight:400; color:var(--muted); font-size:.8rem; }
+  .note { margin-top:.8rem; color:var(--muted); font-size:.88rem; }
+  .empty p { margin:.2rem 0; }
+  .empty .hint { color:var(--muted); font-size:.9rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="index.html">← suite</a>
+    <button class="theme-btn" id="themeBtn" title="Toggle light/dark">◐ theme</button>
+  </div>
+  <header>
+    <h1>Periodic Table</h1>
+    <p class="tag">All 118 elements with their properties — search by name, symbol, or number,
+      filter by family, and tap any square. Everything is embedded, so it works with zero network.</p>
+  </header>
+
+  <div class="controls">
+    <input class="search" id="q" type="search" placeholder="Search — “iron”, “Fe”, or “26”…"
+      autocomplete="off" aria-label="Search elements by name, symbol, or atomic number">
+    <span id="count">All 118 elements</span>
+  </div>
+  <div class="legend" id="legend" role="group" aria-label="Filter by element category"></div>
+
+  <div class="ptwrap" id="ptwrap" tabindex="0" role="region" aria-label="Periodic table of the elements (scrolls sideways on small screens)">
+    <div class="ptable" id="ptable"></div>
+  </div>
+  <p class="layout-note">Convention: the common 18-column layout with lutetium (71) and
+    lawrencium (103) in group 3 — the offset rows below hold La–Yb (57–70) and Ac–No (89–102).</p>
+
+  <div class="card detail" id="detail"></div>
+
+  <footer>Embedded reference data — IUPAC standard atomic weights, 2021 abridged; temperatures at
+    standard pressure and electron configurations from standard references (CRC / NIST). Fully
+    offline: nothing leaves this page, and only your theme choice is stored.</footer>
+</div>
+
+<script src="../core/suite.js" data-suite-inline></script>
+<script>
+"use strict";
+
+Suite.theme.init();
+const esc = Suite.esc;
+
+/* ---------- embedded element dataset ----------
+   fields: Z|symbol|name|weight|cat|group|period|block|electron config|EN(Pauling)|melt °C|boil °C|discovery|note
+   - Weights: IUPAC standard atomic weights, 2021 abridged (Prohaska et al., Pure Appl. Chem. 2022);
+     bracketed values are the mass number of the most stable isotope (no stable isotopes).
+   - Group is empty for the La–Yb / Ac–No offset rows (this layout puts Lu and Lr in group 3).
+   - EN is left empty where no accepted Pauling value exists (He, Ne, Ar, some f-elements, Z≥100).
+   - Melt/boil (°C, standard pressure) only where well-established; superheavies stay empty.
+   - Configurations for Z≥104 are predicted values (flagged in the detail panel). */
+const RAW = `
+1|H|Hydrogen|1.008|nm|1|1|s|1s¹|2.20|-259.14|-252.87|1766 · Henry Cavendish
+2|He|Helium|4.003|ng|18|1|s|1s²|||-268.93|1868 · Pierre Janssen & Norman Lockyer|Never solidifies at ordinary pressure — it stays liquid down toward absolute zero.
+3|Li|Lithium|6.94|ak|1|2|s|[He] 2s¹|0.98|180.5|1342|1817 · Johan August Arfwedson
+4|Be|Beryllium|9.012|ae|2|2|s|[He] 2s²|1.57|1287|2469|1798 · Louis-Nicolas Vauquelin
+5|B|Boron|10.81|md|13|2|p|[He] 2s² 2p¹|2.04|2076|3927|1808 · Gay-Lussac & Thénard
+6|C|Carbon|12.011|nm|14|2|p|[He] 2s² 2p²|2.55|3550||Ancient|Figures are for graphite, which sublimes near 3,640 °C rather than boiling at ordinary pressure.
+7|N|Nitrogen|14.007|nm|15|2|p|[He] 2s² 2p³|3.04|-210.0|-195.8|1772 · Daniel Rutherford
+8|O|Oxygen|15.999|nm|16|2|p|[He] 2s² 2p⁴|3.44|-218.8|-183.0|1774 · Joseph Priestley & Carl Wilhelm Scheele
+9|F|Fluorine|18.998|hg|17|2|p|[He] 2s² 2p⁵|3.98|-219.6|-188.1|1886 · Henri Moissan
+10|Ne|Neon|20.180|ng|18|2|p|[He] 2s² 2p⁶||-248.6|-246.1|1898 · William Ramsay & Morris Travers
+11|Na|Sodium|22.990|ak|1|3|s|[Ne] 3s¹|0.93|97.8|883|1807 · Humphry Davy
+12|Mg|Magnesium|24.305|ae|2|3|s|[Ne] 3s²|1.31|650|1090|1808 · Humphry Davy
+13|Al|Aluminium|26.982|pt|13|3|p|[Ne] 3s² 3p¹|1.61|660.3|2519|1825 · Hans Christian Ørsted
+14|Si|Silicon|28.085|md|14|3|p|[Ne] 3s² 3p²|1.90|1414|3265|1824 · Jöns Jacob Berzelius
+15|P|Phosphorus|30.974|nm|15|3|p|[Ne] 3s² 3p³|2.19|44.2|280.5|1669 · Hennig Brand|Values are for white phosphorus, the reference allotrope.
+16|S|Sulfur|32.06|nm|16|3|p|[Ne] 3s² 3p⁴|2.58|115.2|444.6|Ancient
+17|Cl|Chlorine|35.45|hg|17|3|p|[Ne] 3s² 3p⁵|3.16|-101.5|-34.0|1774 · Carl Wilhelm Scheele
+18|Ar|Argon|39.95|ng|18|3|p|[Ne] 3s² 3p⁶||-189.3|-185.8|1894 · Lord Rayleigh & William Ramsay
+19|K|Potassium|39.098|ak|1|4|s|[Ar] 4s¹|0.82|63.5|759|1807 · Humphry Davy
+20|Ca|Calcium|40.078|ae|2|4|s|[Ar] 4s²|1.00|842|1484|1808 · Humphry Davy
+21|Sc|Scandium|44.956|tm|3|4|d|[Ar] 3d¹ 4s²|1.36|1541|2836|1879 · Lars Fredrik Nilson
+22|Ti|Titanium|47.867|tm|4|4|d|[Ar] 3d² 4s²|1.54|1668|3287|1791 · William Gregor
+23|V|Vanadium|50.942|tm|5|4|d|[Ar] 3d³ 4s²|1.63|1910|3407|1801 · Andrés Manuel del Río
+24|Cr|Chromium|51.996|tm|6|4|d|[Ar] 3d⁵ 4s¹|1.66|1907|2671|1797 · Louis-Nicolas Vauquelin
+25|Mn|Manganese|54.938|tm|7|4|d|[Ar] 3d⁵ 4s²|1.55|1246|2061|1774 · Johan Gottlieb Gahn
+26|Fe|Iron|55.845|tm|8|4|d|[Ar] 3d⁶ 4s²|1.83|1538|2862|Ancient
+27|Co|Cobalt|58.933|tm|9|4|d|[Ar] 3d⁷ 4s²|1.88|1495|2927|1735 · Georg Brandt
+28|Ni|Nickel|58.693|tm|10|4|d|[Ar] 3d⁸ 4s²|1.91|1455|2913|1751 · Axel Fredrik Cronstedt
+29|Cu|Copper|63.546|tm|11|4|d|[Ar] 3d¹⁰ 4s¹|1.90|1085|2562|Ancient
+30|Zn|Zinc|65.38|tm|12|4|d|[Ar] 3d¹⁰ 4s²|1.65|419.5|907|Ancient
+31|Ga|Gallium|69.723|pt|13|4|p|[Ar] 3d¹⁰ 4s² 4p¹|1.81|29.8|2229|1875 · Lecoq de Boisbaudran|Melts in the hand — one of a few metals liquid just above room temperature.
+32|Ge|Germanium|72.630|md|14|4|p|[Ar] 3d¹⁰ 4s² 4p²|2.01|938.3|2833|1886 · Clemens Winkler
+33|As|Arsenic|74.922|md|15|4|p|[Ar] 3d¹⁰ 4s² 4p³|2.18|817||c. 1250 · Albertus Magnus|Sublimes at about 615 °C at ordinary pressure; the melting point is measured at 28 atm.
+34|Se|Selenium|78.971|nm|16|4|p|[Ar] 3d¹⁰ 4s² 4p⁴|2.55|221|685|1817 · Jöns Jacob Berzelius
+35|Br|Bromine|79.904|hg|17|4|p|[Ar] 3d¹⁰ 4s² 4p⁵|2.96|-7.2|58.8|1826 · Antoine-Jérôme Balard
+36|Kr|Krypton|83.798|ng|18|4|p|[Ar] 3d¹⁰ 4s² 4p⁶|3.00|-157.4|-153.2|1898 · William Ramsay & Morris Travers
+37|Rb|Rubidium|85.468|ak|1|5|s|[Kr] 5s¹|0.82|39.3|688|1861 · Robert Bunsen & Gustav Kirchhoff
+38|Sr|Strontium|87.62|ae|2|5|s|[Kr] 5s²|0.95|777|1377|1790 · Adair Crawford
+39|Y|Yttrium|88.906|tm|3|5|d|[Kr] 4d¹ 5s²|1.22|1526|3336|1794 · Johan Gadolin
+40|Zr|Zirconium|91.224|tm|4|5|d|[Kr] 4d² 5s²|1.33|1855|4409|1789 · Martin Heinrich Klaproth
+41|Nb|Niobium|92.906|tm|5|5|d|[Kr] 4d⁴ 5s¹|1.6|2477|4744|1801 · Charles Hatchett
+42|Mo|Molybdenum|95.95|tm|6|5|d|[Kr] 4d⁵ 5s¹|2.16|2623|4639|1778 · Carl Wilhelm Scheele
+43|Tc|Technetium|[97]|tm|7|5|d|[Kr] 4d⁵ 5s²|1.9|2157|4265|1937 · Carlo Perrier & Emilio Segrè|The first artificially produced element.
+44|Ru|Ruthenium|101.07|tm|8|5|d|[Kr] 4d⁷ 5s¹|2.2|2334|4150|1844 · Karl Ernst Claus
+45|Rh|Rhodium|102.91|tm|9|5|d|[Kr] 4d⁸ 5s¹|2.28|1964|3695|1803 · William Hyde Wollaston
+46|Pd|Palladium|106.42|tm|10|5|d|[Kr] 4d¹⁰|2.20|1555|2963|1803 · William Hyde Wollaston
+47|Ag|Silver|107.87|tm|11|5|d|[Kr] 4d¹⁰ 5s¹|1.93|961.8|2162|Ancient
+48|Cd|Cadmium|112.41|tm|12|5|d|[Kr] 4d¹⁰ 5s²|1.69|321.1|767|1817 · Friedrich Stromeyer
+49|In|Indium|114.82|pt|13|5|p|[Kr] 4d¹⁰ 5s² 5p¹|1.78|156.6|2072|1863 · Ferdinand Reich & Hieronymus Richter
+50|Sn|Tin|118.71|pt|14|5|p|[Kr] 4d¹⁰ 5s² 5p²|1.96|231.9|2602|Ancient
+51|Sb|Antimony|121.76|md|15|5|p|[Kr] 4d¹⁰ 5s² 5p³|2.05|630.6|1587|Ancient
+52|Te|Tellurium|127.60|md|16|5|p|[Kr] 4d¹⁰ 5s² 5p⁴|2.1|449.5|988|1782 · Franz-Joseph Müller von Reichenstein
+53|I|Iodine|126.90|hg|17|5|p|[Kr] 4d¹⁰ 5s² 5p⁵|2.66|113.7|184.3|1811 · Bernard Courtois
+54|Xe|Xenon|131.29|ng|18|5|p|[Kr] 4d¹⁰ 5s² 5p⁶|2.60|-111.8|-108.1|1898 · William Ramsay & Morris Travers
+55|Cs|Caesium|132.91|ak|1|6|s|[Xe] 6s¹|0.79|28.4|671|1860 · Robert Bunsen & Gustav Kirchhoff
+56|Ba|Barium|137.33|ae|2|6|s|[Xe] 6s²|0.89|727|1845|1808 · Humphry Davy
+57|La|Lanthanum|138.91|la||6|f|[Xe] 5d¹ 6s²|1.10|920|3464|1839 · Carl Gustaf Mosander
+58|Ce|Cerium|140.12|la||6|f|[Xe] 4f¹ 5d¹ 6s²|1.12|795|3443|1803 · Berzelius & Hisinger
+59|Pr|Praseodymium|140.91|la||6|f|[Xe] 4f³ 6s²|1.13|935|3520|1885 · Carl Auer von Welsbach
+60|Nd|Neodymium|144.24|la||6|f|[Xe] 4f⁴ 6s²|1.14|1021|3074|1885 · Carl Auer von Welsbach
+61|Pm|Promethium|[145]|la||6|f|[Xe] 4f⁵ 6s²||1042|3000|1945 · Marinsky, Glendenin & Coryell
+62|Sm|Samarium|150.36|la||6|f|[Xe] 4f⁶ 6s²|1.17|1072|1794|1879 · Lecoq de Boisbaudran
+63|Eu|Europium|151.96|la||6|f|[Xe] 4f⁷ 6s²||822|1529|1901 · Eugène-Anatole Demarçay
+64|Gd|Gadolinium|157.25|la||6|f|[Xe] 4f⁷ 5d¹ 6s²|1.20|1313|3273|1880 · Jean Charles Galissard de Marignac
+65|Tb|Terbium|158.93|la||6|f|[Xe] 4f⁹ 6s²||1356|3230|1843 · Carl Gustaf Mosander
+66|Dy|Dysprosium|162.50|la||6|f|[Xe] 4f¹⁰ 6s²|1.22|1412|2567|1886 · Lecoq de Boisbaudran
+67|Ho|Holmium|164.93|la||6|f|[Xe] 4f¹¹ 6s²|1.23|1474|2700|1878 · Per Teodor Cleve
+68|Er|Erbium|167.26|la||6|f|[Xe] 4f¹² 6s²|1.24|1529|2868|1843 · Carl Gustaf Mosander
+69|Tm|Thulium|168.93|la||6|f|[Xe] 4f¹³ 6s²|1.25|1545|1950|1879 · Per Teodor Cleve
+70|Yb|Ytterbium|173.05|la||6|f|[Xe] 4f¹⁴ 6s²||819|1196|1878 · Jean Charles Galissard de Marignac
+71|Lu|Lutetium|174.97|la|3|6|d|[Xe] 4f¹⁴ 5d¹ 6s²|1.27|1652|3402|1907 · Georges Urbain
+72|Hf|Hafnium|178.49|tm|4|6|d|[Xe] 4f¹⁴ 5d² 6s²|1.3|2233|4603|1923 · Dirk Coster & George de Hevesy
+73|Ta|Tantalum|180.95|tm|5|6|d|[Xe] 4f¹⁴ 5d³ 6s²|1.5|3017|5458|1802 · Anders Gustaf Ekeberg
+74|W|Tungsten|183.84|tm|6|6|d|[Xe] 4f¹⁴ 5d⁴ 6s²|2.36|3422|5555|1783 · Juan José & Fausto Elhuyar|The highest melting point of any metal.
+75|Re|Rhenium|186.21|tm|7|6|d|[Xe] 4f¹⁴ 5d⁵ 6s²|1.9|3186|5596|1925 · Walter Noddack, Ida Tacke & Otto Berg
+76|Os|Osmium|190.23|tm|8|6|d|[Xe] 4f¹⁴ 5d⁶ 6s²|2.2|3033|5012|1803 · Smithson Tennant|The densest naturally occurring element.
+77|Ir|Iridium|192.22|tm|9|6|d|[Xe] 4f¹⁴ 5d⁷ 6s²|2.20|2446|4428|1803 · Smithson Tennant
+78|Pt|Platinum|195.08|tm|10|6|d|[Xe] 4f¹⁴ 5d⁹ 6s¹|2.28|1768|3825|1735 · Antonio de Ulloa
+79|Au|Gold|196.97|tm|11|6|d|[Xe] 4f¹⁴ 5d¹⁰ 6s¹|2.54|1064|2856|Ancient
+80|Hg|Mercury|200.59|tm|12|6|d|[Xe] 4f¹⁴ 5d¹⁰ 6s²|2.00|-38.8|356.7|Ancient
+81|Tl|Thallium|204.38|pt|13|6|p|[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p¹|1.62|304|1473|1861 · William Crookes
+82|Pb|Lead|207.2|pt|14|6|p|[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p²|2.33|327.5|1749|Ancient
+83|Bi|Bismuth|208.98|pt|15|6|p|[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p³|2.02|271.4|1564|1753 · Claude François Geoffroy
+84|Po|Polonium|[209]|pt|16|6|p|[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁴|2.0|254|962|1898 · Marie & Pierre Curie
+85|At|Astatine|[210]|hg|17|6|p|[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁵|2.2|302||1940 · Corson, MacKenzie & Segrè|The rarest naturally occurring element in Earth's crust.
+86|Rn|Radon|[222]|ng|18|6|p|[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁶||-71|-61.7|1900 · Friedrich Ernst Dorn
+87|Fr|Francium|[223]|ak|1|7|s|[Rn] 7s¹|0.7|||1939 · Marguerite Perey
+88|Ra|Radium|[226]|ae|2|7|s|[Rn] 7s²|0.9|700|1737|1898 · Marie & Pierre Curie
+89|Ac|Actinium|[227]|ac||7|f|[Rn] 6d¹ 7s²|1.1|1050|3198|1899 · André-Louis Debierne
+90|Th|Thorium|232.04|ac||7|f|[Rn] 6d² 7s²|1.3|1750|4788|1829 · Jöns Jacob Berzelius
+91|Pa|Protactinium|231.04|ac||7|f|[Rn] 5f² 6d¹ 7s²|1.5|1572||1913 · Kasimir Fajans & Oswald Göhring
+92|U|Uranium|238.03|ac||7|f|[Rn] 5f³ 6d¹ 7s²|1.38|1132|4131|1789 · Martin Heinrich Klaproth
+93|Np|Neptunium|[237]|ac||7|f|[Rn] 5f⁴ 6d¹ 7s²|1.36|644||1940 · Edwin McMillan & Philip Abelson
+94|Pu|Plutonium|[244]|ac||7|f|[Rn] 5f⁶ 7s²|1.28|639.4|3228|1940 · Glenn Seaborg et al.
+95|Am|Americium|[243]|ac||7|f|[Rn] 5f⁷ 7s²|1.3|1176|2607|1944 · Glenn Seaborg et al.
+96|Cm|Curium|[247]|ac||7|f|[Rn] 5f⁷ 6d¹ 7s²|1.3|1345|3110|1944 · Seaborg, James & Ghiorso
+97|Bk|Berkelium|[247]|ac||7|f|[Rn] 5f⁹ 7s²|1.3|986||1949 · Thompson, Ghiorso & Seaborg
+98|Cf|Californium|[251]|ac||7|f|[Rn] 5f¹⁰ 7s²|1.3|900||1950 · Thompson, Street, Ghiorso & Seaborg
+99|Es|Einsteinium|[252]|ac||7|f|[Rn] 5f¹¹ 7s²|1.3|860||1952 · Albert Ghiorso et al.
+100|Fm|Fermium|[257]|ac||7|f|[Rn] 5f¹² 7s²||||1952 · Albert Ghiorso et al.
+101|Md|Mendelevium|[258]|ac||7|f|[Rn] 5f¹³ 7s²||||1955 · Ghiorso, Harvey, Choppin, Thompson & Seaborg
+102|No|Nobelium|[259]|ac||7|f|[Rn] 5f¹⁴ 7s²||||1966 · Joint Institute for Nuclear Research, Dubna
+103|Lr|Lawrencium|[266]|ac|3|7|d|[Rn] 5f¹⁴ 7s² 7p¹||||1961 · Albert Ghiorso et al., Berkeley
+104|Rf|Rutherfordium|[267]|tm|4|7|d|[Rn] 5f¹⁴ 6d² 7s²||||1969 · Dubna & Berkeley
+105|Db|Dubnium|[268]|tm|5|7|d|[Rn] 5f¹⁴ 6d³ 7s²||||1970 · Dubna & Berkeley
+106|Sg|Seaborgium|[269]|tm|6|7|d|[Rn] 5f¹⁴ 6d⁴ 7s²||||1974 · Lawrence Berkeley Laboratory
+107|Bh|Bohrium|[270]|tm|7|7|d|[Rn] 5f¹⁴ 6d⁵ 7s²||||1981 · GSI, Darmstadt
+108|Hs|Hassium|[269]|tm|8|7|d|[Rn] 5f¹⁴ 6d⁶ 7s²||||1984 · GSI, Darmstadt
+109|Mt|Meitnerium|[278]|tm|9|7|d|[Rn] 5f¹⁴ 6d⁷ 7s²||||1982 · GSI, Darmstadt
+110|Ds|Darmstadtium|[281]|tm|10|7|d|[Rn] 5f¹⁴ 6d⁸ 7s²||||1994 · GSI, Darmstadt
+111|Rg|Roentgenium|[282]|tm|11|7|d|[Rn] 5f¹⁴ 6d⁹ 7s²||||1994 · GSI, Darmstadt
+112|Cn|Copernicium|[285]|tm|12|7|d|[Rn] 5f¹⁴ 6d¹⁰ 7s²||||1996 · GSI, Darmstadt
+113|Nh|Nihonium|[286]|pt|13|7|p|[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p¹||||2004 · RIKEN, Japan
+114|Fl|Flerovium|[289]|pt|14|7|p|[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p²||||1999 · JINR–LLNL (Dubna)
+115|Mc|Moscovium|[290]|pt|15|7|p|[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p³||||2003 · JINR–LLNL (Dubna)
+116|Lv|Livermorium|[293]|pt|16|7|p|[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁴||||2000 · JINR–LLNL (Dubna)
+117|Ts|Tennessine|[294]|hg|17|7|p|[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁵||||2010 · JINR–ORNL collaboration
+118|Og|Oganesson|[294]|ng|18|7|p|[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁶||||2002 · JINR–LLNL (Dubna)
+`.trim();
+
+const ELEMENTS = RAW.split("\n").map(function(line){
+  const p = line.split("|");
+  return {
+    z:+p[0], sym:p[1], name:p[2], weight:p[3], cat:p[4],
+    group: p[5] ? +p[5] : null, period:+p[6], block:p[7], econf:p[8],
+    en: p[9] || null,
+    melt: p[10] === "" || p[10] === undefined ? null : parseFloat(p[10]),
+    boil: p[11] === "" || p[11] === undefined ? null : parseFloat(p[11]),
+    disc: p[12] || "", note: p[13] || ""
+  };
+});
+
+const CAT_NAME = {
+  ak:"Alkali metal", ae:"Alkaline earth metal", tm:"Transition metal",
+  pt:"Post-transition metal", md:"Metalloid", nm:"Reactive nonmetal",
+  hg:"Halogen", ng:"Noble gas", la:"Lanthanide", ac:"Actinide"
+};
+const CAT_SENT = {
+  ak:"Alkali metals are soft, silvery metals that react vigorously — sometimes explosively — with water.",
+  ae:"Alkaline earth metals are reactive, silvery metals, though gentler than the alkali metals.",
+  tm:"Transition metals are the classic metals of industry — dense, strong, and good conductors.",
+  pt:"Post-transition metals are softer, lower-melting metals sitting between the transition metals and the metalloids.",
+  md:"Metalloids look metallic but behave in between — several are semiconductors.",
+  nm:"Reactive nonmetals make up most living matter and bond readily with metals and with each other.",
+  hg:"Halogens are sharply reactive nonmetals that form salts directly with metals.",
+  ng:"Noble gases are colorless, almost inert gases with completely filled electron shells.",
+  la:"Lanthanides are the rare-earth metals — silvery, chemically similar, and essential to magnets and lasers.",
+  ac:"Actinides are radioactive metals; only thorium and uranium occur in any quantity in nature."
+};
+const CAT_ORDER = ["ak","ae","tm","pt","md","nm","hg","ng","la","ac"];
+
+/* ---------- build the 18-column grid ----------
+   Placement convention (noted under the table): Lu (71) and Lr (103) occupy
+   group 3; the detached f-block rows La–Yb and Ac–No render below the table. */
+const table = document.getElementById("ptable");
+const frag = document.createDocumentFragment();
+for (const el of ELEMENTS) {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.className = "cell cat-" + el.cat;
+  b.dataset.z = String(el.z);
+  b.setAttribute("aria-label", el.name + ", element " + el.z);
+  let col, row;
+  if (el.group) { col = el.group; row = el.period; }
+  else if (el.cat === "la") { col = el.z - 53; row = 9; }   // La 57 → col 4 … Yb 70 → col 17
+  else { col = el.z - 85; row = 10; }                       // Ac 89 → col 4 … No 102 → col 17
+  b.style.gridColumn = String(col);
+  b.style.gridRow = String(row);
+  const num = document.createElement("span");
+  num.className = "num"; num.textContent = String(el.z);
+  const sym = document.createElement("span");
+  sym.className = "sym"; sym.textContent = el.sym;
+  b.append(num, sym);
+  b.addEventListener("click", function(){ select(el); });
+  el.btn = b;
+  frag.appendChild(b);
+}
+for (const m of [{ row: 9, label: "57–70" }, { row: 10, label: "89–102" }]) {
+  const d = document.createElement("div");
+  d.className = "pmark"; d.style.gridRow = String(m.row);
+  d.textContent = m.label; d.setAttribute("aria-hidden", "true");
+  frag.appendChild(d);
+}
+table.appendChild(frag);
+
+/* ---------- legend chips (also filters) ---------- */
+const legend = document.getElementById("legend");
+let activeCat = null;
+for (const c of CAT_ORDER) {
+  const b = document.createElement("button");
+  b.type = "button"; b.className = "lchip"; b.dataset.cat = c;
+  b.setAttribute("aria-pressed", "false");
+  const dot = document.createElement("span");
+  dot.className = "dot cat-" + c; dot.setAttribute("aria-hidden", "true");
+  b.append(dot, document.createTextNode(CAT_NAME[c]));
+  b.addEventListener("click", function(){
+    activeCat = activeCat === c ? null : c;
+    legend.querySelectorAll(".lchip").forEach(function(x){
+      x.setAttribute("aria-pressed", String(x.dataset.cat === activeCat));
+    });
+    applyFilter();
+  });
+  legend.appendChild(b);
+}
+
+/* ---------- search + filter (non-matching cells dim but keep their place) ---------- */
+const qEl = document.getElementById("q");
+const countEl = document.getElementById("count");
+function applyFilter(){
+  const q = qEl.value.trim().toLowerCase();
+  let n = 0;
+  for (const el of ELEMENTS) {
+    const matchQ = !q || el.name.toLowerCase().indexOf(q) !== -1 ||
+      el.sym.toLowerCase().indexOf(q) === 0 || String(el.z) === q;
+    const on = matchQ && (!activeCat || el.cat === activeCat);
+    el.btn.classList.toggle("dim", !on);
+    if (on) n++;
+  }
+  countEl.textContent = n === 118 ? "All 118 elements" : n + " of 118 elements match";
+}
+qEl.addEventListener("input", applyFilter);
+
+/* ---------- detail panel ---------- */
+const detail = Suite.liveRegion(document.getElementById("detail"));
+let selEl = null;
+
+/* Phase at 25 °C, derived from melt/boil (standard pressure). Only Hg and Br
+   land on "liquid"; He reaches "gas" through its boiling point alone. */
+function phaseAt25(el){
+  if (el.melt !== null && el.melt > 25) return "solid";
+  if (el.boil !== null && el.boil < 25) return "gas";
+  if (el.melt !== null && el.boil !== null) return "liquid";
+  return null;
+}
+function fmtTemp(v){ return v === null ? "—" : String(v).replace("-", "−") + " °C"; }
+function phaseLine(el){
+  const p = phaseAt25(el);
+  if (p === "solid") return "Solid at room temperature — melts at " + fmtTemp(el.melt) + ".";
+  if (p === "liquid") return "Liquid at room temperature — boils at " + fmtTemp(el.boil) + ".";
+  if (p === "gas") return "Gas at room temperature — boils at " + fmtTemp(el.boil) + ".";
+  return "Phase at room temperature is not established — too little has ever been made.";
+}
+
+function select(el){
+  if (selEl) selEl.btn.classList.remove("sel");
+  selEl = el;
+  el.btn.classList.add("sel");
+  const bracketed = el.weight.charAt(0) === "[";
+  const facts = [
+    ["Atomic weight", esc(el.weight) + (bracketed ? " <small>mass number of its most stable isotope</small>" : "")],
+    ["Group", el.group ? esc(el.group) : "— <small>f-block offset row</small>"],
+    ["Period", esc(el.period)],
+    ["Block", esc(el.block) + "-block"],
+    ["Electron configuration", '<span class="mono">' + esc(el.econf) + "</span>" + (el.z >= 104 ? " <small>predicted</small>" : "")],
+    ["Electronegativity (Pauling)", el.en ? esc(el.en) : "—"],
+    ["Melting point", esc(fmtTemp(el.melt))],
+    ["Boiling point", esc(fmtTemp(el.boil))],
+    ["Discovery", el.disc === "Ancient" ? "Known since antiquity" : esc(el.disc)]
+  ];
+  detail.innerHTML =
+    '<div class="el-head">' +
+      '<div class="el-tile cat-' + esc(el.cat) + '" aria-hidden="true">' +
+        '<span class="num">' + esc(el.z) + '</span><span class="sym">' + esc(el.sym) + '</span></div>' +
+      '<div><h2>' + esc(el.name) + '</h2>' +
+      '<div class="sub">' + esc(el.sym) + ' · element ' + esc(el.z) + '</div>' +
+      '<span class="catchip cat-' + esc(el.cat) + '">' + esc(CAT_NAME[el.cat]) + '</span></div>' +
+    '</div>' +
+    '<div class="lead"><p class="phase">' + esc(phaseLine(el)) + '</p>' +
+    '<p class="catline">' + esc(CAT_SENT[el.cat]) + '</p></div>' +
+    '<div class="facts">' + facts.map(function(f){
+      return '<div class="fact"><div class="k">' + f[0] + '</div><div class="v">' + f[1] + '</div></div>';
+    }).join("") + '</div>' +
+    (el.note ? '<p class="note">' + esc(el.note) + '</p>' : '') +
+    (el.z >= 104 ? '<p class="note">Synthetic superheavy element: known only as a handful of ' +
+      'short-lived atoms, so its everyday properties are predicted and its category follows ' +
+      'its group placement.</p>' : '');
+  detail.scrollIntoView({ block: "nearest" });
+}
+
+/* ---------- boot: designed empty state ---------- */
+detail.innerHTML =
+  '<div class="empty"><p><strong>Tap any element</strong> to see its full properties — ' +
+  'weight, configuration, electronegativity, melting and boiling points, and discovery.</p>' +
+  '<p class="hint">Use the search box to jump by name, symbol, or number, or the colored ' +
+  'chips to light up one family at a time.</p></div>';
+</script>
+</body>
+</html>

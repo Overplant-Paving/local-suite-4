@@ -1,0 +1,8 @@
+{
+  "note": "new-in-v2 tool — no v1 original; parity N/A",
+  "v2": {
+    "suite.checklists.v1": "{\"lists\":[{\"id\":\"ms7u8onr8cgx\",\"name\":\"AM routine\",\"items\":[{\"id\":\"ms7u8opiyv2z\",\"text\":\"Make coffee\",\"done\":false},{\"id\":\"ms7u8opzth0t\",\"text\":\"Journ…(786 chars)",
+    "suite.hub.recents": "[{\"id\":\"checklists\",\"t\":1785435573514}]",
+    "suite.theme": "dark"
+  }
+}

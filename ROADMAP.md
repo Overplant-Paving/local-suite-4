@@ -238,7 +238,45 @@ release checklist executed · tag pushed.
   errors on the 26 healthy live resources are recorded under `tests/evidence/parks/` and
   `tests/evidence/v3-nps-explorer/`. No key is committed.
 
+## V4 work
+
+- [x] **Local Suite v4.0.0 — 100 tools, 2026-07-30.** Release checklist:
+  `tests/evidence/v4-release/release-checklist.md`.
+- [x] Suite-wide favorites + recently used — `suite.hub.favorites` / `suite.hub.recents`, chrome
+  star injected from core beside every theme button, hub Favorites/Recently-used sections with
+  cross-tab sync, bounded deduped recents excluding the hub and Settings, unknown-id tolerance.
+  Gate: `node tests/favorites-recents.mjs`.
+- [x] Flight Tracker live weather map — regional map combining the aircraft position with an
+  Open-Meteo precipitation grid, NWS SIGMET hazard outlines (with the aviation feed's [lat, lon]
+  ring order corrected), decoded departure/arrival METARs, and an arrival-hour outlook; world
+  view retained; all weather surfaces keyless + CORS-open with per-panel stale stamps.
+  Aviationstack request-safety, quotas, and cache identities unchanged. Gate:
+  `node tests/flight-built.mjs` + `node tests/verify-tool.mjs flight`.
+- [x] National Parks Explorer re-audit — official swagger still documents exactly 29 resources
+  (none added/renamed/removed); conservative live probe: 29/29 HTTP 200
+  (`tests/evidence/v4-release/nps-live-probe.txt`). `/events` and `/roadevents` recovered
+  upstream and now load with their tab; WZDx `core_details` unwrapped; boundary GeoJSON stays
+  on-demand (190–315 KB, never cached to browser storage) and is now drawn as an outline map
+  with a textual geometry/bounds equivalent. The 30-day directory is separated from two-hour
+  selected detail, both pagination dialects have practical controls, resource-specific fields are
+  visible, and 401/403/429 stop the queued tab fan-out. Gates: `node tests/nps-schema-inventory.mjs`
+  + `node tests/parks-built.mjs` + `node tests/verify-tool.mjs parks`.
+- [x] The Arcade — five owned games (Bathhouse Brigade desktop/mobile, Chromatic Chains
+  desktop/mobile, DOOM 1993 shareware), every card linking to a live-verified GitHub Pages
+  deployment, art copied from the game repos (DOOM: screenshot of its own deployment, credited
+  to id Software), optimized and inlined at build time via the new `data-suite-asset` marker.
+  Games category reopened. Gate: `node tests/arcade-built.mjs`.
+- [x] 26 further v4 tools (manifest 100 total): offline — calc, hash, checklists, image, ics,
+  typing, metronome, periodic, body, savings, budget, recipes, fuellog, healthlog, skyevents;
+  keyless CORS-open (all re-verified 2026-07-30) — dns, overhead, spending, rhymes, cite,
+  weatherhistory, tropical, discussion, nasaimages, worldbank, wayback. Each at the full
+  Definition of Done with `tests/interactions/<id>.mjs` evidence.
+
 ## After v3.0.0 (backlog, unscheduled)
+
+> **v4 note:** the Tier 1 and Tier 2 card candidates below (calc, hash, checklists, image, ics)
+> shipped in v4.0.0, with the Tier 3 fold-ins landing as calc modes. The Data Workbench upgrade
+> to `dataviewer.html` and the spike-gated QR read tab remain open backlog.
 
 **Next utilities — ranked candidate slate (2026-07-25).** Every entry is a candidate, not a
 commitment; each is written up in `CATALOG.md` §10 marked *proposed (not built)*, and each is
@@ -264,8 +302,8 @@ same Definition of Done (QUALITY.md §4) as any migrated tool.
   `eval`/`new Function` (sha256-pinned `script-src`), no Web Workers, no `blob:` images under the
   generated `img-src 'self' data:`. Object-URL downloads are unaffected.
 
-**Games.** The category is retired for now, not paused — see the Meteor Patrol decision in Current
-status. It reopens only with a purpose-built toy held to the full Definition of Done.
+**Games.** Reopened in v4 with The Arcade (see V4 work above). The Meteor Patrol retirement
+stands; any future in-suite game is still held to the full Definition of Done.
 
 - Periodic CATALOG endpoint re-verification sweep (verification dates are part of the contract;
   the USGS legacy water API sunset ~Q1 2027 is already flagged).

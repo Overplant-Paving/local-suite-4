@@ -1,0 +1,28 @@
+basin bucketing by header line: Atlantic card carries "For the North Atlantic...", Pacific card carries "...North Pacific..." (product ids f81c2a/c77e14 carry no basin hint)
+latest-per-basin: product fetches = ["f81c2a","c77e14"] — the older ABNT20/ABPZ20 entries (b3d905, a09d3b) were never requested
+percent highlighting: 4 <strong.pct> chances in the Atlantic card — "70 percent" -> pct pct-high, "20 percent" -> pct pct-low (NHC low/med/high tiers)
+issuance times: Atlantic "issued 30 min ago · Thu, Jul 30, 12:51 PM"; Pacific "issued 45 min ago · Thu, Jul 30, 12:36 PM" (relative + absolute)
+off-season honesty: Pacific renders "Tropical cyclone formation is not expected..." verbatim with the calm chip; the 70-percent Atlantic card has no calm chip
+outlook stamp: "updated just now"
+alerts filter: feed had Hurricane Watch + Flood Warning -> 1 card rendered ("Hurricane Watch", badge "Severe"); Flood Warning dropped
+  banner: "1 1 tropical alert in effect Miami, FL · from the National Weather Service"
+escaping: alert description's <img onerror> arrives as visible text, no element created
+cache keys: suite.cache.tropical.alerts.25.774x-80.194, suite.cache.tropical.two.atlantic, suite.cache.tropical.two.list, suite.cache.tropical.two.pacific
+a11y: aria-live=polite on #outlooks, #alertsBox and both stamps; theme button aria-label="Toggle light/dark theme", aria-pressed=false; alert cards use native <details>/<summary> (1)
+calm state (Flood Warning only): "✓ No tropical alerts for your area Nothing tropical is in effect for Miami, FL right now. 1 non-tropical alert is active — see the Severe Weather Alert Board."
+fresh-cache reload: outlooks rendered from suite.cache.tropical.two.* with zero product refetches
+calm state (empty feed): "✓ No tropical alerts for your area Nothing tropical is in effect for Miami, FL right now."
+no-location designed state: "No location set This panel watches the suite's shared location for hurricane, tropical-storm, storm-surge, and typhoon alerts. Set one in Weather Stat…" (links: weather.html, alerts.html)
+HTTP 500 path: Atlantic "Atlantic: couldn't load the outlook The National Hurricane Center feed didn't answer — HTTP 500. Try again"; alerts "Couldn't reach the alert service HTTP 500. Your saved location is unchanged. Try again"; retries are native <button>s
+retry: after the service recovers, "Try again" re-renders the alerts card ("Hurricane Watch") and both outlook basins
+  sibling-page console (inherent non-2xx fetch noise, quarantined off the main gate): Failed to load resource: the server responded with a status of 500 (Internal Server Error) | Failed to load resource: the server responded with a status of 500 (Internal Server Error)
+stale-offline (caches back-dated 24 h, network aborted): both outlook cards render with "· Offline — cached from 1 day ago"; alerts panel stamp "Offline — cached from 1 day ago" and still shows the cached Hurricane Watch
+mobile 390x844: document scrollWidth 390 <= clientWidth 390; product-text containers reflow (329/329, 329/329)
+restored desktop viewport; final view renders both outlooks and the Hurricane Watch card from fresh caches
+theme toggle: light -> dark, aria-pressed=true
+CONSOLE ISSUES:
+  console.error: Failed to load resource: net::ERR_FAILED
+  console.error: Failed to load resource: net::ERR_FAILED
+  console.error: Failed to load resource: net::ERR_FAILED
+  console.error: Failed to load resource: net::ERR_FAILED
+  console.error: Failed to load resource: net::ERR_FAILED

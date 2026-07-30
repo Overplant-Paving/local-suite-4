@@ -1,0 +1,765 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fuel &amp; Mileage Log · Local Suite</title>
+<link rel="stylesheet" href="../core/suite.css" data-suite-inline>
+<style>
+  /* tool accents (--warn, --bad) — 3-layer, same pattern as core */
+  :root { --warn: #b0752a; --bad: #c0503f; }
+  @media (prefers-color-scheme: dark) {
+    :root { --warn: #d0a24d; --bad: #e0766a; }
+  }
+  :root[data-theme="light"] { --warn: #b0752a; --bad: #c0503f; }
+  :root[data-theme="dark"] { --warn: #d0a24d; --bad: #e0766a; }
+
+  [hidden] { display: none !important; } /* .card's display:block must not defeat the hidden attr */
+  body { padding: 1.4rem 1.25rem 4rem; }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  .topbar { display: flex; align-items: center; gap: 1rem; }
+  .topbar .theme-btn, .topbar .fav-btn { float: none; }
+  .topbar .theme-btn { margin-left: auto; }
+  header { margin: 1rem 0 1.2rem; }
+  h1 { font-size: 1.8rem; letter-spacing: -.02em; }
+  .tag { color: var(--muted); margin-top: .35rem; max-width: 48rem; }
+
+  .card { display: block; margin-top: 1.1rem; padding: 1.1rem 1.15rem; }
+  .card h2 { font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; margin-bottom: .8rem; }
+  label { font-size: .82rem; color: var(--muted); display: block; margin-bottom: .25rem; }
+  input, select { width: 100%; padding: .55rem .7rem; font-size: 1rem; color: var(--ink);
+    border: 1px solid var(--line); border-radius: 10px; background: var(--bg); outline: none; }
+  input:focus, select:focus { border-color: var(--accent); }
+  input[type="checkbox"] { width: auto; accent-color: var(--accent); }
+  .field { min-width: 0; }
+  .btn { border: 1px solid var(--line); background: var(--chip); color: var(--ink); border-radius: 10px; padding: .5rem .9rem; cursor: pointer; font-size: .9rem; }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn.primary { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+  .btn.primary:hover { filter: brightness(1.06); color: var(--bg); }
+  .btn.danger { border-color: var(--bad); color: var(--bad); background: transparent; }
+  .hint { font-size: .82rem; color: var(--muted); margin-top: .5rem; }
+  .hint:empty { margin: 0; }
+  .err { color: var(--bad); }
+  .sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden;
+    clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+  .veh-row { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+  .veh-row select, .veh-row input { flex: 1 1 170px; width: auto; min-width: 0; }
+
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: .7rem .8rem; }
+  .entry-row2 { display: flex; gap: .9rem; flex-wrap: wrap; align-items: end; margin-top: .8rem; }
+  .entry-row2 .note-field { flex: 1 1 220px; }
+  .check { display: inline-flex; align-items: center; gap: .5rem; color: var(--ink);
+    font-size: .9rem; margin-bottom: .55rem; cursor: pointer; }
+  .btn-row { display: flex; gap: .5rem; margin-top: .9rem; }
+  @media (max-width: 640px) { .grid { grid-template-columns: 1fr 1fr; } }
+
+  /* stat tiles (KPI row) */
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(122px, 1fr)); gap: .6rem; }
+  .tile { border: 1px solid var(--line); border-radius: 12px; padding: .6rem .7rem; background: var(--bg); min-width: 0; }
+  .tile .v { font-weight: 700; font-size: 1.25rem; font-variant-numeric: tabular-nums; color: var(--ink); }
+  .tile.lead .v { font-size: 1.7rem; color: var(--accent); }
+  .tile .k { font-size: .7rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-top: .1rem; }
+  .tile .sub { font-size: .74rem; color: var(--muted); margin-top: .15rem; overflow-wrap: anywhere; }
+
+  /* sparklines — single-series lines in the suite accent; the entries table below
+     is the full data view, and each point carries a native tooltip */
+  .sparks { display: grid; grid-template-columns: 1fr 1fr; gap: .9rem; margin-top: 1rem; }
+  @media (max-width: 620px) { .sparks { grid-template-columns: 1fr; } }
+  .spark { min-width: 0; }
+  .spark h3 { font-size: .74rem; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 600; margin-bottom: .3rem; }
+  .sparksvg { width: 100%; max-width: 340px; height: auto; display: block; }
+  .spark-line { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+  .spark-dot { fill: var(--accent); }
+  .spark-hit { fill: transparent; }
+  .spark-label { font: 600 10px ui-sans-serif, system-ui, sans-serif; fill: var(--ink); }
+  .spark-empty { font-size: .82rem; color: var(--muted); }
+
+  .csv-row { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; margin-bottom: .6rem; }
+  .csv-row .btn { display: inline-block; }
+
+  table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+  th { text-align: left; font-size: .7rem; text-transform: uppercase; letter-spacing: .06em;
+    color: var(--muted); font-weight: 600; padding: .4rem .5rem; border-bottom: 1px solid var(--line); }
+  th.num { text-align: right; }
+  td { padding: .5rem; border-bottom: 1px solid var(--line); vertical-align: top; font-variant-numeric: tabular-nums; }
+  td.num { text-align: right; }
+  td.note { max-width: 15rem; overflow-wrap: anywhere; color: var(--muted); font-size: .85rem; }
+  td.mpg .mpgwhy { display: block; font-size: .7rem; color: var(--muted); }
+  td.actions { white-space: nowrap; text-align: right; }
+  .rowbtn { border: 1px solid var(--line); background: var(--chip); color: var(--muted);
+    border-radius: 8px; padding: .15rem .5rem; cursor: pointer; font-size: .8rem; }
+  .rowbtn:hover { border-color: var(--accent); color: var(--accent); }
+  .rowbtn.btn-del:hover { border-color: var(--bad); color: var(--bad); }
+
+  /* 390px-clean: the table collapses to labeled cards, so the body never scrolls sideways */
+  @media (max-width: 640px) {
+    thead { display: none; }
+    table, tbody, tr, td { display: block; }
+    tbody tr { border: 1px solid var(--line); border-radius: 12px; background: var(--bg);
+      margin-bottom: .6rem; padding: .35rem .65rem; }
+    td { border: none; padding: .16rem 0; display: flex; justify-content: space-between; gap: .8rem; }
+    td::before { content: attr(data-label); color: var(--muted); font-size: .76rem;
+      text-transform: uppercase; letter-spacing: .05em; padding-top: .1rem; flex: 0 0 auto; }
+    td.num, td.mpg { text-align: right; }
+    td.note { max-width: none; }
+    td.note-empty { display: none; }
+    td.mpg .mpgwhy { display: inline; margin-left: .35rem; }
+  }
+
+  footer code { font: .8rem ui-monospace, Menlo, Consolas, monospace; background: var(--chip); padding: .05rem .3rem; border-radius: 5px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="index.html">← suite</a>
+    <button class="theme-btn" id="themeBtn" title="Toggle light/dark">◐ theme</button>
+  </div>
+  <header>
+    <h1>Fuel &amp; Mileage Log</h1>
+    <p class="tag">Log every fill-up and get honest tank-by-tank MPG, cost per mile, and spending
+      trends per vehicle — measured the correct way, entirely on this machine.</p>
+  </header>
+
+  <section class="card" id="vehCard">
+    <h2>Vehicle</h2>
+    <div class="veh-row">
+      <label class="sr" for="vehSel">Choose a vehicle</label>
+      <select id="vehSel"></select>
+      <button class="btn" id="vehNew" type="button">New</button>
+      <button class="btn" id="vehRename" type="button">Rename</button>
+      <button class="btn" id="vehDelete" type="button">Delete</button>
+    </div>
+    <form id="vehForm" hidden novalidate>
+      <div class="veh-row" id="vehFormRow">
+        <label class="sr" for="vehInput">Vehicle name</label>
+        <input id="vehInput" maxlength="40" placeholder="e.g. Civic">
+        <button class="btn primary" id="vehSave" type="submit">Add vehicle</button>
+        <button class="btn" id="vehCancel" type="button">Cancel</button>
+      </div>
+    </form>
+    <p class="hint" id="vehMsg"></p>
+  </section>
+
+  <section class="card" id="emptyCard">
+    <h2>Start here</h2>
+    <p>Track your fill-ups and this page turns them into real, measured MPG — not the sticker
+      number — plus cost per mile and what fuel actually costs you month to month.</p>
+    <p class="hint">Add your first vehicle with the <strong>New</strong> button above, then log a
+      fill-up: date, odometer, gallons, and what you paid.</p>
+  </section>
+
+  <section class="card" id="entryCard" hidden>
+    <h2 id="formTitle">Add fill-up</h2>
+    <form id="entryForm" novalidate>
+      <div class="grid">
+        <div class="field"><label for="fDate">Date</label><input id="fDate" type="date"></div>
+        <div class="field"><label for="fOdo">Odometer (mi)</label><input id="fOdo" type="number" min="0" step="any" inputmode="decimal" placeholder="21080"></div>
+        <div class="field"><label for="fGal">Fuel added (gal)</label><input id="fGal" type="number" min="0" step="any" inputmode="decimal" placeholder="10.5"></div>
+        <div class="field"><label for="fCost">Total cost ($)</label><input id="fCost" type="number" min="0" step="any" inputmode="decimal" placeholder="36.75"></div>
+      </div>
+      <div class="entry-row2">
+        <label class="check" for="fPartial"><input type="checkbox" id="fPartial"> Partial fill — didn't fill the tank</label>
+        <div class="field note-field"><label for="fNote">Note (optional)</label><input id="fNote" maxlength="120" placeholder="e.g. road trip, winter blend"></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn primary" id="entrySave" type="submit">Add fill-up</button>
+        <button class="btn" id="entryReset" type="button">Clear</button>
+      </div>
+      <p class="hint" id="formMsg"></p>
+    </form>
+  </section>
+
+  <section class="card" id="statsCard" hidden>
+    <h2>Stats</h2>
+    <div class="tiles" id="stats">
+      <div class="tile lead"><div class="v" id="stLife">—</div><div class="k">Lifetime MPG</div><div class="sub" id="stLifeSub"></div></div>
+      <div class="tile"><div class="v" id="stBest">—</div><div class="k">Best tank</div><div class="sub" id="stBestSub"></div></div>
+      <div class="tile"><div class="v" id="stWorst">—</div><div class="k">Worst tank</div><div class="sub" id="stWorstSub"></div></div>
+      <div class="tile"><div class="v" id="stPpg">—</div><div class="k">Avg price/gal</div><div class="sub" id="stPpgSub"></div></div>
+      <div class="tile"><div class="v" id="stCpm">—</div><div class="k">Cost per mile</div><div class="sub">fuel only, measured span</div></div>
+      <div class="tile"><div class="v" id="st30">—</div><div class="k">Last 30 days</div><div class="sub">fuel spend</div></div>
+    </div>
+    <div class="sparks">
+      <div class="spark"><h3>MPG per tank</h3><div id="sparkMpg"></div></div>
+      <div class="spark"><h3>Price per gallon</h3><div id="sparkPrice"></div></div>
+    </div>
+  </section>
+
+  <section class="card" id="tableCard" hidden>
+    <h2>Fill-ups</h2>
+    <div class="csv-row">
+      <button class="btn" id="csvExport" type="button">Export CSV</button>
+      <label class="btn" for="csvFile">Import CSV<input type="file" id="csvFile" class="sr" accept=".csv,text/csv"></label>
+    </div>
+    <p class="hint" id="csvMsg"></p>
+    <p class="hint" id="tableEmpty" hidden>No fill-ups yet — add the first one above. Each entry
+      needs the odometer reading so miles between tanks can be measured.</p>
+    <div id="tblWrap">
+      <table id="tbl">
+        <thead><tr>
+          <th>Date</th><th class="num">Odometer</th><th class="num">Gallons</th>
+          <th class="num">Cost</th><th class="num">$/gal</th><th class="num">MPG</th>
+          <th>Note</th><th><span class="sr">Actions</span></th>
+        </tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <p class="hint" id="mpgHint">MPG is measured between full fills — miles since the last full
+      tank ÷ every gallon added in between (a partial fill's gallons fold into the next full
+      tank). The first fill and partial fills show “—” because their own consumption can't be
+      known yet.</p>
+  </section>
+
+  <p class="hint err" id="storeNote" hidden>Couldn't save to browser storage (full or blocked) —
+    changes may not survive a reload.</p>
+
+  <footer>
+    Everything stays in this browser (<code>suite.fuellog.v1</code>) — no network, no accounts.
+    MPG math is tank-to-tank between full fills; export your log as CSV any time.
+  </footer>
+</div>
+
+<script src="../core/suite.js" data-suite-inline></script>
+<script>
+"use strict";
+
+Suite.theme.init();
+
+const $ = s => document.querySelector(s);
+const KEY = "suite.fuellog.v1";
+const CSV_HEADER = "date,odometer_mi,gallons,total_cost,partial,note";
+
+/* ---------- formatting (en-US pinned so figures are deterministic) ---------- */
+const fmtMpg = n => n.toFixed(1);
+const money = n => "$" + n.toFixed(2);
+const fmtOdo = n => n.toLocaleString("en-US");
+const fmtGal = g => String(+g.toFixed(3));
+const todayStr = () => new Date().toLocaleDateString("en-CA"); /* local YYYY-MM-DD */
+
+let seq = 0;
+const newId = () => "f" + Date.now().toString(36) + "-" + (seq++).toString(36);
+
+/* ---------- state: suite.fuellog.v1 = {schema, activeId, vehicles:[{id,name,fills}]} ---------- */
+function load() {
+  const raw = Suite.store.get(KEY);
+  const out = { schema: 1, activeId: null, vehicles: [] };
+  if (!raw || typeof raw !== "object" || !Array.isArray(raw.vehicles)) return out;
+  for (const v of raw.vehicles) {
+    if (!v || typeof v !== "object" || typeof v.id !== "string" || !v.id) continue;
+    const fills = [];
+    if (Array.isArray(v.fills)) for (const f of v.fills) {
+      if (!f || typeof f !== "object") continue;
+      const odo = +f.odo, gal = +f.gal, cost = +f.cost;
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(String(f.date))) continue;
+      if (!isFinite(odo) || odo <= 0 || !isFinite(gal) || gal <= 0 || !isFinite(cost) || cost < 0) continue;
+      fills.push({ id: String(f.id || newId()), date: String(f.date), odo, gal, cost,
+        partial: !!f.partial, note: String(f.note || "") });
+    }
+    out.vehicles.push({ id: v.id, name: String(v.name || "Vehicle").trim() || "Vehicle", fills });
+  }
+  out.activeId = (raw.activeId && out.vehicles.some(v => v.id === raw.activeId))
+    ? raw.activeId : (out.vehicles[0] ? out.vehicles[0].id : null);
+  return out;
+}
+const state = load();
+
+const storeNote = Suite.liveRegion($("#storeNote"));
+function saveState() {
+  const ok = Suite.store.set(KEY, state);
+  storeNote.hidden = ok; /* quota/denied: degrade politely, never crash */
+  return ok;
+}
+
+const activeVeh = () => state.vehicles.find(v => v.id === state.activeId) || null;
+const cmp = (a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : a.odo - b.odo;
+const sortedFills = v => v.fills.slice().sort(cmp);
+
+function vehIdFor(name) {
+  const base = name.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "").slice(0, 24) || "vehicle";
+  let id = base, n = 2;
+  while (state.vehicles.some(v => v.id === id)) id = base + "-" + n++;
+  return id;
+}
+
+/* ---------- MPG accounting: the tank-to-tank (full-fill-to-full-fill) method ----------
+   A fuel gauge can't tell you how much is in the tank, but a FULL tank is a known
+   quantity. So consumption is only measurable between two consecutive FULL fill-ups:
+
+     miles   = odometer(this full fill) − odometer(previous full fill)
+     gallons = every gallon bought after the previous full fill, up to and including
+               this one — partial fills in between are folded in, because their fuel
+               was burned over these same miles
+     MPG     = miles / gallons
+
+   Consequences, shown as "—" in the table:
+     · the very first full fill has no previous full tank — it only sets the baseline;
+     · a partial fill leaves the tank at an unknown level, so it gets no MPG of its
+       own — its gallons count toward the next full tank;
+     · partial fills logged before the first full fill can't be attributed at all.
+
+   Lifetime MPG and cost/mile sum only these measured segments, so they are exact over
+   the span from the first full fill to the most recent full fill. Gallons and cost from
+   trailing fills after the last full fill are excluded until the next full fill closes
+   the tank. Average price/gal is a purchase average and uses every fill. */
+function computeVehicle(v) {
+  const s = sortedFills(v);
+  const info = new Map();          /* fill id -> {kind, mpg?} for the table */
+  const segs = [];                 /* one entry per measured tank */
+  let prevFull = null, galSince = 0, costSince = 0;
+  let totMiles = 0, totGal = 0, segCost = 0;
+  let allGal = 0, allCost = 0, spend30 = 0;
+  const cutoff = Date.now() - 30 * 86400000;
+  for (const f of s) {
+    allGal += f.gal; allCost += f.cost;
+    if (Date.parse(f.date) >= cutoff) spend30 += f.cost;
+    if (!prevFull) {
+      info.set(f.id, { kind: f.partial ? "pre" : "baseline" });
+      if (!f.partial) prevFull = f;
+      continue;
+    }
+    galSince += f.gal; costSince += f.cost;
+    if (f.partial) { info.set(f.id, { kind: "partial" }); continue; }
+    const miles = f.odo - prevFull.odo;
+    const mpg = miles / galSince;
+    segs.push({ date: f.date, miles, gal: galSince, mpg });
+    info.set(f.id, { kind: "full", mpg });
+    totMiles += miles; totGal += galSince; segCost += costSince;
+    prevFull = f; galSince = 0; costSince = 0;
+  }
+  return { info, segs, totMiles, totGal, segCost, allGal, allCost, spend30 };
+}
+
+/* Odometer sanity: within a vehicle, readings must increase with time.
+   Earlier-dated fills must read lower, later-dated fills higher; two fills on the
+   same day may coexist but never share a reading. */
+function entryError(v, e, excludeId) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(e.date || "") || isNaN(Date.parse(e.date))) return "Enter a date.";
+  if (!isFinite(e.odo) || e.odo <= 0) return "Odometer must be a positive number of miles.";
+  if (!isFinite(e.gal) || e.gal <= 0) return "Fuel added must be a positive number of gallons.";
+  if (!isFinite(e.cost) || e.cost < 0) return "Total cost must be zero or more.";
+  for (const f of v.fills) {
+    if (f.id === excludeId) continue;
+    if (f.date < e.date && f.odo >= e.odo)
+      return "Odometer must increase — your " + f.date + " fill already reads " + fmtOdo(f.odo) + " mi.";
+    if (f.date > e.date && f.odo <= e.odo)
+      return "Odometer conflict — your later " + f.date + " fill reads " + fmtOdo(f.odo) + " mi, so this reading must be lower.";
+    if (f.date === e.date && f.odo === e.odo)
+      return "Two fills on " + f.date + " can't share the same odometer reading.";
+  }
+  return null;
+}
+
+/* ---------- sparklines (SVG, single series in the suite accent) ---------- */
+const SVGNS = "http://www.w3.org/2000/svg";
+function svgEl(name, attrs) {
+  const el = document.createElementNS(SVGNS, name);
+  for (const k in attrs) el.setAttribute(k, attrs[k]);
+  return el;
+}
+function drawSpark(host, pts, fmt, name, emptyMsg) {
+  host.textContent = "";
+  if (pts.length < 2) {
+    const p = document.createElement("p");
+    p.className = "spark-empty";
+    p.textContent = emptyMsg;
+    host.append(p);
+    return;
+  }
+  const W = 240, H = 64, L = 8, R = 46, T = 10, B = 10;
+  const ts = pts.map(p => Date.parse(p.d));
+  const t0 = Math.min.apply(null, ts), t1 = Math.max.apply(null, ts);
+  const vs = pts.map(p => p.v);
+  const rMin = Math.min.apply(null, vs), rMax = Math.max.apply(null, vs);
+  let v0 = rMin, v1 = rMax;
+  if (v1 - v0 < 1e-9) { v0 -= 1; v1 += 1; } /* flat series: draw a centered line */
+  const X = i => t1 === t0
+    ? L + (W - L - R) * (i / (pts.length - 1))
+    : L + (W - L - R) * ((ts[i] - t0) / (t1 - t0));
+  const Y = v => T + (H - T - B) * (1 - (v - v0) / (v1 - v0));
+  const svg = svgEl("svg", { viewBox: "0 0 " + W + " " + H, class: "sparksvg", role: "img" });
+  svg.setAttribute("aria-label", name + " — " + pts.length + " points from " + fmt(rMin) +
+    " to " + fmt(rMax) + ", latest " + fmt(vs[vs.length - 1]));
+  const d = pts.map((p, i) => (i ? "L" : "M") + X(i).toFixed(1) + " " + Y(p.v).toFixed(1)).join(" ");
+  svg.append(svgEl("path", { d, class: "spark-line" }));
+  pts.forEach((p, i) => {
+    const hit = svgEl("circle", { cx: X(i).toFixed(1), cy: Y(p.v).toFixed(1), r: 8, class: "spark-hit" });
+    const tip = document.createElementNS(SVGNS, "title");
+    tip.textContent = p.d + " · " + fmt(p.v);
+    hit.append(tip);
+    svg.append(hit, svgEl("circle", {
+      cx: X(i).toFixed(1), cy: Y(p.v).toFixed(1),
+      r: i === pts.length - 1 ? 3.4 : 2.7, class: "spark-dot"
+    }));
+  });
+  const last = pts[pts.length - 1];
+  const label = svgEl("text", {
+    x: (X(pts.length - 1) + 6).toFixed(1),
+    y: Math.min(H - 3, Math.max(T + 4, Y(last.v) + 3.5)).toFixed(1),
+    class: "spark-label"
+  });
+  label.textContent = fmt(last.v);
+  svg.append(label);
+  host.append(svg);
+}
+
+/* ---------- stats ---------- */
+Suite.liveRegion($("#stats"));
+function renderStats(v) {
+  const c = computeVehicle(v);
+  const has = c.segs.length > 0;
+  $("#stLife").textContent = has ? fmtMpg(c.totMiles / c.totGal) : "—";
+  $("#stLifeSub").textContent = has
+    ? fmtOdo(c.totMiles) + " mi · " + fmtGal(c.totGal) + " gal"
+    : "needs two full fills";
+  let best = null, worst = null;
+  for (const s of c.segs) {
+    if (!best || s.mpg > best.mpg) best = s;
+    if (!worst || s.mpg < worst.mpg) worst = s;
+  }
+  $("#stBest").textContent = best ? fmtMpg(best.mpg) : "—";
+  $("#stBestSub").textContent = best ? best.date : "";
+  $("#stWorst").textContent = worst ? fmtMpg(worst.mpg) : "—";
+  $("#stWorstSub").textContent = worst ? worst.date : "";
+  $("#stPpg").textContent = c.allGal > 0 ? money(c.allCost / c.allGal) : "—";
+  $("#stPpgSub").textContent = v.fills.length
+    ? v.fills.length + " fill-up" + (v.fills.length === 1 ? "" : "s") : "";
+  $("#stCpm").textContent = has ? "$" + (c.segCost / c.totMiles).toFixed(3) : "—";
+  $("#st30").textContent = v.fills.length ? money(c.spend30) : "—";
+  drawSpark($("#sparkMpg"), c.segs.map(s => ({ d: s.date, v: s.mpg })),
+    fmtMpg, "MPG per tank", "Needs at least two full fills.");
+  drawSpark($("#sparkPrice"), sortedFills(v).map(f => ({ d: f.date, v: f.cost / f.gal })),
+    x => "$" + x.toFixed(2), "Price per gallon", "Needs at least two fill-ups.");
+}
+
+/* ---------- entries table (newest first; collapses to cards under 640px) ---------- */
+const WHY = {
+  baseline: "First fill — sets the odometer baseline; nothing to measure yet.",
+  partial: "Partial fill — the tank wasn't filled, so these gallons roll into the next full tank's MPG.",
+  pre: "Partial fill before the first full fill — its fuel can't be attributed to measured miles."
+};
+function renderTable(v) {
+  const tbody = $("#rows");
+  tbody.textContent = "";
+  const c = computeVehicle(v);
+  const list = sortedFills(v).reverse();
+  $("#tableEmpty").hidden = list.length > 0;
+  $("#tblWrap").hidden = list.length === 0;
+  for (const f of list) {
+    const tr = document.createElement("tr");
+    tbody.append(tr);
+    tr.dataset.id = f.id;
+    tr.dataset.odo = String(f.odo);
+    const td = (cls, label, text) => {
+      const el = document.createElement("td");
+      if (cls) el.className = cls;
+      el.dataset.label = label;
+      if (text !== undefined) el.textContent = text;
+      tr.append(el);
+      return el;
+    };
+    td("", "Date", f.date);
+    td("num", "Odometer", fmtOdo(f.odo) + " mi");
+    td("num", "Gallons", fmtGal(f.gal));
+    td("num", "Cost", money(f.cost));
+    td("num", "$/gal", money(f.cost / f.gal));
+    const inf = c.info.get(f.id);
+    const mpgCell = td("num mpg", "MPG");
+    if (inf && inf.kind === "full") mpgCell.textContent = fmtMpg(inf.mpg);
+    else {
+      mpgCell.textContent = "—";
+      const why = document.createElement("span");
+      why.className = "mpgwhy";
+      why.textContent = inf && inf.kind === "baseline" ? "first fill" : "partial";
+      mpgCell.append(why);
+      mpgCell.title = WHY[inf ? inf.kind : "partial"];
+    }
+    const noteCell = td("note", "Note", f.note);
+    if (!f.note) noteCell.classList.add("note-empty");
+    const act = td("actions", "");
+    const edit = document.createElement("button");
+    edit.type = "button"; edit.className = "rowbtn btn-edit"; edit.textContent = "edit";
+    edit.setAttribute("aria-label", "Edit fill-up " + f.date + " at " + fmtOdo(f.odo) + " mi");
+    edit.addEventListener("click", () => startEdit(f));
+    const del = document.createElement("button");
+    del.type = "button"; del.className = "rowbtn btn-del"; del.textContent = "×";
+    del.title = "Delete this fill-up";
+    del.setAttribute("aria-label", "Delete fill-up " + f.date + " at " + fmtOdo(f.odo) + " mi");
+    del.addEventListener("click", () => {
+      v.fills = v.fills.filter(x => x.id !== f.id);
+      if (editingId === f.id) { editingId = null; resetForm(); }
+      saveState(); renderMain();
+    });
+    act.append(edit, document.createTextNode(" "), del);
+  }
+}
+
+/* ---------- entry form ---------- */
+const formMsg = Suite.liveRegion($("#formMsg"));
+let editingId = null;
+function showFormMsg(text, isErr) {
+  formMsg.textContent = text;
+  formMsg.classList.toggle("err", !!isErr);
+}
+function resetForm() {
+  editingId = null;
+  $("#entryForm").reset();
+  $("#fDate").value = todayStr();
+  $("#formTitle").textContent = "Add fill-up";
+  $("#entrySave").textContent = "Add fill-up";
+  $("#entryReset").textContent = "Clear";
+}
+function startEdit(f) {
+  editingId = f.id;
+  $("#fDate").value = f.date;
+  $("#fOdo").value = String(f.odo);
+  $("#fGal").value = String(f.gal);
+  $("#fCost").value = String(f.cost);
+  $("#fPartial").checked = f.partial;
+  $("#fNote").value = f.note;
+  $("#formTitle").textContent = "Edit fill-up · " + f.date;
+  $("#entrySave").textContent = "Save changes";
+  $("#entryReset").textContent = "Cancel edit";
+  showFormMsg("", false);
+  $("#entryCard").scrollIntoView();
+  $("#fOdo").focus();
+}
+$("#entryForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const v = activeVeh();
+  if (!v) return;
+  const entry = {
+    date: $("#fDate").value,
+    odo: parseFloat($("#fOdo").value),
+    gal: parseFloat($("#fGal").value),
+    cost: Math.round(parseFloat($("#fCost").value) * 100) / 100,
+    partial: $("#fPartial").checked,
+    note: $("#fNote").value.trim()
+  };
+  const err = entryError(v, entry, editingId);
+  if (err) { showFormMsg(err, true); return; }
+  if (editingId) {
+    Object.assign(v.fills.find(x => x.id === editingId), entry);
+    saveState(); resetForm(); showFormMsg("Fill-up updated.", false);
+  } else {
+    v.fills.push(Object.assign({ id: newId() }, entry));
+    saveState(); resetForm(); showFormMsg("Fill-up added.", false);
+  }
+  renderMain();
+});
+$("#entryReset").addEventListener("click", () => { resetForm(); showFormMsg("", false); });
+
+/* ---------- CSV export / import ---------- */
+const csvMsg = Suite.liveRegion($("#csvMsg"));
+function showCsvMsg(text, isErr) {
+  csvMsg.textContent = text;
+  csvMsg.classList.toggle("err", !!isErr);
+}
+/* RFC-4180-style quoting: quote a field containing comma, quote, or newline;
+   double any quotes inside. */
+const csvField = s => /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+
+$("#csvExport").addEventListener("click", () => {
+  const v = activeVeh();
+  if (!v) return;
+  if (!v.fills.length) { showCsvMsg("Nothing to export yet.", false); return; }
+  const lines = [CSV_HEADER].concat(sortedFills(v).map(f =>
+    [f.date, String(f.odo), String(f.gal), f.cost.toFixed(2), f.partial ? "yes" : "no", f.note]
+      .map(csvField).join(",")));
+  const blob = new Blob([lines.join("\n") + "\n"], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "fuellog-" + v.id + ".csv";
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+  showCsvMsg("Exported " + v.fills.length + " fill-ups.", false);
+});
+
+/* Minimal CSV parser: handles quoted fields, doubled quotes, CRLF. */
+function parseCSV(text) {
+  const rows = [];
+  let row = [], field = "", inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inQ) {
+      if (ch === '"') {
+        if (text[i + 1] === '"') { field += '"'; i++; } else inQ = false;
+      } else field += ch;
+    } else if (ch === '"') inQ = true;
+    else if (ch === ",") { row.push(field); field = ""; }
+    else if (ch === "\n" || ch === "\r") {
+      if (ch === "\r" && text[i + 1] === "\n") i++;
+      row.push(field); rows.push(row); row = []; field = "";
+    } else field += ch;
+  }
+  if (field !== "" || row.length) { row.push(field); rows.push(row); }
+  return rows.filter(r => !(r.length === 1 && r[0].trim() === ""));
+}
+
+function importCSV(v, text) {
+  const fail = msgs => showCsvMsg("Import failed — nothing was added. " +
+    msgs.slice(0, 4).join(" ") +
+    (msgs.length > 4 ? " …and " + (msgs.length - 4) + " more." : "") +
+    " Expected columns: " + CSV_HEADER + ".", true);
+  const rows = parseCSV(text);
+  if (!rows.length) return fail(["The file is empty."]);
+  if (rows[0].map(s => s.trim().toLowerCase()).join(",") !== CSV_HEADER)
+    return fail(["Row 1: expected the header row."]);
+  const errors = [], entries = [];
+  rows.slice(1).forEach((r, idx) => {
+    const n = idx + 2;
+    if (r.length < 5 || r.length > 6) { errors.push("Row " + n + ": expected 6 columns, got " + r.length + "."); return; }
+    const date = r[0].trim(), odo = parseFloat(r[1]), gal = parseFloat(r[2]),
+      cost = parseFloat(r[3]), partS = r[4].trim().toLowerCase(),
+      note = (r[5] === undefined ? "" : r[5]).trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || isNaN(Date.parse(date)))
+      errors.push("Row " + n + ": date must be YYYY-MM-DD.");
+    else if (!isFinite(odo) || odo <= 0) errors.push("Row " + n + ": odometer must be a positive number.");
+    else if (!isFinite(gal) || gal <= 0) errors.push("Row " + n + ": gallons must be a positive number.");
+    else if (!isFinite(cost) || cost < 0) errors.push("Row " + n + ": total cost must be zero or more.");
+    else if (!["yes", "no", "true", "false", "1", "0", ""].includes(partS))
+      errors.push("Row " + n + ": partial must be yes or no.");
+    else entries.push({ id: newId(), date, odo, gal, cost: Math.round(cost * 100) / 100,
+      partial: ["yes", "true", "1"].includes(partS), note });
+  });
+  if (errors.length) return fail(errors);
+  if (!entries.length) return fail(["No data rows found."]);
+  const merged = v.fills.concat(entries).sort(cmp);
+  for (let i = 1; i < merged.length; i++) {
+    if (merged[i].odo <= merged[i - 1].odo)
+      return fail(["Odometer must increase over time — " + merged[i - 1].date + " reads " +
+        fmtOdo(merged[i - 1].odo) + " mi but " + merged[i].date + " reads " +
+        fmtOdo(merged[i].odo) + " mi."]);
+  }
+  v.fills = merged;
+  saveState();
+  renderMain();
+  showCsvMsg("Imported " + entries.length + " fill-ups into " + v.name + ".", false);
+}
+$("#csvFile").addEventListener("change", () => {
+  const v = activeVeh();
+  const file = $("#csvFile").files && $("#csvFile").files[0];
+  if (!v || !file) return;
+  file.text().then(text => { importCSV(v, text); $("#csvFile").value = ""; })
+    .catch(() => { showCsvMsg("Couldn't read that file.", true); $("#csvFile").value = ""; });
+});
+
+/* ---------- vehicle picker: add / rename / delete (two-step confirm) ---------- */
+const vehMsg = Suite.liveRegion($("#vehMsg"));
+function showVehMsg(text, isErr) {
+  vehMsg.textContent = text;
+  vehMsg.classList.toggle("err", !!isErr);
+}
+let vehMode = null;
+let delArmed = false, delTimer = 0;
+function disarmDelete() {
+  delArmed = false;
+  clearTimeout(delTimer);
+  $("#vehDelete").textContent = "Delete";
+  $("#vehDelete").classList.remove("danger");
+}
+function openVehForm(mode) {
+  vehMode = mode;
+  disarmDelete();
+  $("#vehForm").hidden = false;
+  const v = activeVeh();
+  $("#vehInput").value = mode === "rename" && v ? v.name : "";
+  $("#vehSave").textContent = mode === "rename" ? "Save name" : "Add vehicle";
+  showVehMsg("", false);
+  $("#vehInput").focus();
+}
+$("#vehNew").addEventListener("click", () => openVehForm("new"));
+$("#vehRename").addEventListener("click", () => { if (activeVeh()) openVehForm("rename"); });
+$("#vehCancel").addEventListener("click", () => { $("#vehForm").hidden = true; vehMode = null; });
+$("#vehForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const name = $("#vehInput").value.trim();
+  if (!name) { showVehMsg("Give the vehicle a name.", true); return; }
+  const clash = state.vehicles.find(v => v.name.toLowerCase() === name.toLowerCase() &&
+    !(vehMode === "rename" && v.id === state.activeId));
+  if (clash) { showVehMsg("There's already a vehicle called " + clash.name + ".", true); return; }
+  if (vehMode === "rename") {
+    const v = activeVeh();
+    const old = v.name;
+    v.name = name;
+    showVehMsg("Renamed " + old + " to " + name + ".", false);
+  } else {
+    const v = { id: vehIdFor(name), name, fills: [] };
+    state.vehicles.push(v);
+    state.activeId = v.id;
+    showVehMsg("Added " + name + ".", false);
+    resetForm();
+  }
+  saveState();
+  $("#vehForm").hidden = true;
+  vehMode = null;
+  renderAll();
+});
+$("#vehDelete").addEventListener("click", () => {
+  const v = activeVeh();
+  if (!v) return;
+  if (!delArmed) {
+    delArmed = true;
+    $("#vehDelete").textContent = "Confirm delete";
+    $("#vehDelete").classList.add("danger");
+    showVehMsg('Delete "' + v.name + '" and its ' + v.fills.length +
+      ' fill-ups? Click "Confirm delete" to make it permanent.', false);
+    delTimer = setTimeout(disarmDelete, 6000);
+    return;
+  }
+  state.vehicles = state.vehicles.filter(x => x.id !== v.id);
+  state.activeId = state.vehicles[0] ? state.vehicles[0].id : null;
+  saveState();
+  disarmDelete();
+  resetForm();
+  showVehMsg("Deleted " + v.name + ".", false);
+  renderAll();
+});
+$("#vehSel").addEventListener("change", () => {
+  state.activeId = $("#vehSel").value;
+  saveState();
+  disarmDelete();
+  resetForm();
+  showFormMsg("", false);
+  showCsvMsg("", false);
+  renderAll();
+});
+
+/* ---------- render ---------- */
+function renderMain() {
+  const v = activeVeh();
+  $("#emptyCard").hidden = !!v;
+  $("#entryCard").hidden = !v;
+  $("#statsCard").hidden = !v;
+  $("#tableCard").hidden = !v;
+  if (v) {
+    renderStats(v);
+    renderTable(v);
+    if (!$("#fDate").value) $("#fDate").value = todayStr();
+  }
+}
+function renderAll() {
+  const sel = $("#vehSel");
+  sel.textContent = "";
+  for (const v of state.vehicles) {
+    const opt = document.createElement("option");
+    opt.value = v.id;
+    opt.textContent = v.name;
+    sel.append(opt);
+  }
+  if (state.activeId) sel.value = state.activeId;
+  sel.disabled = !state.vehicles.length;
+  $("#vehRename").disabled = !state.activeId;
+  $("#vehDelete").disabled = !state.activeId;
+  renderMain();
+}
+
+renderAll();
+</script>
+</body>
+</html>

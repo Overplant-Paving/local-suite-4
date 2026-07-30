@@ -56,6 +56,12 @@ a { color: var(--accent); }
   color: var(--ink); border-radius: 999px; padding: .35rem .8rem;
   cursor: pointer; font-size: .85rem;
 }
+.fav-btn {
+  float: right; border: 1px solid var(--line); background: var(--card);
+  color: var(--muted); border-radius: 999px; padding: .35rem .6rem;
+  cursor: pointer; font-size: .85rem; margin-right: .45rem; line-height: 1.2;
+}
+.fav-btn.on { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
 .card {
   background: var(--card); border: 1px solid var(--line); border-radius: 14px;
   padding: 1rem 1.05rem .9rem; box-shadow: var(--shadow);

@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NASA Image Library · Local Suite</title>
+<link rel="stylesheet" href="../core/suite.css" data-suite-inline>
+<style>
+  body { padding: 1.4rem 1.25rem 4rem; }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  .topbar { display: flex; align-items: center; gap: 1rem; }
+  .topbar .theme-btn, .topbar .fav-btn { float: none; }
+  .topbar .theme-btn { margin-left: auto; }
+  header { margin: 1rem 0 1.2rem; }
+  h1 { font-size: 1.8rem; letter-spacing: -.02em; }
+  .tag { color: var(--muted); margin-top: .35rem; max-width: 48rem; }
+
+  .searchbar { margin-top: .4rem; }
+  .yearrow { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; margin-top: .6rem; }
+  .yearrow label { font-size: .85rem; color: var(--muted); }
+  .yearrow input { width: 6.2rem; padding: .45rem .6rem; font-size: .92rem; color: var(--ink);
+    border: 1px solid var(--line); border-radius: 10px; background: var(--card); }
+  .yearrow input:focus { border-color: var(--accent); }
+  button.go { border: 1px solid var(--accent); background: var(--accent); color: var(--bg);
+    border-radius: 10px; padding: .5rem 1.15rem; cursor: pointer; font-size: .92rem; margin-left: auto; }
+  button.go:hover { filter: brightness(1.06); }
+
+  .statusrow { display: flex; align-items: center; gap: .8rem; flex-wrap: wrap; margin-top: 1.2rem; min-height: 2rem; }
+  #status { font-size: .9rem; color: var(--muted); flex: 1 1 12rem; }
+  #status .stale { display: inline-block; background: var(--chip); border: 1px solid var(--line);
+    border-radius: 999px; padding: .1rem .6rem; margin-left: .35rem; }
+  .pager { display: flex; gap: .5rem; }
+  .pager button { border: 1px solid var(--line); background: var(--card); color: var(--ink);
+    border-radius: 10px; padding: .45rem .95rem; cursor: pointer; font-size: .9rem; }
+  .pager button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+  .pager button:disabled { opacity: .45; cursor: default; }
+
+  .starter { background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    box-shadow: var(--shadow); padding: 1.2rem 1.3rem 1.3rem; margin-top: 1.2rem; }
+  .starter p { color: var(--muted); font-size: .95rem; }
+  .chiprow { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .85rem; }
+  .chipbtn { border: 1px solid var(--line); background: var(--chip); color: var(--ink);
+    border-radius: 999px; padding: .42rem 1rem; cursor: pointer; font-size: .9rem; }
+  .chipbtn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: .8rem; margin-top: .9rem; }
+  .tile { border: 1px solid var(--line); border-radius: 12px; background: var(--card); box-shadow: var(--shadow);
+    padding: 0; overflow: hidden; cursor: pointer; text-align: left; color: var(--ink); font: inherit;
+    display: flex; flex-direction: column; }
+  .tile:hover { border-color: var(--accent); }
+  .tile .ph { display: flex; align-items: center; justify-content: center; height: 128px;
+    background: var(--chip); color: var(--muted); font-size: .78rem; overflow: hidden; }
+  .tile .ph img { width: 100%; height: 128px; object-fit: cover; display: block; }
+  .tile .cap { display: block; padding: .5rem .6rem .6rem; font-size: .8rem; line-height: 1.3; }
+  .tile .cap b { display: block; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .tile .cap .meta { display: flex; align-items: center; gap: .4rem; color: var(--muted); margin-top: .3rem; }
+
+  .msgcard { background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    box-shadow: var(--shadow); padding: 1.2rem 1.3rem; margin-top: 1.2rem; }
+  .msgcard h2 { font-size: 1.02rem; margin-bottom: .3rem; }
+  .msgcard p { color: var(--muted); font-size: .92rem; }
+  .msgcard.err { border-left: 4px solid var(--accent); }
+
+  /* detail overlay */
+  .overlay { position: fixed; inset: 0; background: rgba(10, 12, 14, .6); display: none;
+    align-items: flex-start; justify-content: center; padding: 1.4rem .9rem; z-index: 40; overflow: auto; }
+  .overlay.show { display: flex; }
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 16px;
+    box-shadow: var(--shadow); max-width: 700px; width: 100%; overflow: hidden; position: relative; }
+  .panel .close { position: absolute; top: .6rem; right: .6rem; z-index: 2; border: 1px solid var(--line);
+    background: var(--card); color: var(--ink); border-radius: 999px; width: 2.1rem; height: 2.1rem;
+    cursor: pointer; font-size: 1rem; line-height: 1; }
+  .panel .close:hover { border-color: var(--accent); color: var(--accent); }
+  .panel .frame { background: var(--chip); display: flex; align-items: center; justify-content: center; min-height: 200px; }
+  .panel .frame img { width: 100%; max-height: 58vh; object-fit: contain; display: block; }
+  .panel .frame .note { color: var(--muted); padding: 3rem 1rem; text-align: center; font-size: .92rem; }
+  .panel .body { padding: 1.1rem 1.3rem 1.3rem; }
+  .panel .body h2 { font-size: 1.25rem; line-height: 1.3; padding-right: 2rem; }
+  .panel .dmeta { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; color: var(--muted);
+    font-size: .9rem; margin-top: .35rem; }
+  .panel .desc { font-size: .92rem; margin-top: .7rem; max-height: 11rem; overflow: auto; }
+  .panel .credit { color: var(--muted); font-size: .87rem; margin-top: .7rem; }
+  .panel .dio { color: var(--muted); font-size: .78rem; margin-top: .3rem; }
+  .panel .dlink { display: inline-block; margin-top: .7rem; font-size: .9rem; }
+  .panel .dnote { font-size: .85rem; color: var(--muted); margin-top: .6rem; }
+  .panel .dnote .stale { background: var(--chip); border: 1px solid var(--line); border-radius: 999px; padding: .1rem .6rem; }
+
+  @media (max-width: 480px) {
+    .grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+    button.go { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="index.html">← suite</a>
+    <button class="theme-btn" id="themeBtn" title="Toggle light/dark">◐ theme</button>
+  </div>
+  <header>
+    <h1>NASA Image Library</h1>
+    <p class="tag">Search 140,000+ NASA photographs — missions, planets, launches, people — straight
+      from the NASA Image and Video Library, no key needed.</p>
+  </header>
+
+  <form class="searchbar" id="searchForm">
+    <input class="search" id="q" type="search" autocomplete="off"
+      placeholder="Search NASA’s images — “Apollo 11”, “Europa”, “wind tunnel”…"
+      aria-label="Search NASA images">
+    <div class="yearrow">
+      <label for="yearStart">From year</label>
+      <input id="yearStart" type="number" inputmode="numeric" min="1900" max="2100" step="1" placeholder="1958">
+      <label for="yearEnd">to</label>
+      <input id="yearEnd" type="number" inputmode="numeric" min="1900" max="2100" step="1" placeholder="2026" aria-label="To year">
+      <button class="go" type="submit">Search</button>
+    </div>
+  </form>
+
+  <div class="statusrow">
+    <p id="status"></p>
+    <div class="pager">
+      <button id="prevBtn" type="button" disabled aria-label="Previous page">‹ Prev</button>
+      <button id="nextBtn" type="button" disabled aria-label="Next page">Next ›</button>
+    </div>
+  </div>
+
+  <section class="starter" id="starter">
+    <h2>Start with a search</h2>
+    <p>Everything in NASA’s public image library is searchable — mission names, targets,
+      centers, instruments. Try one of these:</p>
+    <div class="chiprow">
+      <button class="chipbtn" type="button" data-q="Apollo 11">Apollo 11</button>
+      <button class="chipbtn" type="button" data-q="Hubble deep field">Hubble deep field</button>
+      <button class="chipbtn" type="button" data-q="Artemis">Artemis</button>
+    </div>
+  </section>
+
+  <div id="results">
+    <div class="grid" id="grid"></div>
+    <div class="msgcard" id="msg" hidden></div>
+  </div>
+
+  <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+    <div class="panel">
+      <button class="close" id="closeBtn" type="button" aria-label="Close details">✕</button>
+      <div class="frame" id="detailFrame"><div class="note">Loading image…</div></div>
+      <div class="body">
+        <h2 id="detailTitle"></h2>
+        <div class="dmeta" id="detailMeta"></div>
+        <div class="desc" id="detailDesc"></div>
+        <p class="credit" id="detailCredit"></p>
+        <p class="dio mono" id="detailId"></p>
+        <a class="dlink" id="detailLink" target="_blank" rel="noopener"></a>
+        <p class="dnote" id="detailNote"></p>
+      </div>
+    </div>
+  </div>
+
+  <footer>Data: NASA Image and Video Library (images-api.nasa.gov), keyless; images served from
+    images-assets.nasa.gov. NASA imagery is generally not copyrighted, but photos may include
+    identifiable people or partner material — check NASA’s image use guidelines before reuse.
+    Searches are cached on this machine for 24 hours.</footer>
+</div>
+
+<script src="../core/suite.js" data-suite-inline></script>
+<script>
+"use strict";
+
+Suite.theme.init();
+
+const esc = Suite.esc;
+const TTL = 1440 * 60 * 1000;      // manifest cacheTtlMin: 1440 (24 h)
+const PAGE_SIZE = 24;
+/* images-api.nasa.gov rejects requests where page * page_size exceeds 10,000 results,
+   so pagination stops at floor(10000/24) = 416 pages no matter what total_hits says. */
+const MAX_PAGE = Math.floor(10000 / PAGE_SIZE);
+const ASSET_HOST = "images-assets.nasa.gov";
+
+/* ---- safe remote-image URL filters (art.html house pattern) ----
+   Search-result thumbnails (links[0].href) must be https on images-assets.nasa.gov;
+   anything else — http:, javascript:, data:, foreign hosts — is dropped and the tile
+   renders its designed no-preview state instead. */
+function thumbURL(u){
+  if (typeof u !== "string") return null;
+  try {
+    const x = new URL(u);
+    return (x.protocol === "https:" && x.hostname === ASSET_HOST) ? x.href : null;
+  } catch (e) { return null; }
+}
+/* The /asset/{nasa_id} manifest returns http:// hrefs for the very same
+   images-assets.nasa.gov files (live probe 2026-07-30). Same host, TLS is served:
+   upgrade http -> https. Every other scheme or host is rejected. */
+function assetVariantURL(u){
+  if (typeof u !== "string") return null;
+  try {
+    const x = new URL(u);
+    if (x.hostname !== ASSET_HOST) return null;
+    if (x.protocol !== "https:" && x.protocol !== "http:") return null;
+    x.protocol = "https:";
+    return x.href;
+  } catch (e) { return null; }
+}
+
+function fmtWhen(t){
+  return new Date(t).toLocaleString([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+}
+function slugify(s){
+  return String(s || "").toLowerCase().normalize("NFKD")
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "blank";
+}
+function yearOf(iso){ return /^\d{4}/.test(String(iso)) ? String(iso).slice(0, 4) : ""; }
+
+/* normalize one collection.items[] entry (shape captured live 2026-07-30):
+   {data:[{title,date_created,center,nasa_id,description,photographer,secondary_creator}],
+    links:[{href,rel:"preview",...}]} */
+function toRecord(item){
+  const d = (item && Array.isArray(item.data) && item.data[0]) || {};
+  const links = (item && Array.isArray(item.links)) ? item.links : [];
+  return {
+    id: typeof d.nasa_id === "string" ? d.nasa_id : "",
+    title: typeof d.title === "string" && d.title ? d.title : "Untitled",
+    date: typeof d.date_created === "string" ? d.date_created : "",
+    center: typeof d.center === "string" ? d.center : "",
+    desc: typeof d.description === "string" ? d.description : "",
+    credit: (typeof d.photographer === "string" && d.photographer.trim()) ? d.photographer.trim()
+      : (typeof d.secondary_creator === "string" && d.secondary_creator.trim()) ? d.secondary_creator.trim()
+      : "NASA",
+    thumb: thumbURL(links.length ? links[0].href : null)
+  };
+}
+
+/* ---- elements ---- */
+const form = document.getElementById("searchForm");
+const qEl = document.getElementById("q");
+const ysEl = document.getElementById("yearStart");
+const yeEl = document.getElementById("yearEnd");
+const statusEl = Suite.liveRegion(document.getElementById("status"));
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
+const starter = document.getElementById("starter");
+const grid = document.getElementById("grid");
+const msg = document.getElementById("msg");
+
+const state = { q: "", ys: "", ye: "", page: 1, total: 0, records: [], stale: 0, loading: false };
+let searchGeneration = 0;
+
+function totalPages(){ return Math.min(Math.max(1, Math.ceil(state.total / PAGE_SIZE)), MAX_PAGE); }
+
+function paintPager(){
+  prevBtn.disabled = state.loading || !state.records.length || state.page <= 1;
+  nextBtn.disabled = state.loading || !state.records.length || state.page >= totalPages();
+}
+
+function setStatus(html){ statusEl.innerHTML = html; }
+
+function showMsg(kind, title, body){
+  grid.innerHTML = "";
+  msg.hidden = false;
+  msg.className = "msgcard" + (kind === "err" ? " err" : "");
+  msg.innerHTML = "<h2>" + esc(title) + "</h2><p>" + body + "</p>"; // body pre-escaped by callers
+}
+
+function yearsLabel(){
+  if (state.ys && state.ye) return state.ys + "–" + state.ye;
+  if (state.ys) return "from " + state.ys;
+  if (state.ye) return "up to " + state.ye;
+  return "";
+}
+
+/* ---- search ---- */
+function cacheSlug(){
+  return slugify(state.q) + (state.ys || state.ye ? "." + (state.ys || "x") + "-" + (state.ye || "x") : "");
+}
+
+async function runSearch(){
+  const generation = ++searchGeneration;
+  const request = { q: state.q, ys: state.ys, ye: state.ye, page: state.page };
+  const slug = slugify(request.q) +
+    (request.ys || request.ye ? "." + (request.ys || "x") + "-" + (request.ye || "x") : "");
+  const url = "https://images-api.nasa.gov/search?q=" + encodeURIComponent(request.q) +
+    "&media_type=image&page_size=" + PAGE_SIZE +
+    (request.ys ? "&year_start=" + request.ys : "") +
+    (request.ye ? "&year_end=" + request.ye : "") +
+    "&page=" + request.page;
+  starter.hidden = true;
+  msg.hidden = true;
+  grid.innerHTML = "";
+  state.loading = true;
+  paintPager();
+  setStatus("Searching NASA’s image library…");
+  try {
+    const r = await Suite.fetchJSON(url, { cacheKey: "nasaimages.q." + slug + "." + request.page, ttl: TTL });
+    if (generation !== searchGeneration) return;
+    const c = r.v && r.v.collection;
+    const items = (c && Array.isArray(c.items)) ? c.items : [];
+    state.total = (c && c.metadata && isFinite(c.metadata.total_hits)) ? +c.metadata.total_hits : items.length;
+    state.records = items.map(toRecord).filter(rec => rec.id);
+    state.stale = r.stale ? r.t : 0;
+    state.loading = false;
+    if (!state.records.length){
+      setStatus("0 results");
+      showMsg("empty", "No images found for “" + request.q + "”" + (yearsLabel() ? " (" + yearsLabel() + ")" : ""),
+        esc("Try broader terms — a mission name (“Voyager”), a target (“Jupiter”), a center (“JPL”) — or widen the year range."));
+    } else {
+      renderGrid();
+      setStatus("page " + state.page + " of " + totalPages() + " · " + state.total.toLocaleString() + " results" +
+        (yearsLabel() ? " · " + esc(yearsLabel()) : "") +
+        (state.stale ? ' <span class="stale">Offline — cached from ' + esc(fmtWhen(state.stale)) + "</span>" : ""));
+    }
+  } catch (e) {
+    if (generation !== searchGeneration) return;
+    state.loading = false;
+    state.records = [];
+    setStatus("");
+    const is429 = /HTTP 429/.test(String(e && e.message));
+    showMsg("err",
+      is429 ? "NASA’s image API is rate-limiting requests" : "Couldn’t reach NASA’s image library",
+      esc(is429
+        ? "Too many requests right now (HTTP 429). Wait a minute, then search again."
+        : "The search failed and nothing is cached for it yet — check your connection and try again.") +
+      " <span class=\"mono\">" + esc("Tried at " + fmtWhen(Date.now())) + "</span>");
+  }
+  if (generation === searchGeneration) paintPager();
+}
+
+function renderGrid(){
+  msg.hidden = true;
+  grid.innerHTML = "";
+  state.records.forEach(rec => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "tile";
+    b.setAttribute("aria-label", "Open details: " + rec.title);
+    b.innerHTML =
+      '<span class="ph"></span>' +
+      '<span class="cap"><b>' + esc(rec.title) + "</b>" +
+      '<span class="meta">' + esc(yearOf(rec.date)) +
+        (rec.center ? ' <span class="chip">' + esc(rec.center) + "</span>" : "") +
+      "</span></span>";
+    const ph = b.querySelector(".ph");
+    if (rec.thumb){
+      const img = document.createElement("img");
+      img.alt = rec.title;                 // alt text from the record title
+      img.loading = "lazy";
+      img.addEventListener("error", () => { img.remove(); ph.textContent = "Preview unavailable"; });
+      ph.appendChild(img);
+      img.src = rec.thumb;                 // https + images-assets.nasa.gov only (thumbURL)
+    } else {
+      ph.textContent = "No preview";
+    }
+    b.addEventListener("click", () => openDetail(rec, b));
+    grid.appendChild(b);
+  });
+}
+
+/* ---- form / chips / pagination ---- */
+function readYear(el){
+  const v = String(el.value).trim();
+  return /^\d{4}$/.test(v) ? v : "";
+}
+function submitSearch(q){
+  const query = String(q).trim();
+  if (!query){ qEl.focus(); return; }
+  state.q = query;
+  let ys = readYear(ysEl), ye = readYear(yeEl);
+  if (ys && ye && +ys > +ye){ const t = ys; ys = ye; ye = t; ysEl.value = ys; yeEl.value = ye; }
+  state.ys = ys; state.ye = ye;
+  state.page = 1;
+  runSearch();
+}
+form.addEventListener("submit", e => { e.preventDefault(); submitSearch(qEl.value); });
+document.querySelectorAll(".chipbtn").forEach(btn => {
+  btn.addEventListener("click", () => { qEl.value = btn.dataset.q; submitSearch(btn.dataset.q); });
+});
+prevBtn.addEventListener("click", () => {
+  if (state.page > 1){ state.page--; runSearch(); window.scrollTo({ top: 0 }); }
+});
+nextBtn.addEventListener("click", () => {
+  if (state.page < totalPages()){ state.page++; runSearch(); window.scrollTo({ top: 0 }); }
+});
+
+/* ---- detail overlay ---- */
+const overlay = document.getElementById("overlay");
+const closeBtn = document.getElementById("closeBtn");
+const dFrame = document.getElementById("detailFrame");
+const dTitle = document.getElementById("detailTitle");
+const dMeta = document.getElementById("detailMeta");
+const dDesc = document.getElementById("detailDesc");
+const dCredit = document.getElementById("detailCredit");
+const dId = document.getElementById("detailId");
+const dLink = document.getElementById("detailLink");
+const dNote = Suite.liveRegion(document.getElementById("detailNote"));
+let lastFocus = null;
+let detailId = null;
+
+function pickVariant(items){
+  const safe = (Array.isArray(items) ? items : [])
+    .map(x => assetVariantURL(x && x.href)).filter(Boolean);
+  // prefer the ~medium web rendition, then the original, then ~large; never the .tif original
+  return safe.find(h => /~medium\.(jpe?g|png)$/i.test(h)) ||
+         safe.find(h => /~orig\.(jpe?g|png|gif)$/i.test(h)) ||
+         safe.find(h => /~large\.(jpe?g|png)$/i.test(h)) || null;
+}
+
+function setDetailImage(src, alt){
+  if (!src){ dFrame.innerHTML = '<div class="note">No displayable image in this record.</div>'; return; }
+  dFrame.innerHTML = '<div class="note">Loading image…</div>';
+  const img = document.createElement("img");
+  img.alt = alt;
+  img.addEventListener("load", () => { dFrame.innerHTML = ""; dFrame.appendChild(img); });
+  img.addEventListener("error", () => { dFrame.innerHTML = '<div class="note">The image failed to load from images-assets.nasa.gov.</div>'; });
+  img.src = src;
+}
+
+function openDetail(rec, opener){
+  lastFocus = opener || document.activeElement;
+  detailId = rec.id;
+  overlay.classList.add("show");
+  document.body.style.overflow = "hidden";
+  dTitle.textContent = rec.title;
+  dMeta.innerHTML = esc(rec.date ? rec.date.slice(0, 10) : "") +
+    (rec.center ? ' <span class="chip">' + esc(rec.center) + "</span>" : "");
+  dDesc.textContent = rec.desc || "No description in this record.";
+  dCredit.textContent = "Credit: " + rec.credit;   // record's own photographer/creator, default NASA
+  dId.textContent = rec.id;
+  dLink.href = "https://images.nasa.gov/details/" + encodeURIComponent(rec.id);
+  dLink.textContent = "View on images.nasa.gov ↗";
+  dNote.textContent = "";
+  dFrame.innerHTML = '<div class="note">Loading image…</div>';
+  closeBtn.focus();
+  loadAsset(rec);
+}
+
+async function loadAsset(rec){
+  try {
+    const r = await Suite.fetchJSON("https://images-api.nasa.gov/asset/" + encodeURIComponent(rec.id),
+      { cacheKey: "nasaimages.asset." + rec.id, ttl: TTL });
+    if (detailId !== rec.id) return;    // another record was opened while this was in flight
+    const items = r.v && r.v.collection && r.v.collection.items;
+    const src = pickVariant(items) || rec.thumb;
+    if (r.stale) dNote.innerHTML = '<span class="stale">Offline — image list cached from ' + esc(fmtWhen(r.t)) + "</span>";
+    setDetailImage(src, rec.title);
+  } catch (e) {
+    if (detailId !== rec.id) return;
+    if (rec.thumb){
+      dNote.textContent = "Couldn’t fetch the full-size image list — showing the search preview instead.";
+      setDetailImage(rec.thumb, rec.title);
+    } else {
+      dFrame.innerHTML = '<div class="note">Couldn’t load this image (the asset list request failed).</div>';
+    }
+  }
+}
+
+function closeDetail(){
+  overlay.classList.remove("show");
+  document.body.style.overflow = "";
+  detailId = null;
+  if (lastFocus && document.contains(lastFocus)) lastFocus.focus();
+  lastFocus = null;
+}
+closeBtn.addEventListener("click", closeDetail);
+overlay.addEventListener("click", e => { if (e.target === overlay) closeDetail(); });
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && overlay.classList.contains("show")){ e.preventDefault(); closeDetail(); }
+});
+/* keep Tab inside the dialog while it is open */
+overlay.addEventListener("keydown", e => {
+  if (e.key !== "Tab") return;
+  const f = overlay.querySelectorAll("button, a[href]");
+  if (!f.length) return;
+  const first = f[0], last = f[f.length - 1];
+  if (e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+});
+</script>
+</body>
+</html>

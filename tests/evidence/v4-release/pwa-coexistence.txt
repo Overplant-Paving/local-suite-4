@@ -1,0 +1,3 @@
+sw ready; caches: ["suite-v3-coexistence-fixture","suite-v4-6c11c510bae7"] (expected suite-v4-6c11c510bae7)
+coexistence state after v4 activation: {"keys":["suite-v3-coexistence-fixture","suite-v4-6c11c510bae7"],"currentEntries":105,"v3Body":"v3 offline shell","obsoleteV4Present":false}
+V3/V4 CACHE COEXISTENCE OK

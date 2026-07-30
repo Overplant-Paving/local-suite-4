@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recipe Box · Local Suite</title>
+<link rel="stylesheet" href="../core/suite.css" data-suite-inline>
+<style>
+  body { padding: 1.4rem 1.25rem 4rem; }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  .topbar { display: flex; align-items: center; gap: 1rem; }
+  .topbar .theme-btn, .topbar .fav-btn { float: none; }
+  .topbar .theme-btn { margin-left: auto; }
+  header { margin: 1rem 0 1.2rem; }
+  h1 { font-size: 1.8rem; letter-spacing: -.02em; }
+  .tag { color: var(--muted); margin-top: .35rem; max-width: 48rem; }
+
+  .status { color: var(--muted); font-size: .85rem; min-height: 1.3rem; margin: 0 0 .6rem; }
+  .actions { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .btn {
+    border: 1px solid var(--line); background: var(--card); color: var(--ink);
+    border-radius: 999px; padding: .45rem .95rem; cursor: pointer; font-size: .9rem;
+  }
+  .btn:hover { border-color: var(--accent); }
+  .btn.primary { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+
+  /* list */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(230px, 100%), 1fr)); gap: .8rem; }
+  .rcard {
+    text-align: left; border: 1px solid var(--line); background: var(--card); color: var(--ink);
+    border-radius: 14px; padding: .9rem 1rem; cursor: pointer; box-shadow: var(--shadow);
+    display: flex; flex-direction: column; gap: .3rem; font: inherit;
+  }
+  .rcard:hover { border-color: var(--accent); }
+  .rtitle { font-weight: 600; font-size: 1.02rem; overflow-wrap: anywhere; }
+  .rmeta { color: var(--muted); font-size: .82rem; }
+  .empty { color: var(--muted); text-align: center; margin: 3rem 0; }
+
+  /* editor */
+  #editView .card { max-width: 40rem; }
+  #editView h2 { font-size: 1.2rem; letter-spacing: -.01em; }
+  #editView label { display: block; font-size: .85rem; font-weight: 600; color: var(--muted); margin: .5rem 0 .25rem; }
+  .field {
+    width: 100%; padding: .55rem .7rem; border: 1px solid var(--line); border-radius: 10px;
+    background: var(--bg); color: var(--ink); font: inherit;
+  }
+  .field:focus { border-color: var(--accent); outline: none; }
+  textarea.field { font: 14px/1.65 ui-monospace, "Cascadia Code", Menlo, Consolas, monospace; resize: vertical; }
+  .hint { font-size: .78rem; color: var(--muted); margin-top: .25rem; }
+  .formrow { display: flex; gap: .5rem; margin-top: .9rem; flex-wrap: wrap; }
+
+  /* viewer */
+  .vactions { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .recipe-card h2 { font-size: 1.45rem; letter-spacing: -.01em; overflow-wrap: anywhere; }
+  .recipe-card h3 {
+    font-size: .82rem; text-transform: uppercase; letter-spacing: .07em;
+    color: var(--muted); margin-top: .5rem;
+  }
+  .meta { color: var(--muted); font-size: .9rem; }
+  .stepper { display: flex; align-items: center; gap: .55rem; flex-wrap: wrap; }
+  .stepper .slabel { font-size: .88rem; color: var(--muted); font-weight: 600; }
+  .stepper button {
+    width: 2.2rem; height: 2.2rem; border-radius: 999px; border: 1px solid var(--line);
+    background: var(--card); color: var(--ink); font-size: 1.15rem; cursor: pointer; line-height: 1;
+  }
+  .stepper button:hover { border-color: var(--accent); }
+  #servVal { min-width: 2rem; text-align: center; font-weight: 700; font-size: 1.05rem; }
+  #vIngredients { margin: .2rem 0 .3rem 1.25rem; padding: 0; }
+  #vIngredients li { margin: .28rem 0; overflow-wrap: anywhere; }
+  .qty { color: var(--accent); }
+  .inote { color: var(--muted); }
+  #vSteps { margin: .2rem 0 .3rem 1.25rem; padding: 0; }
+  #vSteps li { margin: .4rem 0; overflow-wrap: anywhere; }
+  #vSteps label { display: flex; gap: .55rem; align-items: baseline; cursor: pointer; }
+  #vSteps input:checked + span { color: var(--muted); text-decoration: line-through; }
+  #vSource { color: var(--muted); font-size: .85rem; margin-top: .4rem; }
+
+  /* print: the open recipe becomes a single tidy card — all chrome hidden */
+  @media print {
+    body { padding: 0; background: #fff; }
+    .noprint { display: none !important; }
+    .wrap { max-width: none; }
+    .recipe-card {
+      border: none; box-shadow: none; padding: 0; border-radius: 0;
+      background: #fff; color: #000;
+    }
+    .recipe-card .meta, .recipe-card h3, .inote, #vSource { color: #444; }
+    .qty { color: #000; font-weight: 700; }
+    #vSteps input[type=checkbox] { display: none; }
+    #vSteps label { display: inline; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar noprint">
+    <a class="back" href="index.html">← suite</a>
+    <button class="theme-btn" id="themeBtn" title="Toggle light/dark">◐ theme</button>
+  </div>
+  <header class="noprint">
+    <h1>Recipe Box</h1>
+    <p class="tag">Your recipes, kept in this browser — scale servings with kitchen-fraction math and print a clean card.</p>
+  </header>
+
+  <p id="status" class="status noprint"></p>
+
+  <section id="listView">
+    <div class="actions noprint">
+      <button class="btn primary" id="newBtn">+ New recipe</button>
+      <button class="btn" id="exportBtn">Export JSON</button>
+      <button class="btn" id="importBtn">Import</button>
+      <input type="file" id="importFile" accept="application/json,.json" hidden aria-label="Import recipes JSON file">
+    </div>
+    <div class="grid" id="cards"></div>
+    <p class="empty" id="emptyMsg" hidden>No recipes yet — add your first with <strong>+ New recipe</strong>, or import a JSON backup.</p>
+  </section>
+
+  <section id="editView" hidden>
+    <form id="editForm" class="card">
+      <h2 id="editHead">New recipe</h2>
+      <div>
+        <label for="fTitle">Title</label>
+        <input class="field" id="fTitle" placeholder="Everyday Pancakes" autocomplete="off">
+      </div>
+      <div>
+        <label for="fServings">Servings</label>
+        <input class="field" id="fServings" type="number" min="1" max="999" step="1" value="4" style="max-width:7rem">
+      </div>
+      <div>
+        <label for="fIngredients">Ingredients — one per line: qty unit ingredient — note</label>
+        <textarea class="field" id="fIngredients" rows="9" placeholder="2 cups flour&#10;1 1/2 tsp baking powder&#10;3 tbsp butter — melted&#10;salt to taste" spellcheck="false"></textarea>
+        <p class="hint">Quantities like <strong>2</strong>, <strong>1.5</strong>, <strong>1 1/2</strong>, <strong>3/4</strong> (or ½, ¾) scale with the servings stepper. Lines with no leading quantity — “salt to taste” — never change.</p>
+      </div>
+      <div>
+        <label for="fSteps">Steps — one per line</label>
+        <textarea class="field" id="fSteps" rows="7" placeholder="Whisk the dry ingredients.&#10;Stir in the wet ingredients.&#10;Cook." spellcheck="true"></textarea>
+      </div>
+      <div>
+        <label for="fSource">Source or note (optional)</label>
+        <input class="field" id="fSource" placeholder="Grandma’s card · cookbook p. 112" autocomplete="off">
+      </div>
+      <div class="formrow">
+        <button class="btn primary" type="submit" id="saveBtn">Save recipe</button>
+        <button class="btn" type="button" id="cancelBtn">Cancel</button>
+      </div>
+    </form>
+  </section>
+
+  <section id="viewView" hidden>
+    <div class="vactions noprint">
+      <button class="btn" id="backBtn">← all recipes</button>
+      <button class="btn" id="editBtn">✎ Edit</button>
+      <button class="btn" id="printBtn">🖨 Print card</button>
+      <button class="btn" id="deleteBtn">Delete…</button>
+    </div>
+    <article class="card recipe-card">
+      <h2 id="vTitle"></h2>
+      <p class="meta" id="vMeta"></p>
+      <div class="stepper noprint">
+        <span class="slabel" id="servLabel">Servings</span>
+        <button type="button" id="servMinus" aria-label="Decrease servings">−</button>
+        <output id="servVal" aria-labelledby="servLabel">4</output>
+        <button type="button" id="servPlus" aria-label="Increase servings">+</button>
+      </div>
+      <h3>Ingredients</h3>
+      <ul id="vIngredients"></ul>
+      <h3 id="stepsHead">Steps</h3>
+      <ol id="vSteps"></ol>
+      <p id="vSource" hidden></p>
+    </article>
+  </section>
+
+  <footer class="noprint">No network — recipes live only in this browser's localStorage (<span class="mono">suite.recipes.v1</span>). Export JSON to back them up or move browsers.</footer>
+</div>
+
+<script src="../core/suite.js" data-suite-inline></script>
+<script>
+"use strict";
+Suite.theme.init();
+
+/* ---------- storage ---------- */
+const KEY = "suite.recipes.v1";
+let recipes = [];        // {id, title, servings, ingredients:[], steps:[], source, updated}
+let editingId = null;    // recipe currently in the editor (null = new)
+let viewingId = null;    // recipe open in the viewer
+let viewServings = 0;    // stepper state (ephemeral)
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+function byId(id) { return recipes.find(r => r.id === id); }
+
+function starterRecipe() {
+  /* classic 1:1 pancake ratio (1 1/2 c flour : 1 1/4 c milk) — demos scaling well */
+  return {
+    id: uid(),
+    title: "Everyday Pancakes",
+    servings: 4,
+    ingredients: [
+      "1 1/2 cups all-purpose flour",
+      "3 1/2 tsp baking powder",
+      "1 tbsp sugar",
+      "1/4 tsp salt",
+      "1 1/4 cups milk",
+      "1 egg",
+      "3 tbsp butter — melted",
+    ],
+    steps: [
+      "Whisk the flour, baking powder, sugar, and salt together.",
+      "Whisk the milk, egg, and melted butter in a second bowl.",
+      "Stir wet into dry until just combined — a few lumps are fine.",
+      "Cook 1/4-cup rounds on a buttered griddle over medium heat; flip when bubbles form.",
+    ],
+    source: "Starter example — edit it, or delete it from the viewer.",
+    updated: Date.now(),
+  };
+}
+
+function load() {
+  const v = Suite.store.get(KEY);
+  if (Array.isArray(v)) { recipes = v.map(normalizeRecipe).filter(Boolean); return; }
+  /* first run only: seed the example so the tool demos itself. If the user
+     deletes everything, the stored empty array stays empty. */
+  recipes = [starterRecipe()];
+  persist();
+}
+function persist() {
+  if (!Suite.store.set(KEY, recipes)) {
+    setStatus("⚠ Storage is full — this change may not persist. Export a JSON backup.");
+  }
+}
+
+/* ---------- quantity math (parser mirrors convert.html's parseNum) ---------- */
+const FRAC = { "½":.5,"⅓":1/3,"⅔":2/3,"¼":.25,"¾":.75,"⅕":.2,"⅖":.4,"⅗":.6,"⅘":.8,
+  "⅙":1/6,"⅚":5/6,"⅐":1/7,"⅛":.125,"⅜":.375,"⅝":.625,"⅞":.875,"⅑":1/9,"⅒":.1,"↉":0 };
+
+function parseQty(str) {
+  if (str == null) return NaN;
+  let s = String(str).trim().replace(/,/g, "");
+  if (!s) return NaN;
+  // unicode fraction possibly following a whole number: "1 ½" or "1½" or "½"
+  const uni = s.match(/^(\d+)?\s*([½⅓⅔¼¾⅕⅖⅗⅘⅙⅚⅐⅛⅜⅝⅞⅑⅒↉])(.*)$/);
+  if (uni) {
+    let total = FRAC[uni[2]];
+    if (uni[1]) total += parseInt(uni[1], 10);
+    return uni[3].trim() ? (isFinite(total) ? total : NaN) : total;
+  }
+  // ascii fraction "1 1/2" or "3/4"
+  const asc = s.match(/^(\d+)\s+(\d+)\/(\d+)/);
+  if (asc) return parseInt(asc[1], 10) + parseInt(asc[2], 10) / parseInt(asc[3], 10);
+  const asc2 = s.match(/^(\d+)\/(\d+)/);
+  if (asc2) return parseInt(asc2[1], 10) / parseInt(asc2[2], 10);
+  const f = parseFloat(s);
+  return isNaN(f) ? NaN : f;
+}
+
+function gcd(a, b) { return b ? gcd(b, a % b) : a; }
+/* Format a quantity as the nearest nice kitchen fraction — halves, thirds,
+   quarters, eighths: 0.75 → "3/4", 2.25 → "2 1/4", 1.125 → "1 1/8". */
+function fmtQty(n) {
+  if (!isFinite(n) || n < 0) return "?";
+  let whole = Math.floor(n + 1e-9);
+  const frac = n - whole;
+  let best = { err: Infinity, num: 0, den: 1 };
+  for (const d of [2, 3, 4, 8]) {
+    const num = Math.round(frac * d);
+    const err = Math.abs(frac - num / d);
+    if (err < best.err - 1e-9) best = { err, num, den: d };
+  }
+  let num = best.num, den = best.den;
+  if (num === den) { whole += 1; num = 0; }
+  if (!num) {
+    // rounds to a whole number; a tiny nonzero amount keeps two decimals
+    return whole === 0 && n > 0.005 ? String(Math.round(n * 100) / 100) : String(whole);
+  }
+  const g = gcd(num, den);
+  num /= g; den /= g;
+  return whole ? whole + " " + num + "/" + den : num + "/" + den;
+}
+
+/* leading quantity: mixed number, ascii/unicode fraction, or decimal — must be
+   followed by whitespace/end so "7-grain bread" style lines stay untouched */
+const QTY_RE = /^(\s*)((?:\d+\s*[½⅓⅔¼¾⅕⅖⅗⅘⅙⅚⅐⅛⅜⅝⅞⅑⅒↉])|(?:\d+\s+\d+\/\d+)|(?:\d+\/\d+)|[½⅓⅔¼¾⅕⅖⅗⅘⅙⅚⅐⅛⅜⅝⅞⅑⅒↉]|(?:\d+(?:\.\d+)?))(?=\s|$)/;
+
+function ingredientLi(line, factor) {
+  const li = document.createElement("li");
+  const m = line.match(QTY_RE);
+  const q = m ? parseQty(m[2]) : NaN;
+  if (!m || !isFinite(q)) {
+    li.className = "plain";       // no leading quantity — never rescaled
+    li.textContent = line;
+    return li;
+  }
+  const strong = document.createElement("strong");
+  strong.className = "qty";
+  strong.textContent = fmtQty(q * factor);
+  li.append(strong);
+  const rest = line.slice(m[0].length);
+  const parts = rest.split(" — ");
+  li.append(document.createTextNode(parts[0]));
+  if (parts.length > 1) {
+    const note = document.createElement("span");
+    note.className = "inote";
+    note.textContent = " — " + parts.slice(1).join(" — ");
+    li.append(note);
+  }
+  return li;
+}
+
+/* ---------- DOM ---------- */
+const $ = id => document.getElementById(id);
+const listView = $("listView"), editView = $("editView"), viewView = $("viewView");
+const cards = $("cards"), emptyMsg = $("emptyMsg");
+const statusEl = Suite.liveRegion($("status"));
+const vTitle = $("vTitle"), vMeta = Suite.liveRegion($("vMeta"));
+const vIngredients = $("vIngredients"), vSteps = $("vSteps"), vSource = $("vSource");
+const servVal = $("servVal");
+const fTitle = $("fTitle"), fServings = $("fServings"), fIngredients = $("fIngredients"),
+      fSteps = $("fSteps"), fSource = $("fSource");
+
+function setStatus(msg) { statusEl.textContent = msg; }
+function show(name) {
+  listView.hidden = name !== "list";
+  editView.hidden = name !== "edit";
+  viewView.hidden = name !== "view";
+  window.scrollTo(0, 0);
+}
+
+/* ---------- list ---------- */
+function renderList() {
+  cards.textContent = "";
+  const sorted = recipes.slice().sort((a, b) => b.updated - a.updated);
+  for (const r of sorted) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "rcard";
+    const t = document.createElement("span");
+    t.className = "rtitle";
+    t.textContent = r.title;
+    const m = document.createElement("span");
+    m.className = "rmeta";
+    const n = r.ingredients.length;
+    m.textContent = "serves " + r.servings + " · " + n + " ingredient" + (n === 1 ? "" : "s");
+    b.append(t, m);
+    b.addEventListener("click", () => openViewer(r.id));
+    cards.append(b);
+  }
+  emptyMsg.hidden = recipes.length > 0;
+}
+
+/* ---------- viewer ---------- */
+function openViewer(id) {
+  const r = byId(id);
+  if (!r) return;
+  viewingId = id;
+  viewServings = r.servings;
+  vTitle.textContent = r.title;
+  vSource.textContent = r.source ? "Source: " + r.source : "";
+  vSource.hidden = !r.source;
+  renderSteps(r);
+  renderScaled();
+  show("view");
+}
+function renderScaled() {
+  const r = byId(viewingId);
+  if (!r) return;
+  const f = viewServings / r.servings;
+  servVal.textContent = String(viewServings);
+  vMeta.textContent = "Serves " + viewServings +
+    (f !== 1 ? " · quantities scaled ×" + (Math.round(f * 100) / 100) + " from " + r.servings : "");
+  vIngredients.textContent = "";
+  for (const line of r.ingredients) vIngredients.append(ingredientLi(line, f));
+}
+/* step checkboxes are ephemeral cooking aids: built once per open, never stored */
+function renderSteps(r) {
+  vSteps.textContent = "";
+  for (const s of r.steps) {
+    const li = document.createElement("li");
+    const lab = document.createElement("label");
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    const sp = document.createElement("span");
+    sp.textContent = s;
+    lab.append(cb, sp);
+    li.append(lab);
+    vSteps.append(li);
+  }
+  $("stepsHead").hidden = !r.steps.length;
+}
+
+$("servMinus").addEventListener("click", () => {
+  if (viewServings > 1) { viewServings--; renderScaled(); }
+});
+$("servPlus").addEventListener("click", () => {
+  if (viewServings < 999) { viewServings++; renderScaled(); }
+});
+$("backBtn").addEventListener("click", () => show("list"));
+$("printBtn").addEventListener("click", () => window.print());
+$("editBtn").addEventListener("click", () => openEditor(byId(viewingId)));
+$("deleteBtn").addEventListener("click", () => {
+  const r = byId(viewingId);
+  if (!r) return;
+  if (!confirm('Delete "' + r.title + '"? This cannot be undone.')) return;
+  recipes = recipes.filter(x => x.id !== r.id);
+  viewingId = null;
+  persist();
+  renderList();
+  show("list");
+  setStatus('Deleted "' + r.title + '".');
+});
+
+/* ---------- editor ---------- */
+function openEditor(r) {
+  editingId = r ? r.id : null;
+  $("editHead").textContent = r ? "Edit recipe" : "New recipe";
+  fTitle.value = r ? r.title : "";
+  fServings.value = r ? r.servings : 4;
+  fIngredients.value = r ? r.ingredients.join("\n") : "";
+  fSteps.value = r ? r.steps.join("\n") : "";
+  fSource.value = r ? r.source : "";
+  show("edit");
+  fTitle.focus();
+}
+function uniqueTitle(title, excludeId) {
+  const taken = new Set(recipes.filter(r => r.id !== excludeId).map(r => r.title.toLowerCase()));
+  if (!taken.has(title.toLowerCase())) return title;
+  let i = 2;
+  while (taken.has((title + " (" + i + ")").toLowerCase())) i++;
+  return title + " (" + i + ")";
+}
+const toLines = v => Array.isArray(v)
+  ? v.map(x => String(x).trim()).filter(Boolean)
+  : typeof v === "string" ? v.split("\n").map(s => s.trim()).filter(Boolean) : [];
+
+$("newBtn").addEventListener("click", () => openEditor(null));
+$("cancelBtn").addEventListener("click", () => {
+  if (editingId && byId(editingId)) openViewer(editingId); else show("list");
+});
+$("editForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const title = uniqueTitle(fTitle.value.trim() || "Untitled recipe", editingId);
+  const servings = Math.min(999, Math.max(1, Math.round(Number(fServings.value)) || 1));
+  const fields = {
+    title, servings,
+    ingredients: toLines(fIngredients.value),
+    steps: toLines(fSteps.value),
+    source: fSource.value.trim(),
+    updated: Date.now(),
+  };
+  let r = editingId && byId(editingId);
+  if (r) Object.assign(r, fields);
+  else { r = Object.assign({ id: uid() }, fields); recipes.push(r); }
+  persist();
+  renderList();
+  setStatus('Saved "' + r.title + '".');
+  openViewer(r.id);
+});
+
+/* ---------- export / import ---------- */
+function download(name, text, type) {
+  const blob = new Blob([text], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+$("exportBtn").addEventListener("click", () => {
+  download("recipes-" + new Date().toISOString().slice(0, 10) + ".json",
+    JSON.stringify({ format: "suite.recipes.v1", exported: new Date().toISOString(), recipes }, null, 2),
+    "application/json");
+  setStatus("Exported " + recipes.length + " recipe" + (recipes.length === 1 ? "" : "s") + " as JSON.");
+});
+
+function normalizeRecipe(it) {
+  if (!it || typeof it !== "object") return null;
+  const title = typeof it.title === "string" ? it.title.trim() : "";
+  const ingredients = toLines(it.ingredients);
+  if (!title && !ingredients.length) return null;
+  return {
+    id: typeof it.id === "string" && it.id ? it.id : uid(),
+    title: title || "Untitled recipe",
+    servings: Math.min(999, Math.max(1, Math.round(Number(it.servings)) || 1)),
+    ingredients,
+    steps: toLines(it.steps),
+    source: typeof it.source === "string" ? it.source.trim() : "",
+    updated: typeof it.updated === "number" ? it.updated : Date.now(),
+  };
+}
+$("importBtn").addEventListener("click", () => $("importFile").click());
+$("importFile").addEventListener("change", e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.addEventListener("load", () => {
+    try {
+      const data = JSON.parse(reader.result);
+      const list = Array.isArray(data) ? data
+        : data && Array.isArray(data.recipes) ? data.recipes
+        : data && typeof data === "object" ? [data] : [];
+      let added = 0, renamed = 0;
+      for (const it of list) {
+        const r = normalizeRecipe(it);
+        if (!r) continue;
+        r.id = uid(); // never trust imported ids for uniqueness
+        const t = uniqueTitle(r.title, null);
+        if (t !== r.title) renamed++;
+        r.title = t;
+        r.updated = Date.now();
+        recipes.push(r);
+        added++;
+      }
+      if (!added) { setStatus("No recipes found in that file."); }
+      else {
+        persist();
+        renderList();
+        show("list");
+        setStatus("Imported " + added + " recipe" + (added === 1 ? "" : "s") +
+          (renamed ? " (" + renamed + " renamed to avoid a title collision)" : "") + ".");
+      }
+    } catch (err) {
+      setStatus("Could not read that file as recipes JSON.");
+    }
+    e.target.value = "";
+  });
+  reader.readAsText(file);
+});
+
+/* ---------- init ---------- */
+load();
+renderList();
+show("list");
+</script>
+</body>
+</html>

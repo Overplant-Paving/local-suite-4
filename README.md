@@ -1,12 +1,14 @@
-# Local Suite 3
+# Local Suite 4
 
-This is **Local Suite v3**, built on the verified v2 single-file architecture. V3 adds named
-multiple-location support, safer location-aware caching and cross-tab behavior, an individual
-flight tracker with Aviationstack status/ETA plus Airplanes.live ADS-B position fallback, and a
-park-centered National Parks Explorer covering all 29 documented NPS API resources.
+This is **Local Suite v4**, built on the verified v2/v3 single-file architecture. V4 grows the
+suite to **100 manifest tools**: 26 new tools (offline calculators and trackers plus keyless
+CORS-open data explorers), The Arcade (five playable browser games with locally inlined card
+art), suite-wide favorites and recently-used quick access, a live flight weather map combining
+aircraft position with precipitation, SIGMETs, and airport METARs, and a re-audited National
+Parks Explorer whose 29-resource coverage was re-verified against the official specification.
 
-Current release: **v3.0.0** (2026-07-25). Release evidence is archived under
-`tests/evidence/v3-release/`.
+Current release: **v4.0.0** (2026-07-30). Release evidence is archived under
+`tests/evidence/v4-release/`. The v3.0.0 evidence remains under `tests/evidence/v3-release/`.
 
 **To use the suite: open [`dist/index.html`](dist/index.html).** Everything in `dist/` is
 built and self-contained — double-click any file there. The `tools/` folder holds the
@@ -14,9 +16,9 @@ built and self-contained — double-click any file there. The `tools/` folder ho
 
 ## What Local Suite is
 
-A family of 73 **single-file HTML tools** — weather station, earthquake monitor, flight tracker,
-password generator, notepad, tide board, flashcards — plus a hub page that maps them all. The philosophy
-(unchanged in v3):
+A family of 100 **single-file HTML tools** — weather station, earthquake monitor, flight tracker,
+calculator workbench, recipe box, periodic table, DNS lookup, arcade — plus a hub page that maps
+them all, with favorites and recently-used quick access. The philosophy (unchanged in v4):
 
 - **One `.html` file per tool.** No framework, no npm, no runtime dependencies. Copy it anywhere,
   double-click it, it works.
@@ -40,7 +42,8 @@ Two supported ways, both zero-setup for the recipient:
 2. **Share a link.** Deploy `dist/` to any static host (GitHub Pages is the documented free path,
    set up in Phase 3). Recipients get the same suite at a URL, plus the installable PWA.
 
-**Hosted v3:** <https://overplant-paving.github.io/local-suite-3/>
+**Hosted v4:** <https://overplant-paving.github.io/local-suite-4/> (v3 remains at
+<https://overplant-paving.github.io/local-suite-3/>)
 
 The 4 tools whose data sources block browser scripts stay simple: the two BLS tools (inflation,
 jobs) show monthly numbers embedded at build time, and airport/custom-transit show a clean card
@@ -72,7 +75,7 @@ self-contained, double-clickable HTML file. The only new tooling is one dependen
 ## Target repo layout
 
 ```
-Local Suite 3/
+Local Suite 4/
 ├── README.md · ROADMAP.md · ARCHITECTURE.md · MIGRATION.md
 │   API-AND-RELAY.md · PWA.md · QUALITY.md · CATALOG.md   ← planning + reference docs
 ├── build.py                  # the entire toolchain, Python stdlib only
@@ -103,6 +106,21 @@ python3 build.py --serve    # local server → PWA mode at http://localhost:8000
 python3 build.py --new foo  # scaffold a new tool + manifest entry
 ```
 
+### Favorites and recently used (v4)
+
+Every tool page grows a ☆ star next to its theme button, and the hub shows a ★ Favorites
+section plus a 🕘 Recently used row (deduplicated, most-recent-first, bounded at 10, with a
+clear button). Both live in `localStorage` (`suite.hub.favorites`, `suite.hub.recents`), stay in
+sync across tabs, and ride along in Settings backup/restore like every other `suite.*` key.
+
+### The Arcade (v4)
+
+`dist/arcade.html` is a launcher for five browser games from this suite's own workshop —
+Bathhouse Brigade (desktop + mobile editions), Chromatic Chains (desktop + mobile editions),
+and the DOOM 1993 shareware episode in an emulator. Every card links to a live GitHub Pages
+deployment; the card art is copied from the game repositories and inlined at build time
+(provenance: `assets/arcade/PROVENANCE.md`).
+
 ### National Parks Explorer setup
 
 `dist/parks.html` uses a free personal National Park Service API key. Save it under
@@ -110,10 +128,17 @@ python3 build.py --new foo  # scaffold a new tool + manifest entry
 safer `X-Api-Key` header rather than a URL query parameter.
 
 The explorer groups every documented NPS resource into Overview, Alerts, Plan a visit, Explore,
-Learn, Media, and Reference tabs. Resource groups load on demand, use endpoint-specific cache
-lifetimes, and visibly retain stale data offline. The NPS default allowance is 1,000 requests per
-rolling hour. Events, road events, and park boundaries are explicit on-demand checks because those
-three upstream services returned errors during live verification.
+Learn, Media, and Reference tabs. A lightweight park directory is cached for 30 days, while the
+selected park's hours, contacts, weather guidance, and other details refresh on their own two-hour
+identity and display the actual fetch/cache timestamp. Resource pages have Next/Previous controls
+(including the Events API's separate page-number dialect), endpoint-specific facts, and visible
+stale states. Road and boundary GeoJSON is rendered with a textual geometry/bounds equivalent;
+large boundary geometry stays an explicit on-demand request and is not stored.
+
+The NPS default allowance is 1,000 requests per rolling hour. Calls within a tab are queued so a
+401/403 or 429 suppresses the remaining requests; 429 cooldown and exposed rate headers are shown
+without discarding already successful/cached sections. The official Swagger inventory and a
+conservative live-key probe both verified all 29 resources on July 30, 2026.
 
 ### Flight Tracker setup
 

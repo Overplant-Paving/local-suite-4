@@ -1,0 +1,13 @@
+{
+  "note": "new-in-v2 tool — no v1 original; parity N/A",
+  "v2": {
+    "suite.cache.cite.doi.10-5555-bk9": "{\"t\":1785437804969,\"v\":{\"status\":\"ok\",\"message-type\":\"work\",\"message-version\":\"1.0.0\",\"message\":{\"DOI\":\"10.5555/bk9\",\"type\":\"book\",\"title\":[\"Field Not…(278 chars)",
+    "suite.cache.cite.q.signal-processing-at-scale": "{\"t\":1785437804970,\"v\":{\"status\":\"ok\",\"message-type\":\"work-list\",\"message-version\":\"1.0.0\",\"message\":{\"facets\":{},\"total-results\":5321,\"items\":[{\"DOI\"…(1739 chars)",
+    "suite.cite.list": "[{\"doi\":\"10.5555/etal1\",\"type\":\"journal-article\",\"title\":\"Signal Processing at Scale\",\"container\":\"Annals of Applied Signals\",\"volume\":\"7\",\"issue\":\"2\"…(616 chars)",
+    "suite.hub.recents": "[{\"id\":\"cite\",\"t\":1785437804088}]",
+    "suite.cache.cite.q.older-delayed": "{\"t\":1785437804970,\"v\":{\"status\":\"ok\",\"message-type\":\"work-list\",\"message-version\":\"1.0.0\",\"message\":{\"facets\":{},\"total-results\":5321,\"items\":[{\"DOI\"…(519 chars)",
+    "suite.cache.cite.doi.10-5555-12345678": "{\"t\":1785437804970,\"v\":{\"status\":\"ok\",\"message-type\":\"work\",\"message-version\":\"1.0.0\",\"message\":{\"DOI\":\"10.5555/12345678\",\"type\":\"journal-article\",\"ti…(502 chars)",
+    "suite.cache.cite.q.zzz": "{\"t\":1785437804970,\"v\":{\"status\":\"ok\",\"message-type\":\"work-list\",\"message-version\":\"1.0.0\",\"message\":{\"facets\":{},\"total-results\":0,\"items\":[],\"items-…(165 chars)",
+    "suite.theme": "dark"
+  }
+}

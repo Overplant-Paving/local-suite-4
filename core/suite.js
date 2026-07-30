@@ -1,4 +1,4 @@
-/* Local Suite v3 — core/suite.js
+/* Local Suite v4 — core/suite.js
    One IIFE, one global. Small, boring, dependency-free. Spec: ARCHITECTURE.md §3. */
 (() => {
 "use strict";
@@ -84,6 +84,7 @@ const theme = {
       btn.addEventListener("click", theme.toggle);
     });
     paintThemeButtons();
+    initToolChrome();
   },
   toggle() {
     const next = activeTheme() === "dark" ? "light" : "dark";
@@ -504,6 +505,87 @@ function key(name) {
   return { value: null, isDemo: false };
 }
 
+/* ---- favorites & recently used: suite-wide quick access (v4) ----
+   suite.hub.favorites is an array of tool ids; suite.hub.recents is
+   [{id, t}] newest-first, bounded. The per-tool chrome star is injected next
+   to the theme button by theme.init() — every built page already calls it, so
+   no tool needed new markup. The hub renders its own card stars plus the
+   Favorites and Recently used sections; it is excluded here (and Settings is
+   excluded from recents) so "recently used" stays about actual tools. */
+const FAV_KEY = "suite.hub.favorites";
+const RECENTS_KEY = "suite.hub.recents";
+const RECENTS_MAX = 10;
+
+function toolId() {
+  try {
+    const file = decodeURIComponent((location.pathname.split("/").pop() || ""));
+    const m = file.match(/^([a-z][a-z0-9-]*)\.html$/);
+    if (m) return m[1];
+    /* a hosted scope root ("…/local-suite-4/") serves the hub */
+    return /\/$/.test(location.pathname) ? "index" : null;
+  } catch (e) { return null; }
+}
+
+const favorites = {
+  all() {
+    const v = store.get(FAV_KEY);
+    return Array.isArray(v) ? v.filter(x => typeof x === "string" && x) : [];
+  },
+  has(id) { return favorites.all().includes(id); },
+  /* returns the new state; a write that does not stick reports the old one */
+  toggle(id) {
+    if (typeof id !== "string" || !id) return false;
+    const cur = favorites.all();
+    const next = cur.includes(id) ? cur.filter(x => x !== id) : cur.concat(id);
+    return store.set(FAV_KEY, next) ? next.includes(id) : cur.includes(id);
+  }
+};
+
+const recents = {
+  all() {
+    const v = store.get(RECENTS_KEY);
+    if (!Array.isArray(v)) return [];
+    return v.filter(x => x && typeof x === "object" &&
+      typeof x.id === "string" && x.id && isFinite(x.t)).slice(0, RECENTS_MAX);
+  },
+  record(id) {
+    if (typeof id !== "string" || !id || id === "index" || id === "settings") return false;
+    const next = [{ id, t: Date.now() }]
+      .concat(recents.all().filter(x => x.id !== id)).slice(0, RECENTS_MAX);
+    return store.set(RECENTS_KEY, next);
+  },
+  clear() { return store.remove(RECENTS_KEY); }
+};
+
+function paintFavButtons() {
+  document.querySelectorAll(".fav-btn[data-tool]").forEach(btn => {
+    const on = favorites.has(btn.dataset.tool);
+    btn.setAttribute("aria-pressed", String(on));
+    btn.classList.toggle("on", on);
+    btn.textContent = on ? "★" : "☆";
+  });
+}
+
+/* Runs once from theme.init() on every page except the hub: notes the visit in
+   recents and adds the chrome star beside the theme button. */
+function initToolChrome() {
+  const id = toolId();
+  if (!id || id === "index") return;
+  recents.record(id);
+  const anchor = document.querySelector("#themeBtn, .theme-btn");
+  if (!anchor || document.querySelector(".fav-btn")) return;
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "fav-btn";
+  btn.dataset.tool = id;
+  btn.title = "Favorite this tool";
+  btn.setAttribute("aria-label", "Favorite this tool — favorites appear first on the suite hub");
+  btn.addEventListener("click", () => { favorites.toggle(id); paintFavButtons(); });
+  anchor.insertAdjacentElement("afterend", btn);
+  paintFavButtons();
+  window.addEventListener("storage", e => { if (e.key === FAV_KEY) paintFavButtons(); });
+}
+
 /* ---- optional power-user relay (API-AND-RELAY.md §6) ----
    Unset for everyone by default: tools use their link-out/embedded paths. */
 function relay(url) {
@@ -513,7 +595,8 @@ function relay(url) {
   return b + (b.includes("?") ? "&" : "?") + "url=" + encodeURIComponent(url);
 }
 
-window.Suite = { theme, fetchJSON, store, esc, liveRegion, location: loc, locations, key, relay };
+window.Suite = { theme, fetchJSON, store, esc, liveRegion, location: loc, locations,
+  favorites, recents, key, relay };
 
 /* ---- PWA registration (PWA.md §1) — inert from file://, forever ----
    The .catch keeps a failed registration from ever costing console noise on a

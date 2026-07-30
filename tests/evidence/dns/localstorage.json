@@ -1,0 +1,23 @@
+{
+  "note": "new-in-v2 tool — no v1 original; parity N/A",
+  "v2": {
+    "suite.cache.dns.google.A.example.com": "{\"t\":1785435638220,\"v\":{\"Status\":0,\"TC\":false,\"RD\":true,\"RA\":true,\"AD\":true,\"CD\":false,\"Question\":[{\"name\":\"example.com.\",\"type\":1}],\"Answer\":[{\"name\"…(276 chars)",
+    "suite.hub.recents": "[{\"id\":\"dns\",\"t\":1785435637620}]",
+    "suite.cache.dns.cloudflare.A.no-such-host.example.com": "{\"t\":1785435638220,\"v\":{\"Status\":3,\"TC\":false,\"RD\":true,\"RA\":true,\"AD\":false,\"CD\":false,\"Question\":[{\"name\":\"no-such-host.example.com\",\"type\":1}],\"Aut…(279 chars)",
+    "suite.cache.dns.google.A.xn--mnchen-3ya.de": "{\"t\":1785435638220,\"v\":{\"Status\":0,\"TC\":false,\"RD\":true,\"RA\":true,\"AD\":false,\"CD\":false,\"Question\":[{\"name\":\"xn--mnchen-3ya.de.\",\"type\":1}],\"Answer\":[…(222 chars)",
+    "suite.dns.history": "[{\"n\":\"example.com\",\"t\":\"A\"},{\"n\":\"gmail.com\",\"t\":\"MX\"},{\"n\":\"seed0.example.com\",\"t\":\"NS\"},{\"n\":\"seed1.example.com\",\"t\":\"NS\"},{\"n\":\"seed2.example.com\"…(336 chars)",
+    "suite.cache.dns.cloudflare.A.disagree.example.com": "{\"t\":1785435638220,\"v\":{\"Status\":0,\"TC\":false,\"RD\":true,\"RA\":true,\"AD\":false,\"CD\":false,\"Question\":[{\"name\":\"disagree.example.com\",\"type\":1}],\"Answer\"…(294 chars)",
+    "suite.cache.dns.cloudflare.A.example.com": "{\"t\":1785435638220,\"v\":{\"Status\":0,\"TC\":false,\"RD\":true,\"RA\":true,\"AD\":false,\"CD\":false,\"Question\":[{\"name\":\"example.com\",\"type\":1}],\"Answer\":[{\"name\"…(274 chars)",
+    "suite.cache.dns.google.MX.gmail.com": "{\"t\":1785435638220,\"v\":{\"Status\":0,\"TC\":false,\"RD\":true,\"RA\":true,\"AD\":false,\"CD\":false,\"Question\":[{\"name\":\"gmail.com.\",\"type\":15}],\"Answer\":[{\"name\"…(315 chars)",
+    "suite.cache.dns.cloudflare.TXT.example.org": "{\"t\":1785435638220,\"v\":{\"Status\":0,\"TC\":false,\"RD\":true,\"RA\":true,\"AD\":false,\"CD\":false,\"Question\":[{\"name\":\"example.org\",\"type\":16}],\"Answer\":[{\"name…(383 chars)",
+    "suite.cache.dns.google.A.no-such-host.example.com": "{\"t\":1785435638220,\"v\":{\"Status\":3,\"TC\":false,\"RD\":true,\"RA\":true,\"AD\":false,\"CD\":false,\"Question\":[{\"name\":\"no-such-host.example.com.\",\"type\":1}],\"Au…(281 chars)",
+    "suite.cache.dns.cloudflare.A.half.example.com": "{\"t\":1785435638220,\"v\":{\"Status\":0,\"TC\":false,\"RD\":true,\"RA\":true,\"AD\":false,\"CD\":false,\"Question\":[{\"name\":\"half.example.com\",\"type\":1}],\"Answer\":[{\"…(219 chars)",
+    "suite.cache.dns.google.A.disagree.example.com": "{\"t\":1785435638220,\"v\":{\"Status\":0,\"TC\":false,\"RD\":true,\"RA\":true,\"AD\":false,\"CD\":false,\"Question\":[{\"name\":\"disagree.example.com.\",\"type\":1}],\"Answer…(225 chars)",
+    "suite.cache.dns.google.SOA.example.com": "{\"t\":1785435638220,\"v\":{\"Status\":0,\"TC\":false,\"RD\":true,\"RA\":true,\"AD\":false,\"CD\":false,\"Question\":[{\"name\":\"example.com.\",\"type\":6}],\"Answer\":[{\"name…(266 chars)",
+    "suite.cache.dns.cloudflare.SOA.example.com": "{\"t\":1785435638220,\"v\":{\"Status\":0,\"TC\":false,\"RD\":true,\"RA\":true,\"AD\":false,\"CD\":false,\"Question\":[{\"name\":\"example.com\",\"type\":6}],\"Answer\":[{\"name\"…(264 chars)",
+    "suite.cache.dns.cloudflare.A.xn--mnchen-3ya.de": "{\"t\":1785435638220,\"v\":{\"Status\":0,\"TC\":false,\"RD\":true,\"RA\":true,\"AD\":false,\"CD\":false,\"Question\":[{\"name\":\"xn--mnchen-3ya.de\",\"type\":1}],\"Answer\":[{…(220 chars)",
+    "suite.cache.dns.google.TXT.example.org": "{\"t\":1785435638220,\"v\":{\"Status\":0,\"TC\":false,\"RD\":true,\"RA\":true,\"AD\":false,\"CD\":false,\"Question\":[{\"name\":\"example.org.\",\"type\":16}],\"Answer\":[{\"nam…(387 chars)",
+    "suite.theme": "dark",
+    "suite.cache.dns.cloudflare.MX.gmail.com": "{\"t\":1785435638220,\"v\":{\"Status\":0,\"TC\":false,\"RD\":true,\"RA\":true,\"AD\":false,\"CD\":false,\"Question\":[{\"name\":\"gmail.com\",\"type\":15}],\"Answer\":[{\"name\":…(310 chars)"
+  }
+}

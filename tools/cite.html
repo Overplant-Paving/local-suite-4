@@ -1,0 +1,622 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Citation Builder · Local Suite</title>
+<link rel="stylesheet" href="../core/suite.css" data-suite-inline>
+<style>
+  /* stale/offline stamp color — 3-layer tool accent, same pattern as books.html.
+     #8a5300 on --bg #f5f3ee ≈ 5.6:1; #d9a05b on #15171b ≈ 7.5:1 — both pass AA. */
+  :root { --warn: #8a5300; }
+  @media (prefers-color-scheme: dark) { :root { --warn: #d9a05b; } }
+  :root[data-theme="light"] { --warn: #8a5300; }
+  :root[data-theme="dark"] { --warn: #d9a05b; }
+
+  body { padding: 1.4rem 1.25rem 4rem; }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  .topbar { display: flex; align-items: center; gap: 1rem; }
+  .topbar .theme-btn, .topbar .fav-btn { float: none; }
+  .topbar .theme-btn { margin-left: auto; }
+  header { margin: 1rem 0 1.2rem; }
+  h1 { font-size: 1.8rem; letter-spacing: -.02em; }
+  .tag { color: var(--muted); margin-top: .35rem; max-width: 48rem; }
+
+  .controls { display: flex; gap: .55rem; margin-top: .4rem; }
+  .controls .search { flex: 1; min-width: 0; padding: .75rem 1rem; }
+  .go { border: 1px solid var(--accent); background: var(--accent); color: var(--bg);
+    border-radius: 12px; padding: .55rem 1.15rem; font-size: .95rem; cursor: pointer; flex: none; }
+  .go:hover { filter: brightness(1.07); }
+  .hint { color: var(--muted); font-size: .84rem; margin-top: .55rem; }
+  .status { color: var(--muted); font-size: .88rem; margin: 1rem 0 .3rem; min-height: 1.2em; }
+  .status.warn { color: var(--warn); }
+
+  .picker { display: flex; flex-direction: column; gap: .55rem; margin-top: .4rem; }
+  .pick { text-align: left; background: var(--card); border: 1px solid var(--line);
+    border-radius: 12px; padding: .7rem .9rem; cursor: pointer; box-shadow: var(--shadow);
+    color: var(--ink); font: inherit; }
+  .pick:hover { border-color: var(--accent); }
+  .pick .pk-t { font-weight: 600; line-height: 1.35; }
+  .pick .pk-m { color: var(--muted); font-size: .85rem; margin-top: .2rem; }
+  .statecard { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--warn);
+    border-radius: 12px; padding: .85rem 1rem; margin-top: .5rem; box-shadow: var(--shadow); }
+  .statecard b { display: block; margin-bottom: .15rem; }
+  .statecard p { color: var(--muted); font-size: .9rem; }
+  .statecard.quiet { border-left-color: var(--line); }
+
+  #workSec { margin-top: 1.4rem; }
+  .workcard { background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 1rem 1.05rem; box-shadow: var(--shadow); }
+  .wk-type { font-size: .72rem; padding: .14rem .55rem; border-radius: 999px;
+    background: var(--chip); color: var(--muted); display: inline-block; }
+  .wk-title { font-weight: 650; font-size: 1.08rem; line-height: 1.35; margin-top: .45rem;
+    overflow-wrap: anywhere; }
+  .wk-meta { color: var(--muted); font-size: .88rem; margin-top: .3rem; overflow-wrap: anywhere; }
+  .savebtn { margin-top: .75rem; border: 1px solid var(--line); background: var(--card);
+    color: var(--accent); border-radius: 8px; padding: .32rem .8rem; font-size: .86rem; cursor: pointer; }
+  .savebtn:hover { border-color: var(--accent); }
+  .savebtn.added { color: var(--muted); cursor: default; }
+
+  .fmt { background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: .75rem .9rem; margin-top: .7rem; box-shadow: var(--shadow); }
+  .fmt-h { display: flex; align-items: center; gap: .6rem; }
+  .fmt-h h2 { font-size: .92rem; letter-spacing: .01em; }
+  .copy { margin-left: auto; border: 1px solid var(--line); background: var(--card);
+    color: var(--accent); border-radius: 8px; padding: .24rem .7rem; font-size: .8rem;
+    cursor: pointer; flex: none; }
+  .copy:hover { border-color: var(--accent); }
+  .cite { margin-top: .5rem; font-size: .93rem; line-height: 1.55; overflow-wrap: anywhere; }
+  pre.cite { white-space: pre-wrap; word-break: break-word; font-size: .85rem; }
+
+  section.saved { margin-top: 2.4rem; }
+  section.saved h2 { font-size: 1.1rem; display: flex; align-items: baseline; gap: .5rem; flex-wrap: wrap; }
+  section.saved h2 .n { color: var(--muted); font-weight: 500; font-size: .82rem; }
+  .saved-actions { margin-left: auto; }
+  .saved-actions button { border: 1px solid var(--line); background: var(--card); color: var(--muted);
+    border-radius: 8px; padding: .28rem .7rem; font-size: .82rem; cursor: pointer; }
+  .saved-actions button:hover { border-color: var(--accent); color: var(--accent); }
+  .saved-note { color: var(--warn); font-size: .84rem; margin-top: .4rem; min-height: 1em; }
+  .saved-list { display: flex; flex-direction: column; gap: .5rem; margin-top: .9rem; }
+  .saved-item { display: flex; align-items: center; gap: .7rem; background: var(--card);
+    border: 1px solid var(--line); border-radius: 10px; padding: .55rem .8rem; flex-wrap: wrap; }
+  .saved-item .t { flex: 1; min-width: 12rem; }
+  .saved-item .t .ttl { background: none; border: none; padding: 0; font: inherit; font-weight: 600;
+    color: var(--ink); cursor: pointer; text-align: left; }
+  .saved-item .t .ttl:hover { color: var(--accent); }
+  .saved-item .t span { display: block; color: var(--muted); font-size: .85rem; }
+  .saved-item .acts { display: flex; gap: .4rem; align-items: center; flex: none; }
+  .saved-item .acts .copy { margin-left: 0; }
+  .saved-item .rm { border: none; background: none; color: var(--muted); cursor: pointer;
+    font-size: 1.05rem; padding: .1rem .4rem; }
+  .saved-item .rm:hover { color: var(--warn); }
+  .saved-empty { color: var(--muted); font-size: .9rem; }
+  footer { margin-top: 2.6rem; font-size: .83rem; color: var(--muted);
+    border-top: 1px solid var(--line); padding-top: 1rem; }
+
+  @media (max-width: 480px) {
+    .controls { flex-direction: column; }
+    .go { width: 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="index.html">← suite</a>
+    <button class="theme-btn" id="themeBtn" title="Toggle light/dark">◐ theme</button>
+  </div>
+  <header>
+    <h1>Citation Builder</h1>
+    <p class="tag">Paste a DOI or search a title — get APA 7, MLA 9, and BibTeX citations,
+      plus a private reading list kept on this machine.</p>
+  </header>
+
+  <div class="controls">
+    <input class="search" id="q" type="search"
+      placeholder="Paste a DOI or type a few title words…"
+      aria-label="DOI or bibliographic search — paste a DOI or type title words" autocomplete="off">
+    <button class="go" id="goBtn">Cite</button>
+  </div>
+  <p class="hint">Understands bare DOIs (10.1037/0003-066x.59.1.29), doi.org links, and
+    “doi:” prefixes — anything else searches Crossref by title and author.</p>
+
+  <div class="status" id="status"></div>
+  <div class="picker" id="results"></div>
+
+  <section id="workSec" hidden>
+    <div class="workcard" id="workCard">
+      <span class="wk-type" id="wkType"></span>
+      <div class="wk-title" id="wkTitle"></div>
+      <div class="wk-meta" id="wkMeta"></div>
+      <button class="savebtn" id="saveBtn">+ Save to reading list</button>
+    </div>
+    <div class="fmt">
+      <div class="fmt-h"><h2>APA 7</h2>
+        <button class="copy" id="copyApa" aria-label="Copy the APA citation as plain text">Copy</button></div>
+      <p class="cite" id="apaOut"></p>
+    </div>
+    <div class="fmt">
+      <div class="fmt-h"><h2>MLA 9</h2>
+        <button class="copy" id="copyMla" aria-label="Copy the MLA citation as plain text">Copy</button></div>
+      <p class="cite" id="mlaOut"></p>
+    </div>
+    <div class="fmt">
+      <div class="fmt-h"><h2>BibTeX</h2>
+        <button class="copy" id="copyBib" aria-label="Copy the BibTeX entry">Copy</button></div>
+      <pre class="cite mono" id="bibOut"></pre>
+    </div>
+  </section>
+
+  <section class="saved">
+    <h2>Reading list <span class="n" id="savedCount"></span>
+      <span class="saved-actions">
+        <button id="exportBtn">Export all as BibTeX</button>
+      </span></h2>
+    <p class="saved-note" id="savedNote"></p>
+    <div class="saved-list" id="savedList"></div>
+    <p class="saved-empty" id="savedEmpty">Citations you save will wait here — copy or export them as a .bib file any time.</p>
+  </section>
+
+  <footer>Data: Crossref REST API (api.crossref.org), queried anonymously — no email or account is
+    attached to requests. Some Crossref records carry incomplete metadata; give citations a quick
+    read before submitting them anywhere that counts.</footer>
+</div>
+
+<script src="../core/suite.js" data-suite-inline></script>
+<script>
+"use strict";
+
+Suite.theme.init();
+
+const esc = Suite.esc;
+const TTL = 10080 * 60 * 1000; // manifest cacheTtlMin: 10080 — reference-data class (7 d)
+const API = "https://api.crossref.org";
+
+/* ---------- els ---------- */
+const qEl = document.getElementById("q");
+const statusEl = Suite.liveRegion(document.getElementById("status"));
+const resultsEl = Suite.liveRegion(document.getElementById("results"));
+const workSec = Suite.liveRegion(document.getElementById("workSec"));
+const savedNote = Suite.liveRegion(document.getElementById("savedNote"));
+let cur = null; // currently displayed work (normalized)
+
+/* ---------- DOI detection: 10.NNNN/suffix, tolerating doi.org/ and doi: prefixes.
+   No trailing-punctuation trimming — real DOIs may end in ")" (e.g. Lancet DOIs). */
+function parseDOI(input) {
+  const s = String(input).trim()
+    .replace(/^doi:\s*/i, "")
+    .replace(/^https?:\/\/(dx\.)?doi\.org\//i, "");
+  const m = s.match(/10\.\d{4,9}\/\S+/);
+  return m ? m[0] : null;
+}
+
+const slug = s => String(s).toLowerCase().replace(/[^a-z0-9]+/g, "-")
+  .replace(/^-+|-+$/g, "").slice(0, 80) || "x";
+
+/* ---------- normalize a Crossref message to the essential fields ---------- */
+function yearOf(m) {
+  for (const k of ["issued", "published-print", "published-online", "created"]) {
+    const dp = m[k] && m[k]["date-parts"] && m[k]["date-parts"][0];
+    if (dp && isFinite(dp[0]) && dp[0]) return +dp[0];
+  }
+  return null;
+}
+function normWork(m) {
+  return {
+    doi: m.DOI || "",
+    type: m.type || "",
+    title: (Array.isArray(m.title) && m.title[0]) || "",
+    container: (Array.isArray(m["container-title"]) && m["container-title"][0]) || "",
+    volume: m.volume || "",
+    issue: m.issue || "",
+    page: m.page || "",
+    publisher: m.publisher || "",
+    year: yearOf(m),
+    authors: (Array.isArray(m.author) ? m.author : [])
+      .filter(a => a && (a.family || a.given || a.name))
+      .map(a => ({ given: a.given || "", family: a.family || a.name || "" }))
+  };
+}
+
+/* ---------- formatting helpers ----------
+   Citations are built as segment arrays [{t, i}] (i = italic) so the HTML preview can
+   render <i> while the copy buttons get the exact same text with no markup. */
+const seg = (t, i) => ({ t: t, i: !!i });
+const plain = segs => segs.map(s => s.t).join("");
+const endash = p => String(p).replace(/\s*[-–—]+\s*/g, "–"); // page ranges use an en dash
+const endPunct = t => (/[.!?…]$/.test(t.trim()) ? t : t + ".");
+
+function renderSegs(el, segs) {
+  el.textContent = "";
+  for (const s of segs) {
+    if (s.i) { const i = document.createElement("i"); i.textContent = s.t; el.append(i); }
+    else el.append(document.createTextNode(s.t));
+  }
+}
+
+/* "Ada Byron" -> "A. B.", "Jean-Luc" -> "J.-L." */
+function initials(given) {
+  if (!given) return "";
+  return given.trim().split(/\s+/).map(part =>
+    part.split("-").filter(Boolean).map(x => x[0].toUpperCase() + ".").join("-")
+  ).join(" ");
+}
+
+/* APA 7 §9.8: list up to 20 authors; for 21+, first 19, ellipsis, final author, no "&". */
+function apaAuthors(list) {
+  const names = list.map(a => {
+    const i = initials(a.given);
+    return a.family ? (a.family + (i ? ", " + i : "")) : i;
+  }).filter(Boolean);
+  if (!names.length) return "";
+  if (names.length === 1) return names[0];
+  if (names.length <= 20) return names.slice(0, -1).join(", ") + ", & " + names[names.length - 1];
+  return names.slice(0, 19).join(", ") + ", . . . " + names[names.length - 1];
+}
+
+/* MLA 9: one author inverted; two = "A, B, and C D"; three+ = first author + "et al." */
+function mlaAuthors(list) {
+  const inv = a => a.family + (a.given ? ", " + a.given : "");
+  const full = a => (a.given ? a.given + " " : "") + a.family;
+  if (!list.length) return "";
+  if (list.length === 1) return inv(list[0]);
+  if (list.length === 2) return inv(list[0]) + ", and " + full(list[1]);
+  return inv(list[0]) + ", et al.";
+}
+
+function apa(w) {
+  const clauses = [];
+  const auth = apaAuthors(w.authors);
+  if (auth) clauses.push([seg(/\.$/.test(auth) ? auth : auth + ".")]);
+  clauses.push([seg("(" + (w.year || "n.d.") + ").")]); // APA: no date -> (n.d.)
+  if (w.title) clauses.push([seg(endPunct(w.title), !w.container)]); // standalone works italic
+  if (w.container) {
+    const src = [seg(w.container, true)];
+    if (w.volume) {
+      src.push(seg(", "), seg(w.volume, true));
+      if (w.issue) src.push(seg("(" + w.issue + ")"));
+    } else if (w.issue) src.push(seg(", (" + w.issue + ")"));
+    if (w.page) src.push(seg(", " + endash(w.page)));
+    src.push(seg("."));
+    clauses.push(src);
+  } else if (w.publisher) {
+    clauses.push([seg(endPunct(w.publisher))]);
+  }
+  if (w.doi) clauses.push([seg("https://doi.org/" + w.doi)]);
+  return clauses.reduce((acc, c, i) => acc.concat(i ? [seg(" ")] : [], c), []);
+}
+
+function mla(w) {
+  const clauses = [];
+  const auth = mlaAuthors(w.authors);
+  if (auth) clauses.push([seg(/\.$/.test(auth) ? auth : auth + ".")]);
+  if (w.title) {
+    if (w.container) clauses.push([seg("“" + endPunct(w.title) + "”")]);
+    else clauses.push([seg(endPunct(w.title), true)]); // standalone works: italic title
+  }
+  const src = [];
+  if (w.container) {
+    src.push(seg(w.container, true));
+    if (w.volume) src.push(seg(", vol. " + w.volume));
+    if (w.issue) src.push(seg(", no. " + w.issue));
+    if (w.year) src.push(seg(", " + w.year));
+    if (w.page) src.push(seg(", " + (/[-–—]/.test(w.page) ? "pp. " : "p. ") + endash(w.page)));
+  } else {
+    if (w.publisher) src.push(seg(w.publisher));
+    if (w.year) src.push(seg((src.length ? ", " : "") + w.year));
+  }
+  if (src.length) { src.push(seg(".")); clauses.push(src); }
+  return clauses.reduce((acc, c, i) => acc.concat(i ? [seg(" ")] : [], c), []);
+}
+
+/* ---------- BibTeX ---------- */
+function bibType(t) {
+  if (t === "journal-article") return "article";
+  if (t === "book" || t === "monograph" || t === "edited-book" || t === "reference-book") return "book";
+  if (t === "book-chapter" || t === "book-section" || t === "book-part") return "incollection";
+  return "misc";
+}
+const bibEscape = s => String(s)
+  .replace(/[\\{}]/g, m => "\\" + m)
+  .replace(/([&%#_$])/g, "\\$1");
+/* cite key like firstauthorYEARfirstword (leading articles skipped for a useful word) */
+function citeKey(w) {
+  const fam = ((w.authors[0] && w.authors[0].family) || "anon")
+    .toLowerCase().replace(/[^a-z0-9]+/g, "") || "anon";
+  const words = (w.title.toLowerCase().match(/[a-z0-9]+/g) || [])
+    .filter(x => x !== "a" && x !== "an" && x !== "the");
+  return fam + (w.year || "") + (words[0] || "work");
+}
+function bibtex(w) {
+  const type = bibType(w.type);
+  const f = [];
+  if (w.authors.length)
+    f.push(["author", w.authors.map(a => a.family + (a.given ? ", " + a.given : "")).join(" and ")]);
+  if (w.title) f.push(["title", w.title]);
+  if (w.container && type === "article") f.push(["journal", w.container]);
+  if (w.container && type === "incollection") f.push(["booktitle", w.container]);
+  if (w.volume) f.push(["volume", w.volume]);
+  if (w.issue) f.push(["number", w.issue]);
+  if (w.page) f.push(["pages", String(w.page).replace(/\s*[-–—]+\s*/g, "--")]);
+  if (w.publisher) f.push(["publisher", w.publisher]);
+  if (w.year) f.push(["year", String(w.year)]);
+  if (w.doi) f.push(["doi", w.doi]);
+  return "@" + type + "{" + citeKey(w) + ",\n" +
+    f.map(kv => "  " + kv[0] + " = {" + bibEscape(kv[1]) + "}").join(",\n") + "\n}";
+}
+
+/* ---------- copy: plain text for APA/MLA, raw entry for BibTeX ---------- */
+function copyText(txt, btn) {
+  const orig = btn.textContent;
+  const done = ok => {
+    btn.textContent = ok ? "✓ copied" : "copy blocked — select the text";
+    setTimeout(() => { btn.textContent = orig; }, 1800);
+  };
+  const fallback = () => {
+    const ta = document.createElement("textarea");
+    ta.value = txt;
+    ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+    ta.remove();
+    done(ok);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(txt).then(() => done(true), fallback);
+  } else fallback();
+}
+
+/* ---------- state cards (designed error / empty states) ---------- */
+function stateCard(title, body, quiet) {
+  resultsEl.innerHTML = "";
+  const c = document.createElement("div");
+  c.className = "statecard" + (quiet ? " quiet" : "");
+  const b = document.createElement("b"); b.textContent = title;
+  const p = document.createElement("p"); p.textContent = body;
+  c.append(b, p);
+  resultsEl.append(c);
+}
+function showError(e, kind, what) {
+  document.getElementById("workSec").hidden = true;
+  statusEl.className = "status";
+  statusEl.textContent = "";
+  const msg = String(e && e.message || e);
+  if (msg.includes("HTTP 404") && kind === "doi") {
+    stateCard("No work found for " + what,
+      "Crossref has no record registered under that DOI. Check it for typos — DOIs are exact, including case and punctuation.");
+  } else if (msg.includes("HTTP 429")) {
+    stateCard("Crossref is rate-limiting requests",
+      "Too many lookups in a short window. Wait a minute and try again — nothing is wrong with your query.");
+  } else {
+    stateCard("Couldn’t reach Crossref",
+      "The lookup failed and there is no cached copy of this " + (kind === "doi" ? "DOI" : "search") +
+      ". Check your connection and try again.");
+  }
+}
+
+function timeAgo(t) {
+  const s = Math.round((Date.now() - t) / 1000);
+  if (s < 90) return "just now";
+  const m = Math.round(s / 60); if (m < 90) return m + " min ago";
+  const h = Math.round(m / 60); if (h < 36) return h + " hr ago";
+  return Math.round(h / 24) + " days ago";
+}
+
+/* ---------- render the selected work + its three formats ---------- */
+const TYPE_LABEL = {
+  "journal-article": "journal article", "book": "book", "monograph": "monograph",
+  "edited-book": "edited book", "reference-book": "reference book",
+  "book-chapter": "book chapter", "book-section": "book section",
+  "proceedings-article": "conference paper", "posted-content": "preprint",
+  "dissertation": "dissertation", "dataset": "dataset", "report": "report"
+};
+function authorsShort(list) {
+  if (!list.length) return "Author unknown";
+  const names = list.slice(0, 3).map(a => ((a.given ? a.given + " " : "") + a.family).trim());
+  return names.join(", ") + (list.length > 3 ? ", et al." : "");
+}
+
+function showWork(w, note, warn) {
+  cur = w;
+  document.getElementById("workSec").hidden = false;
+  statusEl.className = "status" + (warn ? " warn" : "");
+  statusEl.textContent = note;
+  document.getElementById("wkType").textContent = TYPE_LABEL[w.type] || w.type || "work";
+  document.getElementById("wkTitle").textContent = w.title || "(untitled — Crossref record has no title)";
+  const meta = [authorsShort(w.authors)];
+  if (w.container) meta.push(w.container);
+  else if (w.publisher) meta.push(w.publisher);
+  if (w.year) meta.push(w.year);
+  if (w.doi) meta.push("doi:" + w.doi);
+  document.getElementById("wkMeta").textContent = meta.join(" · ");
+  renderSegs(document.getElementById("apaOut"), apa(w));
+  renderSegs(document.getElementById("mlaOut"), mla(w));
+  document.getElementById("bibOut").textContent = bibtex(w);
+  paintSaveBtn();
+}
+function paintSaveBtn() {
+  const btn = document.getElementById("saveBtn");
+  const on = !!cur && getList().some(x => sameWork(x, cur));
+  btn.textContent = on ? "✓ On your list" : "+ Save to reading list";
+  btn.classList.toggle("added", on);
+}
+
+/* ---------- lookups ---------- */
+let requestGeneration = 0;
+async function lookupDOI(doi) {
+  const generation = ++requestGeneration;
+  statusEl.className = "status";
+  statusEl.textContent = "Looking up DOI…";
+  resultsEl.innerHTML = "";
+  try {
+    const r = await Suite.fetchJSON(API + "/works/" + encodeURIComponent(doi),
+      { timeout: 12000, cacheKey: "cite.doi." + slug(doi), ttl: TTL });
+    if (generation !== requestGeneration) return;
+    const w = normWork((r.v && r.v.message) || {});
+    showWork(w,
+      r.stale ? "Offline — showing the cached copy from " + timeAgo(r.t) + "."
+        : r.fromCache ? "Found via DOI lookup (cached " + timeAgo(r.t) + ")."
+        : "Found via DOI lookup.",
+      r.stale);
+  } catch (e) { if (generation === requestGeneration) showError(e, "doi", doi); }
+}
+
+async function search(q) {
+  const generation = ++requestGeneration;
+  statusEl.className = "status";
+  statusEl.textContent = "Searching Crossref…";
+  resultsEl.innerHTML = "";
+  document.getElementById("workSec").hidden = true;
+  try {
+    const r = await Suite.fetchJSON(
+      API + "/works?query.bibliographic=" + encodeURIComponent(q) + "&rows=10",
+      { timeout: 12000, cacheKey: "cite.q." + slug(q), ttl: TTL });
+    if (generation !== requestGeneration) return;
+    const msg = (r.v && r.v.message) || {};
+    const items = Array.isArray(msg.items) ? msg.items : [];
+    if (!items.length) {
+      statusEl.textContent = "";
+      stateCard("No works matched “" + q + "”",
+        "Crossref found nothing for that phrase. Try more of the exact title, or add an author surname.", true);
+      return;
+    }
+    const total = msg["total-results"];
+    const stamp = r.stale ? " · Offline — cached results from " + timeAgo(r.t)
+      : r.fromCache ? " (cached " + timeAgo(r.t) + ")" : "";
+    statusEl.className = "status" + (r.stale ? " warn" : "");
+    statusEl.textContent = "Showing " + items.length +
+      (isFinite(total) && total > items.length ? " of " + Number(total).toLocaleString() : "") +
+      " matches — pick the right work." + stamp;
+    resultsEl.innerHTML = "";
+    items.forEach(it => {
+      const w = normWork(it);
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "pick";
+      const t = document.createElement("div");
+      t.className = "pk-t";
+      t.textContent = w.title || "(untitled record)";
+      const m = document.createElement("div");
+      m.className = "pk-m";
+      const bits = [authorsShort(w.authors)];
+      if (w.year) bits.push(w.year);
+      if (w.container) bits.push(w.container);
+      else if (w.publisher) bits.push(w.publisher);
+      bits.push(TYPE_LABEL[w.type] || w.type || "work");
+      m.textContent = bits.join(" · ");
+      b.append(t, m);
+      b.addEventListener("click", () => {
+        resultsEl.innerHTML = "";
+        showWork(w,
+          r.stale ? "Offline — showing the cached copy from " + timeAgo(r.t) + "."
+            : "Selected from search results.",
+          r.stale);
+      });
+      resultsEl.append(b);
+    });
+  } catch (e) { if (generation === requestGeneration) showError(e, "search", q); }
+}
+
+function go() {
+  const q = qEl.value.trim();
+  if (!q) { statusEl.className = "status"; statusEl.textContent = "Enter a DOI or a few title words first."; return; }
+  const doi = parseDOI(q);
+  if (doi) lookupDOI(doi); else search(q);
+}
+document.getElementById("goBtn").addEventListener("click", go);
+qEl.addEventListener("keydown", e => { if (e.key === "Enter") go(); });
+
+/* ---------- reading list (suite.cite.list: essential fields only) ---------- */
+const LIST_KEY = "suite.cite.list";
+const sameWork = (a, b) => (a.doi && b.doi) ? a.doi === b.doi : a.title === b.title;
+function getList() { const v = Suite.store.get(LIST_KEY); return Array.isArray(v) ? v : []; }
+function setList(list) {
+  const ok = Suite.store.set(LIST_KEY, list);
+  savedNote.textContent = ok ? "" :
+    "Couldn’t save — this browser’s local storage is full. Export and remove a few items.";
+  renderList();
+  paintSaveBtn();
+}
+
+document.getElementById("saveBtn").addEventListener("click", () => {
+  if (!cur || getList().some(x => sameWork(x, cur))) return;
+  setList([cur].concat(getList()));
+});
+
+function renderList() {
+  const list = getList();
+  const el = document.getElementById("savedList");
+  document.getElementById("savedCount").textContent = list.length ? "· " + list.length : "";
+  document.getElementById("savedEmpty").style.display = list.length ? "none" : "block";
+  el.innerHTML = "";
+  list.forEach(w => {
+    const item = document.createElement("div");
+    item.className = "saved-item";
+    const t = document.createElement("div");
+    t.className = "t";
+    const ttl = document.createElement("button");
+    ttl.type = "button";
+    ttl.className = "ttl";
+    ttl.textContent = w.title || "(untitled record)";
+    ttl.setAttribute("aria-label", "Show citations for " + (w.title || "this untitled record"));
+    ttl.addEventListener("click", () => {
+      resultsEl.innerHTML = "";
+      showWork(w, "From your reading list — regenerated locally, no lookup needed.", false);
+    });
+    const sub = document.createElement("span");
+    const bits = [authorsShort(w.authors)];
+    if (w.year) bits.push(w.year);
+    sub.textContent = bits.join(" · ");
+    t.append(ttl, sub);
+    const acts = document.createElement("div");
+    acts.className = "acts";
+    const cp = document.createElement("button");
+    cp.type = "button";
+    cp.className = "copy";
+    cp.textContent = "Copy APA";
+    cp.setAttribute("aria-label", "Copy the APA citation for " + (w.title || "this untitled record"));
+    cp.addEventListener("click", () => copyText(plain(apa(w)), cp));
+    const rm = document.createElement("button");
+    rm.type = "button";
+    rm.className = "rm";
+    rm.textContent = "✕";
+    rm.setAttribute("aria-label", "Remove " + (w.title || "this untitled record") + " from the reading list");
+    rm.addEventListener("click", () => setList(getList().filter(x => !sameWork(x, w))));
+    acts.append(cp, rm);
+    item.append(t, acts);
+    el.append(item);
+  });
+}
+
+document.getElementById("exportBtn").addEventListener("click", () => {
+  const list = getList();
+  if (!list.length) {
+    savedNote.textContent = "Your reading list is empty — nothing to export yet.";
+    setTimeout(() => { savedNote.textContent = ""; }, 2500);
+    return;
+  }
+  const blob = new Blob([list.map(bibtex).join("\n\n") + "\n"],
+    { type: "application/x-bibtex" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "reading-list.bib";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+});
+
+/* ---------- copy buttons for the current work ---------- */
+document.getElementById("copyApa").addEventListener("click",
+  e => { if (cur) copyText(plain(apa(cur)), e.currentTarget); });
+document.getElementById("copyMla").addEventListener("click",
+  e => { if (cur) copyText(plain(mla(cur)), e.currentTarget); });
+document.getElementById("copyBib").addEventListener("click",
+  e => { if (cur) copyText(bibtex(cur), e.currentTarget); });
+
+/* ---------- boot ---------- */
+renderList();
+qEl.focus();
+</script>
+</body>
+</html>

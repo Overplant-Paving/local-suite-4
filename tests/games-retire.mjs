@@ -1,11 +1,14 @@
 /* Evidence for the Meteor Patrol retirement (ROADMAP, 2026-07-25).
-   Proves: the Games section is gone from the built hub in both themes, every remaining
-   category still renders with its count, and the un-built source-hub guard card — the other
-   user of .card.wip — still works. */
+   Proves: the Meteor Patrol prototype and its work-in-progress card are gone from the built
+   hub in both themes, every category still renders with its count, and the un-built
+   source-hub guard card — the other user of .card.wip — still works.
+   v4 note: the games category deliberately reopened with The Arcade, so this script no
+   longer asserts the word "Games" is absent — only the retired prototype's remnants. */
 import { chromium } from "playwright";
 import { writeFileSync } from "fs";
+import { resolve } from "node:path";
 
-const REPO = "/home/intelligence-zero/Development/local-suite-3";
+const REPO = resolve(import.meta.dirname, "..");
 const OUT = REPO + "/tests/evidence/games-retire";
 const lines = [];
 const say = s => { lines.push(s); console.log(s); };
@@ -42,8 +45,8 @@ cats.forEach(c => say("  " + c));
 const body = await page.evaluate(() => document.body.innerText);
 const total = cats.reduce((n, c) => n + (+(c.match(/(\d+) tools?/) || [0, 0])[1]), 0);
 say("");
-say("sum of per-category counts: " + total + "  (manifest: 73 tools + hub)");
-for (const needle of ["Meteor Patrol", "Games", "work in progress", "in the workshop"]) {
+say("sum of per-category counts: " + total + "  (manifest: 100 tools + hub)");
+for (const needle of ["Meteor Patrol", "work in progress", "in the workshop"]) {
   say(`absent from built hub — ${JSON.stringify(needle)}: ${!body.includes(needle) ? "YES" : "NO ***"}`);
 }
 say("console errors on the built hub: " + errors.length);

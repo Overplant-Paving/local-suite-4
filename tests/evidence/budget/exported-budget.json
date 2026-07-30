@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "exported": "2026-07-30T18:20:13.514Z",
+  "income1": 4000,
+  "income2": 1000,
+  "cats": [
+    {
+      "name": "Housing",
+      "amt": 1500,
+      "tag": "need"
+    },
+    {
+      "name": "Utilities",
+      "amt": 300,
+      "tag": "need"
+    },
+    {
+      "name": "Groceries",
+      "amt": 500,
+      "tag": "need"
+    },
+    {
+      "name": "Transportation",
+      "amt": 200,
+      "tag": "need"
+    },
+    {
+      "name": "Insurance",
+      "amt": 0,
+      "tag": "need"
+    },
+    {
+      "name": "Health",
+      "amt": 0,
+      "tag": "need"
+    },
+    {
+      "name": "Debt payments",
+      "amt": 400,
+      "tag": "savings"
+    },
+    {
+      "name": "Savings",
+      "amt": 600,
+      "tag": "savings"
+    },
+    {
+      "name": "Dining & fun",
+      "amt": 750,
+      "tag": "want"
+    },
+    {
+      "name": "Subscriptions",
+      "amt": 300,
+      "tag": "want"
+    },
+    {
+      "name": "Everything else",
+      "amt": 200,
+      "tag": "want"
+    }
+  ]
+}

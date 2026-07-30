@@ -1,8 +1,8 @@
-# Local Suite 3 — development instructions
+# Local Suite 4 — development instructions
 
-Local Suite 3 is the released continuation of the verified v2 single-file suite. It contains 73
-manifest tools plus a generated hub. The source is in `tools/`; committed, self-contained output is
-in `dist/`.
+Local Suite 4 is the released continuation of the verified v2/v3 single-file suite. It contains
+100 manifest tools plus a generated hub. The source is in `tools/`; committed, self-contained
+output is in `dist/`.
 
 ## Read first
 
@@ -30,18 +30,21 @@ checkout; do not claim otherwise. Existing migration evidence remains under `tes
 - API keys are user-owned local data. Never commit, print, or place them in URLs when a provider
   supports header authentication.
 
-## Current project state (v3.0.0, 2026-07-25)
+## Current project state (v4.0.0, 2026-07-30)
 
-- 71 v1 tools are preserved on the v2 architecture; Settings and Flight Tracker bring the manifest
-  to 73 tools, plus the hub (74 generated HTML pages).
-- V3 adds named multiple locations, cache-safe active switching and cross-tab behavior, an
-  individual Flight Tracker, and a 29-resource National Parks Explorer.
-- GitHub repository: https://github.com/Overplant-Paving/local-suite-3
-- Hosted suite: https://overplant-paving.github.io/local-suite-3/
-- Release evidence and the final checklist live under `tests/evidence/v3-release/`.
-- The final headed Chromium gate verifies a real `beforeinstallprompt` event, zero manifest and
-  installability errors, service-worker control, same-origin manifest icons under CSP, and the v3
-  precache. Full build, PWA, update, and 74-page smoke gates remain mandatory for future releases.
+- 71 v1 tools are preserved on the v2 architecture; Settings, Flight Tracker, The Arcade, and 26
+  further v4 tools bring the manifest to 100 tools, plus the hub (101 generated HTML pages).
+- V4 adds suite-wide favorites and recently-used quick access (core chrome + hub sections), a
+  live flight weather map (Open-Meteo precipitation grid, NWS SIGMETs and METARs), a re-audited
+  29-resource National Parks Explorer with a drawn boundary map, The Arcade (five playable games,
+  art inlined from the owned repos via `data-suite-asset`), and 26 new offline/keyless tools.
+- GitHub repository: https://github.com/Overplant-Paving/local-suite-4
+- Hosted suite: https://overplant-paving.github.io/local-suite-4/
+- Release evidence and the final checklist live under `tests/evidence/v4-release/`.
+- The headed Chromium gate verifies a real `beforeinstallprompt` event, zero manifest and
+  installability errors, service-worker control, same-origin manifest icons under CSP, and the
+  `suite-v4-` precache. Full build, PWA, update, and 101-page smoke gates remain mandatory for
+  future releases.
 
 ## Distribution model
 

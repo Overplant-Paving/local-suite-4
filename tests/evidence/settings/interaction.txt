@@ -2,16 +2,16 @@ NOTE: settings.html is born in v2 (no v1 original) — this run verifies the ROA
 NOTE: Phase 4 spec directly. The relay 'success' path is route-fulfilled (no live
 NOTE: request leaves the machine); the failure path is route-aborted to exercise the
 NOTE: designed blocked/CSP explanation state.
-seeded 10 suite.* keys: suite.cache.demo.one, suite.cache.demo.two, suite.focus.settings, suite.key.finnhub, suite.location, suite.locations, suite.notes.test, suite.roundtrip.spacing, suite.theme, suite.units
-storage viewer rows (10): suite.cache.demo.one, suite.cache.demo.two, suite.focus.settings, suite.key.finnhub, suite.location, suite.locations, suite.notes.test, suite.roundtrip.spacing, suite.theme, suite.units
+seeded 12 suite.* keys: suite.cache.demo.one, suite.cache.demo.two, suite.focus.settings, suite.hub.favorites, suite.hub.recents, suite.key.finnhub, suite.location, suite.locations, suite.notes.test, suite.roundtrip.spacing, suite.theme, suite.units
+storage viewer rows (12): suite.cache.demo.one, suite.cache.demo.two, suite.focus.settings, suite.hub.favorites, suite.hub.recents, suite.key.finnhub, suite.location, suite.locations, suite.notes.test, suite.roundtrip.spacing, suite.theme, suite.units
 viewer matches live localStorage key set: true
-storage summary: "10 key(s) · 469 B"
+storage summary: "12 key(s) · 616 B"
 viewer row suite.notes.test: size=40 B (UTF-8 bytes, value has multi-byte chars), preview="{"txt":"café ☕ — naïve ünïcode"}"
-export msg: "Backup of 10 key(s) created (937 B). It includes your saved API keys — treat it like a password."
-envelope: format=local-suite.backup.v2, exported=2026-07-25T08:51:55.586Z, keys=10, data entries=10
-envelope.data verbatim vs live localStorage (10 keys): all byte-identical
+export msg: "Backup of 12 key(s) created (1.1 KB). It includes your saved API keys — treat it like a password."
+envelope: format=local-suite.backup.v2, exported=2026-07-30T18:56:53.713Z, keys=12, data entries=12
+envelope.data verbatim vs live localStorage (12 keys): all byte-identical
 download button enabled after export: true
-download event: suggested filename "local-suite-backup-2026-07-25.json"
+download event: suggested filename "local-suite-backup-2026-07-30.json"
 after wipe + reload: 1 suite.* key(s) present: suite.theme
   (suite.theme is re-seeded by the harness's addInitScript on every load; its restored
    value "light" is byte-identical to the seeded one, so the round trip still covers it)
@@ -19,10 +19,12 @@ storage summary on wiped profile: "1 key(s) · 5 B"
 restore with empty textarea -> "Paste a backup first (or use “Restore from file…”)."
 restore with invalid JSON -> "Restore failed: that isn't valid JSON."
 restore with wrong format -> "Restore failed: not a Local Suite backup (expected format "local-suite.backup.v2")."
-restore msg: "Restored 10 key(s). Backup dated 2026-07-25T08:51:55.586Z."
+restore msg: "Restored 12 key(s). Backup dated 2026-07-30T18:56:53.713Z."
   round-trip suite.cache.demo.one: byte-identical
   round-trip suite.cache.demo.two: byte-identical
   round-trip suite.focus.settings: byte-identical
+  round-trip suite.hub.favorites: byte-identical
+  round-trip suite.hub.recents: byte-identical
   round-trip suite.key.finnhub: byte-identical
   round-trip suite.location: byte-identical
   round-trip suite.locations: byte-identical
@@ -30,7 +32,7 @@ restore msg: "Restored 10 key(s). Backup dated 2026-07-25T08:51:55.586Z."
   round-trip suite.roundtrip.spacing: byte-identical
   round-trip suite.theme: byte-identical
   round-trip suite.units: byte-identical
-ROUND-TRIP VERDICT: 10/10 keys byte-identical, 0 mismatched, 0 unexpected extra key(s)
+ROUND-TRIP VERDICT: 12/12 keys byte-identical, 0 mismatched, 0 unexpected extra key(s)
 tamper restore msg: "Restored 1 key(s) · 3 non-suite or non-string entries skipped. Backup dated 2026-07-16T00:00:00Z."
 tamper guard: evil.key=null, localStorageBomb=null, suite.bad.nonstring=null (all must be null), suite.tamper.ok="kept" (written)
 v2 location-only restore wins over prior v3 collection: {"mirror":{"lat":55,"lon":66,"label":"Restored legacy"},"collection":{"schema":1,"activeId":"saved-location","items":[{"id":"saved-location","revision":1,"lat":55,"lon":66,"label":"Restored legacy"}]}}
@@ -65,15 +67,15 @@ v2 location migration: {"legacy":{"lat":37.77,"lon":-122.42,"label":"San Francis
 location current (restored seed): "San Francisco — 37.77, -122.42", saved rows=1
 location save with invalid lat -> "Enter a latitude (−90…90) and longitude (−180…180) first."
 London added: suite.locations={"schema":1,"activeId":"saved-location","items":[{"id":"saved-location","revision":1,"lat":37.77,"lon":-122.42,"label":"San Francisco"},{"id":"london","label":"London","revision":1,"lat":51.5,"lon":-0.12}]}, rows=2, msg="Saved London."
-London activated: {"mirror":{"lat":51.5,"lon":-0.12,"label":"London"},"collection":{"schema":1,"activeId":"london","items":[{"id":"saved-location","revision":1,"lat":37.77,"lon":-122.42,"label":"San Francisco"},{"id":"london","label":"London","revision":1,"lat":51.5,"lon":-0.12}]},"safeCache":"{\"t\":1784969517815,\"v\":\"safe scoped data\"}","radarStation":null,"state":null}, current="London — 51.5, -0.12", msg="London is now active; reset 2 location-specific settings."
+London activated: {"mirror":{"lat":51.5,"lon":-0.12,"label":"London"},"collection":{"schema":1,"activeId":"london","items":[{"id":"saved-location","revision":1,"lat":37.77,"lon":-122.42,"label":"San Francisco"},{"id":"london","label":"London","revision":1,"lat":51.5,"lon":-0.12}]},"safeCache":"{\"t\":1785437816067,\"v\":\"safe scoped data\"}","radarStation":null,"state":null}, current="London — 51.5, -0.12", msg="London is now active; reset 2 location-specific settings."
 active London edited: {"mirror":{"lat":51.51,"lon":-0.12,"label":"London"},"collection":{"schema":1,"activeId":"london","items":[{"id":"saved-location","revision":1,"lat":37.77,"lon":-122.42,"label":"San Francisco"},{"id":"london","label":"London","revision":2,"lat":51.51,"lon":-0.12}]},"normalsStation":null,"focus":"locAddBtn"}, msg="Updated London; reset 1 location-specific setting because its active coordinates changed."
 active London deleted: mirror={"lat":37.77,"lon":-122.42,"label":"San Francisco"}, collection={"schema":1,"activeId":"saved-location","items":[{"id":"saved-location","revision":1,"lat":37.77,"lon":-122.42,"label":"San Francisco"}]}, rows=1, msg="Deleted London; San Francisco is now active."
 per-key delete: row button aria-label="Delete suite.tamper.ok" present: true
 after delete: suite.tamper.ok=null, storage msg="Deleted suite.tamper.ok."
-before purge: 13 keys, cache keys: suite.cache.demo.one, suite.cache.demo.two, suite.cache.location-switch-probe, suite.cache.purge-test.one, suite.cache.purge-test.two
+before purge: 15 keys, cache keys: suite.cache.demo.one, suite.cache.demo.two, suite.cache.location-switch-probe, suite.cache.purge-test.one, suite.cache.purge-test.two
 purge msg: "Removed 5 cached entries (suite.cache.*)."
-after purge: cache keys remaining=0 (expected 0), non-cache keys intact=true (8/8)
-storage summary now: "8 key(s) · 364 B"
+after purge: cache keys remaining=0 (expected 0), non-cache keys intact=true (10/10)
+storage summary now: "10 key(s) · 511 B"
 second purge (nothing left): "No cached entries to remove."
 a11y: aria-live regions on all async/result areas: backupMsg, restoreMsg, wizMsg, pasteBox, keysMsg, relayMsg, themeMsg, locMsg, autoLocMsg, storageMsg
 a11y: inputs/textareas without label or aria-label: autoLocChk

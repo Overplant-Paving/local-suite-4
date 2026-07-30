@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rhyme &amp; Word Finder · Local Suite</title>
+<link rel="stylesheet" href="../core/suite.css" data-suite-inline>
+<style>
+  /* tool accents (3-layer, same pattern as dictionary.html): the search-button label
+     needs dark ink on the light dark-mode accent — white would be ~2.4:1 there. */
+  :root { --on-accent: #fff; }
+  @media (prefers-color-scheme: dark) { :root { --on-accent: #15171b; } }
+  :root[data-theme="light"] { --on-accent: #fff; }
+  :root[data-theme="dark"] { --on-accent: #15171b; }
+
+  body { padding: 1.4rem 1.25rem 4rem; }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  .topbar { display: flex; align-items: center; gap: 1rem; }
+  .topbar .theme-btn, .topbar .fav-btn { float: none; }
+  .topbar .theme-btn { margin-left: auto; }
+  header { margin: 1rem 0 1.2rem; }
+  h1 { font-size: 1.8rem; letter-spacing: -.02em; }
+  .tag { color: var(--muted); margin-top: .35rem; max-width: 48rem; }
+
+  .searchrow { display: flex; gap: .5rem; margin: 1.2rem 0 .8rem; }
+  .searchrow .search { flex: 1; font-family: inherit; }
+  .gobtn { border: 1px solid var(--accent); background: var(--accent); color: var(--on-accent);
+    border-radius: 12px; padding: 0 1.3rem; cursor: pointer; font-size: 1rem; }
+  .gobtn:hover { filter: brightness(1.06); }
+
+  .rels { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: 1.1rem; }
+  .relbtn { border: 1px solid var(--line); background: var(--card); color: var(--ink);
+    border-radius: 999px; padding: .32rem .85rem; cursor: pointer; font-size: .88rem; }
+  .relbtn:hover { border-color: var(--accent); color: var(--accent); }
+  .relbtn[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft);
+    color: var(--accent); font-weight: 600; }
+
+  .reshead { display: flex; align-items: center; gap: .7rem; flex-wrap: wrap; margin: .4rem 0 .2rem; }
+  .count { font-size: .95rem; color: var(--muted); }
+  .copybtn { border: 1px solid var(--line); background: var(--card); color: var(--ink);
+    border-radius: 999px; padding: .3rem .9rem; cursor: pointer; font-size: .85rem; }
+  .copybtn:hover { border-color: var(--accent); color: var(--accent); }
+  .copynote { font-size: .82rem; color: var(--accent); }
+  .stale { border: 1px dashed var(--line); background: var(--chip); color: var(--muted);
+    border-radius: 10px; padding: .5rem .8rem; font-size: .85rem; margin: .6rem 0 .2rem; }
+
+  .group { margin-top: 1.1rem; }
+  .group h3 { font-size: .78rem; font-weight: 600; text-transform: uppercase; letter-spacing: .08em;
+    color: var(--muted); border-bottom: 1px solid var(--line); padding-bottom: .3rem; margin-bottom: .6rem; }
+  .chips { display: flex; flex-wrap: wrap; gap: .45rem; }
+  .word-chip { border: 1px solid var(--line); background: var(--card); color: var(--ink);
+    border-radius: 999px; padding: .32rem .85rem; cursor: pointer; font-size: .95rem;
+    display: inline-flex; align-items: center; gap: .4rem; max-width: 100%; text-align: left; }
+  .word-chip:hover { border-color: var(--accent); color: var(--accent); }
+  .word-chip .pos { font-size: .68rem; color: var(--muted); background: var(--chip);
+    border-radius: 999px; padding: .05rem .4rem; }
+
+  .msg { background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 1.1rem 1.2rem; box-shadow: var(--shadow); font-size: .95rem; margin-top: .6rem; }
+  .msg .sub { color: var(--muted); margin-top: .4rem; font-size: .9rem; }
+  .msg.loading { color: var(--muted); }
+  .msg.err { background: color-mix(in srgb, #c0402d 12%, var(--card));
+    border-color: color-mix(in srgb, #c0402d 35%, var(--line)); }
+  .msg .chips { margin-top: .7rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="index.html">← suite</a>
+    <button class="theme-btn" id="themeBtn" title="Toggle light/dark">◐ theme</button>
+  </div>
+  <header>
+    <h1>Rhyme &amp; Word Finder</h1>
+    <p class="tag">Rhymes, near rhymes, sound-alikes, meanings, and the words that keep company with a
+      word — for lyrics, poems, and crosswords. Every result is a button; click one to hunt onward.</p>
+  </header>
+
+  <form class="searchrow" id="searchForm">
+    <input class="search" id="q" type="search" placeholder="Type a word…  (press Enter)"
+      autocomplete="off" autofocus aria-label="Word to search">
+    <button class="gobtn" id="go" type="submit">Find</button>
+  </form>
+
+  <div class="rels" id="rels" role="group" aria-label="Word relation"></div>
+
+  <div id="results"></div>
+
+  <footer>Word data from the free <a href="https://www.datamuse.com/api/" target="_blank"
+    rel="noopener">Datamuse API</a>. The words you type are sent only to api.datamuse.com — no key,
+    no account; results are cached on this machine for 7 days.</footer>
+</div>
+
+<script src="../core/suite.js" data-suite-inline></script>
+<script>
+"use strict";
+
+Suite.theme.init();
+
+/* Datamuse /words relations (https://www.datamuse.com/api/):
+   rel_rhy perfect rhymes · rel_nry near rhymes · sl sounds-like · ml means-like ·
+   rel_syn synonyms · rel_ant antonyms · rel_jjb adjectives that describe the noun ·
+   rel_jja nouns the adjective describes · rel_bga words that often follow it.
+   md=ps asks for metadata: p = part-of-speech tags (n/v/adj/adv/u/prop in `tags`),
+   s = syllable counts (`numSyllables`). Rhyme-ish relations group by syllables;
+   meaning-ish relations show part-of-speech mini-chips instead. */
+const RELS = [
+  { p: "rel_rhy", label: "Rhymes",              kind: "rhyme" },
+  { p: "rel_nry", label: "Near rhymes",         kind: "rhyme" },
+  { p: "sl",      label: "Sounds like",         kind: "rhyme" },
+  { p: "ml",      label: "Means like",          kind: "meaning" },
+  { p: "rel_syn", label: "Synonyms",            kind: "meaning" },
+  { p: "rel_ant", label: "Antonyms",            kind: "meaning" },
+  { p: "rel_jjb", label: "Adjectives for it",   kind: "meaning" },
+  { p: "rel_jja", label: "Nouns it describes",  kind: "meaning" },
+  { p: "rel_bga", label: "Often follows it",    kind: "meaning" }
+];
+/* reference data: manifest cacheTtlMin 10080 (7 days) — a (relation, word) pair is
+   served from cache within the TTL instead of re-hitting Datamuse (API-AND-RELAY.md §2) */
+const TTL = 10080 * 60 * 1000;
+const MAXR = 80;
+/* Datamuse POS tags worth showing; everything else in `tags` (syn, pron:…, query
+   echoes) is metadata, not a part of speech */
+const POS = { n: "n", v: "v", adj: "adj", adv: "adv", prop: "name" };
+
+const qEl = document.getElementById("q");
+const relsEl = document.getElementById("rels");
+const resultsEl = Suite.liveRegion(document.getElementById("results"));
+
+let relIdx = 0;
+let curWord = "";
+let reqSeq = 0; /* ignore responses that lose a race to a newer query */
+
+/* All rendering below is createElement/textContent — no remote string ever
+   reaches an HTML or attribute parsing context. */
+function el(tag, cls, txt) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (txt != null) e.textContent = txt;
+  return e;
+}
+
+/* ---------- relation picker ---------- */
+RELS.forEach((r, i) => {
+  const b = el("button", "relbtn", r.label);
+  b.type = "button";
+  b.dataset.rel = r.p;
+  b.setAttribute("aria-pressed", String(i === relIdx));
+  b.addEventListener("click", () => {
+    if (relIdx === i) return;
+    relIdx = i;
+    paintRels();
+    if (curWord) run(curWord);
+  });
+  relsEl.append(b);
+});
+function paintRels() {
+  Array.prototype.forEach.call(relsEl.children, (b, i) =>
+    b.setAttribute("aria-pressed", String(i === relIdx)));
+}
+
+/* ---------- chips ---------- */
+function wordChip(word, tags, showPos) {
+  const b = el("button", "word-chip");
+  b.type = "button";
+  b.append(el("span", null, word));
+  if (showPos) {
+    const seen = new Set();
+    (tags || []).forEach(t => { if (POS[t]) seen.add(POS[t]); });
+    [...seen].slice(0, 3).forEach(p => b.append(el("span", "pos", p)));
+  }
+  b.addEventListener("click", () => run(word));
+  return b;
+}
+
+/* ---------- states ---------- */
+function renderIdle() {
+  resultsEl.innerHTML = "";
+  const box = el("div", "msg");
+  box.append(el("p", null, "Type a word, pick a relation above, and press Enter."));
+  box.append(el("p", "sub", "Or start from one of these:"));
+  const row = el("div", "chips");
+  ["day", "ocean", "heart", "moon"].forEach(w => row.append(wordChip(w, null, false)));
+  box.append(row);
+  resultsEl.append(box);
+}
+
+function renderLoading(rel, word) {
+  resultsEl.innerHTML = "";
+  resultsEl.append(el("div", "msg loading",
+    "Asking Datamuse — " + rel.label.toLowerCase() + " · “" + word + "”…"));
+}
+
+function renderError(e, word) {
+  resultsEl.innerHTML = "";
+  const box = el("div", "msg err");
+  const hm = /^HTTP (\d+)$/.exec((e && e.message) || "");
+  let msg;
+  if (hm && hm[1] === "429")
+    msg = "Rate-limited by Datamuse (HTTP 429) — wait a moment and try again.";
+  else if (hm)
+    msg = "Datamuse returned HTTP " + hm[1] + " for “" + word + "”. Try again shortly.";
+  else
+    msg = "Couldn’t reach api.datamuse.com — no connection, and nothing cached for “" +
+      word + "” with this relation yet.";
+  box.append(el("p", null, msg));
+  box.append(el("p", "sub", "Your earlier lookups stay available offline for 7 days."));
+  resultsEl.append(box);
+}
+
+function renderNoMatch(rel, word) {
+  const box = el("div", "msg nomatch");
+  box.append(el("p", null, "No results — " + rel.label.toLowerCase() + " · “" + word + "”."));
+  box.append(el("p", "sub",
+    "Datamuse came back empty. Try a simpler form of the word, or a different relation above."));
+  resultsEl.append(box);
+}
+
+/* ---------- results ---------- */
+function render(list, rel, word, r) {
+  resultsEl.innerHTML = "";
+  if (!list.length) { renderNoMatch(rel, word); return; }
+
+  const words = list.map(x => String(x.word));
+  const head = el("div", "reshead");
+  head.append(el("span", "count",
+    list.length + (list.length === 1 ? " word" : " words") + " — " +
+    rel.label.toLowerCase() + " · “" + word + "”" +
+    (list.length === MAXR ? " (first " + MAXR + ")" : "")));
+  const copy = el("button", "copybtn", "Copy all");
+  copy.type = "button";
+  copy.id = "copyBtn";
+  const note = el("span", "copynote");
+  note.id = "copyNote";
+  copy.addEventListener("click", () => copyAll(words, note));
+  head.append(copy, note);
+  resultsEl.append(head);
+
+  if (r.stale) {
+    resultsEl.append(el("div", "stale", "Offline — cached results from " +
+      new Date(r.t).toLocaleString([], { month: "short", day: "numeric",
+        hour: "numeric", minute: "2-digit" }) + "."));
+  }
+
+  if (rel.kind === "rhyme") {
+    /* group by numSyllables, ascending; entries Datamuse returns without a count
+       (rare) land in a trailing "syllables unknown" group */
+    const groups = new Map();
+    list.forEach(x => {
+      const k = Number.isFinite(x.numSyllables) && x.numSyllables > 0 ? x.numSyllables : Infinity;
+      if (!groups.has(k)) groups.set(k, []);
+      groups.get(k).push(x);
+    });
+    [...groups.keys()].sort((a, b) => a - b).forEach(k => {
+      const arr = groups.get(k);
+      const sec = el("section", "group");
+      sec.append(el("h3", null, (k === Infinity ? "syllables unknown"
+        : k + (k === 1 ? " syllable" : " syllables")) + " · " + arr.length));
+      const row = el("div", "chips");
+      arr.forEach(x => row.append(wordChip(String(x.word), x.tags, false)));
+      sec.append(row);
+      resultsEl.append(sec);
+    });
+  } else {
+    const sec = el("section", "group");
+    const row = el("div", "chips");
+    list.forEach(x => row.append(wordChip(String(x.word), x.tags, true)));
+    sec.append(row);
+    resultsEl.append(sec);
+  }
+}
+
+/* ---------- copy: clipboard API first, hidden-textarea fallback; never throws ---------- */
+function copyFallback(text) {
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.append(ta);
+    ta.select();
+    const ok = document.execCommand("copy");
+    ta.remove();
+    return ok;
+  } catch (e) { return false; }
+}
+function copyAll(words, note) {
+  const text = words.join(", ");
+  const done = ok => {
+    note.textContent = ok ? "Copied " + words.length + " words"
+      : "Copy blocked — select the list and copy manually";
+  };
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => done(true), () => done(copyFallback(text)));
+    } else {
+      done(copyFallback(text));
+    }
+  } catch (e) { done(copyFallback(text)); }
+}
+
+/* ---------- search ---------- */
+function norm(s) { return String(s == null ? "" : s).trim().toLowerCase().replace(/\s+/g, " "); }
+
+async function run(raw) {
+  const word = norm(raw);
+  if (!word) { qEl.focus(); return; }
+  curWord = word;
+  qEl.value = word;
+  const rel = RELS[relIdx];
+  const seq = ++reqSeq;
+  renderLoading(rel, word);
+  try {
+    const r = await Suite.fetchJSON(
+      "https://api.datamuse.com/words?" + rel.p + "=" + encodeURIComponent(word) +
+        "&max=" + MAXR + "&md=ps",
+      { cacheKey: "rhymes." + rel.p + "." + encodeURIComponent(word), ttl: TTL });
+    if (seq !== reqSeq) return;
+    render(Array.isArray(r.v) ? r.v : [], rel, word, r);
+  } catch (e) {
+    if (seq !== reqSeq) return;
+    renderError(e, word);
+  }
+}
+
+document.getElementById("searchForm").addEventListener("submit", e => {
+  e.preventDefault();
+  run(qEl.value);
+});
+
+renderIdle();
+</script>
+</body>
+</html>

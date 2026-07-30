@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""build.py — the entire Local Suite v3 toolchain. Python stdlib only (ADR D1).
+"""build.py — the entire Local Suite v4 toolchain. Python stdlib only (ADR D1).
 
 Commands:
   python3 build.py            inline core into tools/*.html -> dist/; hub injection; CSP
@@ -41,6 +41,7 @@ VIEWPORT_RE = re.compile(r'<meta name="viewport"[^>]*>')
 CSP_META_RE = re.compile(r'<meta http-equiv="Content-Security-Policy" content="([^"]*)">')
 
 NETWORK_CLASSES = ("offline", "cors-open", "keyed", "blocked")
+RELEASE_TOOL_COUNT = 100
 
 def read(p):
     return p.read_text(encoding="utf-8")
@@ -85,12 +86,36 @@ def build_csp(html, endpoints, script_endpoints=()):
             f'img-src {img}; media-src {connect}; connect-src {connect}; '
             "worker-src 'self'; manifest-src 'self'\">")
 
+ASSET_IMG_RE = re.compile(r'<img[^>]*\bdata-suite-asset\b[^>]*>')
+ASSET_SRC_RE = re.compile(r'src="\.\./assets/([^"]+)"')
+ASSET_MIME = {".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png",
+              ".webp": "image/webp", ".svg": "image/svg+xml"}
+
+def inline_assets(name, html):
+    """<img … src="../assets/X" … data-suite-asset> -> data: URI (dist stays one file).
+    Source pages keep working from file:// through the relative path."""
+    def repl(m):
+        tag = m.group(0)
+        sm = ASSET_SRC_RE.search(tag)
+        if not sm:
+            raise SystemExit(f"{name}: data-suite-asset img must use a ../assets/ src")
+        rel = sm.group(1)
+        p = ROOT / "assets" / rel
+        mime = ASSET_MIME.get("." + rel.rsplit(".", 1)[-1].lower())
+        if not p.exists() or not mime:
+            raise SystemExit(f"{name}: missing or unsupported asset assets/{rel}")
+        b64 = base64.b64encode(p.read_bytes()).decode()
+        return (tag.replace(sm.group(0), f'src="data:{mime};base64,{b64}"')
+                   .replace(" data-suite-asset", "", 1))
+    return ASSET_IMG_RE.sub(repl, html)
+
 def render_tool(name, source, core_css, core_js, manifest_tools):
     """Source tool -> self-contained dist file: inline core, header comment, hub data, CSP."""
     if not LINK_RE.search(source) or not SCRIPT_TAG_RE.search(source):
         raise SystemExit(f"{name}: missing data-suite-inline marker(s) — cannot build")
     html = LINK_RE.sub(lambda m: "<style>\n" + core_css + "</style>", source, count=1)
     html = SCRIPT_TAG_RE.sub(lambda m: "<script>\n" + core_js + "</script>", html, count=1)
+    html = inline_assets(name, html)
 
     if name == HUB:
         if not HUB_MARKER_RE.search(html):
@@ -158,7 +183,10 @@ self.addEventListener("install", (e) => {
 self.addEventListener("activate", (e) => {
   e.waitUntil(caches.keys()
     .then((keys) => Promise.all(keys
-      .filter((k) => /^suite-v\\d+-/.test(k) && k !== CACHE)
+      // CacheStorage is origin-wide, while GitHub Pages hosts supported Local
+      // Suite releases at separate paths/scopes on that origin. Only clean up
+      // this release's obsolete caches; v3 owns its suite-v3-* namespace.
+      .filter((k) => /^suite-v4-/.test(k) && k !== CACHE)
       .map((k) => caches.delete(k))))
     .then(() => self.clients.claim()));
 });
@@ -200,7 +228,7 @@ def render_pwa(rendered):
             h.update((CORE_DIR / "icons" / name.split("/")[1]).read_bytes())
         else:
             h.update(rendered[name].encode("utf-8"))
-    cache_name = f"suite-v3-{h.hexdigest()[:12]}"
+    cache_name = f"suite-v4-{h.hexdigest()[:12]}"
     sw = SW_TEMPLATE % {"cache": json.dumps(cache_name),
                         "precache": json.dumps(precache, indent=2)}
     return webmanifest, sw, precache, cache_name
@@ -227,19 +255,56 @@ def cmd_build(_args):
 
 def gate_manifest_files_sync(tools, tool_file_names):
     problems = []
-    seen = set()
+    seen_files = set()
+    seen_ids = set()
     for t in tools:
         f = t.get("file", "")
-        if f in seen:
+        tool_id = t.get("id", "")
+        if f in seen_files:
             problems.append(f"duplicate manifest entry for {f}")
-        seen.add(f)
+        seen_files.add(f)
+        if tool_id in seen_ids:
+            problems.append(f"duplicate manifest id {tool_id!r}")
+        seen_ids.add(tool_id)
+        if tool_id != Path(f).stem:
+            problems.append(f"{f}: manifest id {tool_id!r} must match file stem {Path(f).stem!r}")
         if f not in tool_file_names:
             problems.append(f"manifest lists {f} but tools/{f} does not exist")
         if t.get("network") not in NETWORK_CLASSES:
             problems.append(f"{f}: network must be one of {NETWORK_CLASSES}")
     for f in sorted(tool_file_names):
-        if f != HUB and f not in seen:
+        if f != HUB and f not in seen_files:
             problems.append(f"tools/{f} exists but has no manifest entry")
+    return problems
+
+def gate_release_tool_count(tools):
+    """V4's product contract is exactly 100 distinct tool identities."""
+    count = len(tools)
+    ids = [t.get("id") for t in tools]
+    distinct = len(set(ids))
+    problems = []
+    if count != RELEASE_TOOL_COUNT:
+        problems.append(
+            f"manifest must contain exactly {RELEASE_TOOL_COUNT} tools for v4; found {count}"
+        )
+    if distinct != RELEASE_TOOL_COUNT:
+        problems.append(
+            f"manifest must contain exactly {RELEASE_TOOL_COUNT} distinct tool ids for v4; "
+            f"found {distinct}"
+        )
+    return problems
+
+def gate_source_text_integrity(sources):
+    """HTML parsing replaces NUL/control bytes before CSP hashing.
+    Reject them in source so the build hash and browser-parsed script cannot diverge."""
+    problems = []
+    for name, text in sorted(sources.items()):
+        for i, char in enumerate(text):
+            if ord(char) < 32 and char not in "\t\n\r":
+                problems.append(
+                    f"{name}: disallowed control byte U+{ord(char):04X} at character {i}"
+                )
+                break
     return problems
 
 def gate_markers(sources):
@@ -440,6 +505,27 @@ def negative_tests():
 
     expect("manifest-files-sync", gate_manifest_files_sync(
         [{"file": "ghost.html", "network": "offline"}], set()))
+    expect("release-tool-count-under", gate_release_tool_count(
+        [{"id": f"tool-{i}", "file": f"tool-{i}.html"} for i in range(RELEASE_TOOL_COUNT - 1)]))
+    expect("release-tool-count-over", gate_release_tool_count(
+        [{"id": f"tool-{i}", "file": f"tool-{i}.html"} for i in range(RELEASE_TOOL_COUNT + 1)]))
+    duplicate_ids = [
+        {"id": f"tool-{i}", "file": f"tool-{i}.html"}
+        for i in range(RELEASE_TOOL_COUNT)
+    ]
+    duplicate_ids[-1]["id"] = duplicate_ids[0]["id"]
+    expect("release-tool-count-duplicate-id", gate_release_tool_count(duplicate_ids))
+    expect("manifest-duplicate-id", gate_manifest_files_sync([
+        {"id": "same", "file": "one.html", "network": "offline"},
+        {"id": "same", "file": "two.html", "network": "offline"},
+    ], {"one.html", "two.html"}))
+    expect("manifest-id-file-mismatch", gate_manifest_files_sync([
+        {"id": "wrong", "file": "right.html", "network": "offline"},
+    ], {"right.html"}))
+    expect("source-text-integrity-core-js", gate_source_text_integrity(
+        {"core/suite.js": "const sentinel = '\x00';"}))
+    expect("source-text-integrity-core-css", gate_source_text_integrity(
+        {"core/suite.css": "body::before{content:'\x00'}"}))
     expect("markers", gate_markers({"missing-marker.html": fx["missing-marker.html"]}))
     expect("dist-staleness", gate_dist_staleness(
         {"stale.html": "freshly rendered content"}, FIXTURES / "stale-dist"))
@@ -463,6 +549,11 @@ def cmd_check(_args):
     tools = manifest["tools"]
     tool_files = {p.name for p in TOOLS_DIR.glob("*.html")}
     sources = {p.name: read(p) for p in TOOLS_DIR.glob("*.html")}
+    integrity_sources = {
+        **sources,
+        "core/suite.js": read(CORE_DIR / "suite.js"),
+        "core/suite.css": read(CORE_DIR / "suite.css"),
+    }
     rendered = render_all(manifest)
     dist_texts = {p.name: read(p) for p in DIST_DIR.glob("*.html")}
     catalog_text = read(CATALOG) if CATALOG.exists() else ""
@@ -470,6 +561,8 @@ def cmd_check(_args):
     expected_webmanifest, expected_sw, _, _ = render_pwa(rendered)
 
     gates = [
+        ("release-tool-count",   True,  gate_release_tool_count(tools)),
+        ("source-text-integrity", True, gate_source_text_integrity(integrity_sources)),
         ("manifest-files-sync", True,  gate_manifest_files_sync(tools, tool_files)),
         ("markers",             True,  gate_markers(sources)),
         ("dist-staleness",      True,  gate_dist_staleness(rendered, DIST_DIR)),
@@ -693,7 +786,7 @@ def cmd_refresh_data(_args):
 # ---------------------------------------------------------------- main
 
 def main():
-    p = argparse.ArgumentParser(description="Local Suite v3 toolchain")
+    p = argparse.ArgumentParser(description="Local Suite v4 toolchain")
     g = p.add_mutually_exclusive_group()
     g.add_argument("--check", action="store_true", help="run validation gates")
     g.add_argument("--serve", action="store_true", help="build + serve on :8000")

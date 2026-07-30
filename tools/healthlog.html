@@ -1,0 +1,569 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Personal Health Log · Local Suite</title>
+<link rel="stylesheet" href="../core/suite.css" data-suite-inline>
+<style>
+  /* tool accents: BP-category palette (3-layer, same pattern as core).
+     Light values chosen dark enough for WCAG AA on the card; dark values are light tints. */
+  :root { --normal: #3a7d44; --elev: #9a6110; --s1: #a24c10; --s2: #b04545; --crisis: #8c2f56; }
+  @media (prefers-color-scheme: dark) {
+    :root { --normal: #7dc487; --elev: #d9a153; --s1: #e0895c; --s2: #e07a7a; --crisis: #e589b4; }
+  }
+  :root[data-theme="light"] { --normal: #3a7d44; --elev: #9a6110; --s1: #a24c10; --s2: #b04545; --crisis: #8c2f56; }
+  :root[data-theme="dark"] { --normal: #7dc487; --elev: #d9a153; --s1: #e0895c; --s2: #e07a7a; --crisis: #e589b4; }
+
+  body { padding: 1.4rem 1.25rem 4rem; }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  .topbar { display: flex; align-items: center; gap: 1rem; }
+  .topbar .theme-btn, .topbar .fav-btn { float: none; }
+  .topbar .theme-btn { margin-left: auto; }
+  header { margin: 1rem 0 1.2rem; }
+  h1 { font-size: 1.8rem; letter-spacing: -.02em; }
+  .tag { color: var(--muted); margin-top: .35rem; max-width: 48rem; }
+
+  .notice {
+    background: var(--accent-soft); border: 1px solid var(--line); border-radius: 12px;
+    padding: .7rem .9rem; font-size: .86rem; margin-bottom: 1.2rem; line-height: 1.45;
+  }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 1.1rem 1.2rem; box-shadow: var(--shadow);
+  }
+  h2 { font-size: 1.05rem; margin: 0 0 .8rem; }
+  .sect { margin-top: 1.6rem; }
+  .sect-head { display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap; margin-bottom: .8rem; }
+  .sect-head h2 { margin: 0; }
+  .sect-head .spacer { flex: 1; }
+
+  .frow { display: flex; gap: .8rem; flex-wrap: wrap; align-items: flex-end; }
+  .field { display: flex; flex-direction: column; gap: .3rem; flex: 1 1 8.5rem; min-width: 0; }
+  .field label { font-size: .78rem; color: var(--muted); }
+  input, select, textarea {
+    width: 100%; padding: .55rem .7rem; font: inherit; font-size: .95rem; color: var(--ink);
+    background: var(--bg); border: 1px solid var(--line); border-radius: 9px; box-sizing: border-box;
+  }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  textarea { resize: vertical; }
+  .fgroup { margin-top: .9rem; }
+  .fgroup[hidden] { display: none; }
+  .bands { font-size: .78rem; color: var(--muted); margin-top: .6rem; line-height: 1.5; }
+  .preview { font-weight: 600; min-height: 1.1em; }
+  .actions { margin-top: 1rem; align-items: center; }
+  .btn {
+    border: 1px solid var(--accent); background: var(--accent); color: var(--bg);
+    border-radius: 10px; padding: .55rem 1.1rem; cursor: pointer; font-size: .92rem; font-weight: 600;
+  }
+  .btn.ghost { background: var(--card); color: var(--accent); }
+  .btn.small { padding: .35rem .7rem; font-size: .82rem; font-weight: 500; }
+  .btn:hover { filter: brightness(1.05); }
+  .msg { color: var(--muted); font-size: .85rem; flex: 1 1 10rem; }
+
+  /* trend cards */
+  .trends { display: grid; grid-template-columns: repeat(auto-fit, minmax(215px, 1fr)); gap: .9rem; }
+  .trend { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: .9rem 1rem; box-shadow: var(--shadow); min-width: 0; }
+  .trend h3 { font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
+  .trend .latest { font-size: 1.7rem; font-weight: 700; letter-spacing: -.01em; margin-top: .35rem; font-variant-numeric: tabular-nums; line-height: 1.15; }
+  .trend .cat { font-size: .8rem; font-weight: 600; min-height: 1.1em; margin-top: .1rem; }
+  .trend .avg7 { color: var(--muted); font-size: .82rem; margin-top: .25rem; }
+  .trend svg { width: 100%; height: 44px; display: block; margin-top: .6rem; }
+  .trend svg path { fill: none; stroke: var(--accent); stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; }
+  .trend svg path.dim { stroke: var(--muted); opacity: .7; }
+  .trend .mm { color: var(--muted); font-size: .74rem; margin-top: .35rem; font-variant-numeric: tabular-nums; }
+
+  .cat-normal { color: var(--normal); }
+  .cat-elev   { color: var(--elev); }
+  .cat-s1     { color: var(--s1); }
+  .cat-s2     { color: var(--s2); }
+  .cat-crisis { color: var(--crisis); }
+
+  /* filters + list */
+  .filters { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+  .fbtn { border: none; background: transparent; color: var(--muted); padding: .38rem .8rem; cursor: pointer; font-size: .84rem; }
+  .fbtn.on { background: var(--accent); color: var(--bg); }
+  .count { color: var(--muted); font-size: .82rem; }
+  .list { margin-top: .4rem; }
+  .entry { display: flex; gap: .35rem .8rem; align-items: baseline; flex-wrap: wrap; padding: .6rem .2rem; border-bottom: 1px solid var(--line); font-size: .92rem; }
+  .e-type {
+    font-size: .68rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted);
+    border: 1px solid var(--line); border-radius: 6px; padding: .08rem .4rem; white-space: nowrap;
+  }
+  .e-val { overflow-wrap: anywhere; flex: 1 1 9rem; font-variant-numeric: tabular-nums; }
+  .e-cat { font-size: .78rem; font-weight: 600; }
+  .e-when { color: var(--muted); font-size: .8rem; white-space: nowrap; margin-left: auto; }
+  .del { border: 1px solid var(--line); background: var(--bg); color: var(--muted); border-radius: 7px; padding: .18rem .5rem; cursor: pointer; font-size: .78rem; }
+  .del:hover { color: var(--s2); border-color: var(--s2); }
+  .del.armed { color: var(--bg); background: var(--s2); border-color: var(--s2); }
+  .empty { color: var(--muted); padding: 1.2rem 0; }
+  footer { font-size: .82rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="index.html">← suite</a>
+    <button class="theme-btn" id="themeBtn" title="Toggle light/dark">◐ theme</button>
+  </div>
+  <header>
+    <h1>Personal Health Log</h1>
+    <p class="tag">Blood pressure, weight, sleep, and notes with sparkline trends and CSV export — everything stays in this browser.</p>
+  </header>
+
+  <p class="notice" id="disclaimer"><b>This is a personal log, not medical advice.</b>
+    Blood-pressure categories follow the 2017 ACC/AHA hypertension guideline. A reading above
+    180 systolic or 120 diastolic counts as a hypertensive crisis — talk to a clinician promptly.</p>
+
+  <section class="card" aria-labelledby="addH">
+    <h2 id="addH">Add an entry</h2>
+    <div class="frow">
+      <div class="field"><label for="fType">Type</label>
+        <select id="fType">
+          <option value="bp">Blood pressure</option>
+          <option value="weight">Weight</option>
+          <option value="sleep">Sleep</option>
+          <option value="note">Note</option>
+        </select>
+      </div>
+      <div class="field"><label for="fWhen">Date &amp; time</label>
+        <input id="fWhen" type="datetime-local">
+      </div>
+    </div>
+
+    <div class="fgroup" id="g-bp">
+      <div class="frow">
+        <div class="field"><label for="fSys">Systolic (mmHg)</label>
+          <input id="fSys" type="number" inputmode="numeric" min="40" max="300" placeholder="120"></div>
+        <div class="field"><label for="fDia">Diastolic (mmHg)</label>
+          <input id="fDia" type="number" inputmode="numeric" min="20" max="200" placeholder="80"></div>
+        <div class="field"><label for="fPulse">Pulse (bpm, optional)</label>
+          <input id="fPulse" type="number" inputmode="numeric" min="20" max="250" placeholder="—"></div>
+      </div>
+      <p class="bands preview" id="bpPreview"></p>
+      <!-- Bands per Whelton et al., 2017 ACC/AHA hypertension guideline (Hypertension 2018;71:e13–e115). -->
+      <p class="bands">Categories per the <b>2017 ACC/AHA guideline</b>: Normal &lt;120 and &lt;80 ·
+        Elevated 120–129 and &lt;80 · Stage 1 130–139 or 80–89 · Stage 2 ≥140 or ≥90 ·
+        Crisis &gt;180 or &gt;120 (talk to a clinician promptly).</p>
+    </div>
+
+    <div class="fgroup" id="g-weight" hidden>
+      <div class="frow">
+        <div class="field"><label for="fWeight" id="weightLabel">Weight (lb)</label>
+          <input id="fWeight" type="number" inputmode="decimal" min="1" max="1500" step="0.1" placeholder="165"></div>
+      </div>
+    </div>
+
+    <div class="fgroup" id="g-sleep" hidden>
+      <div class="frow">
+        <div class="field"><label for="fSleep">Sleep (hours, in half-hour steps)</label>
+          <input id="fSleep" type="number" inputmode="decimal" min="0" max="24" step="0.5" placeholder="7.5"></div>
+      </div>
+    </div>
+
+    <div class="fgroup" id="g-note" hidden>
+      <div class="frow">
+        <div class="field"><label for="fNote">Note</label>
+          <textarea id="fNote" rows="2" maxlength="500" placeholder="How you felt, medication changes, anything worth remembering"></textarea></div>
+      </div>
+    </div>
+
+    <div class="frow actions">
+      <button class="btn" id="addBtn">Add entry</button>
+      <span class="msg" id="formMsg"></span>
+    </div>
+  </section>
+
+  <section class="sect" aria-labelledby="trendH">
+    <div class="sect-head">
+      <h2 id="trendH">Trends</h2>
+      <span class="spacer"></span>
+      <button class="btn ghost small" id="unitBtn" aria-pressed="false" aria-label="Show weights in kilograms">Show kg</button>
+    </div>
+    <div class="trends" id="statGrid">
+      <div class="trend" id="stat-bp">
+        <h3>Blood pressure</h3>
+        <div class="latest">—</div>
+        <div class="cat"></div>
+        <div class="avg7"></div>
+        <svg id="spark-bp" viewBox="0 0 220 44" preserveAspectRatio="none" role="img"
+          aria-label="Blood pressure sparkline, up to the last 30 readings"></svg>
+        <div class="mm"></div>
+      </div>
+      <div class="trend" id="stat-weight">
+        <h3>Weight</h3>
+        <div class="latest">—</div>
+        <div class="cat"></div>
+        <div class="avg7"></div>
+        <svg id="spark-weight" viewBox="0 0 220 44" preserveAspectRatio="none" role="img"
+          aria-label="Weight sparkline, up to the last 30 readings"></svg>
+        <div class="mm"></div>
+      </div>
+      <div class="trend" id="stat-sleep">
+        <h3>Sleep</h3>
+        <div class="latest">—</div>
+        <div class="cat"></div>
+        <div class="avg7"></div>
+        <svg id="spark-sleep" viewBox="0 0 220 44" preserveAspectRatio="none" role="img"
+          aria-label="Sleep sparkline, up to the last 30 readings"></svg>
+        <div class="mm"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sect" aria-labelledby="entriesH">
+    <div class="sect-head">
+      <h2 id="entriesH">Entries</h2>
+      <div class="filters" id="filterRow" role="group" aria-label="Filter entries by type">
+        <button class="fbtn on" data-f="all" aria-pressed="true">All</button>
+        <button class="fbtn" data-f="bp" aria-pressed="false">BP</button>
+        <button class="fbtn" data-f="weight" aria-pressed="false">Weight</button>
+        <button class="fbtn" data-f="sleep" aria-pressed="false">Sleep</button>
+        <button class="fbtn" data-f="note" aria-pressed="false">Notes</button>
+      </div>
+      <span class="spacer"></span>
+      <span class="count" id="countLbl"></span>
+      <button class="btn ghost small" id="exportBtn">Export CSV</button>
+    </div>
+    <div class="list" id="entryList"></div>
+  </section>
+
+  <footer>No network — entries never leave this browser's storage. Export a CSV backup anytime.
+    Blood-pressure bands: 2017 ACC/AHA guideline. This log is not medical advice.</footer>
+</div>
+
+<script src="../core/suite.js" data-suite-inline></script>
+<script>
+"use strict";
+
+Suite.theme.init();
+
+const $ = id => document.getElementById(id);
+const KEY = "suite.healthlog.v1";
+const DAY = 86400000;
+const KG_PER_LB = 0.45359237;                 /* exact avoirdupois definition */
+const LB_PER_KG = 1 / KG_PER_LB;
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+/* ---- data: one key, { unit, entries:[{id,type,t,...}] } ---- */
+let data = { unit: "lb", entries: [] };
+{
+  const v = Suite.store.get(KEY);
+  if (v && typeof v === "object" && Array.isArray(v.entries)) {
+    data.entries = v.entries.filter(e => e && typeof e === "object" && isFinite(e.t));
+    if (v.unit === "kg") data.unit = "kg";
+  }
+}
+function saveData() {
+  const ok = Suite.store.set(KEY, data);
+  if (!ok) $("formMsg").textContent =
+    "Couldn't save — browser storage looks full. This change may not survive a reload.";
+  return ok;
+}
+
+/* ---- BP categories: Whelton et al., 2017 ACC/AHA hypertension guideline.
+   Normal <120 AND <80 · Elevated 120–129 AND <80 · Stage 1 130–139 OR 80–89 ·
+   Stage 2 ≥140 OR ≥90 · Crisis >180 OR >120. Checked highest-first so an
+   either/or reading lands in its most severe band. ---- */
+const BP_CATS = {
+  normal: "Normal", elev: "Elevated", s1: "Stage 1 hypertension",
+  s2: "Stage 2 hypertension", crisis: "Hypertensive crisis",
+};
+function bpCategory(sys, dia) {
+  if (sys > 180 || dia > 120) return "crisis";
+  if (sys >= 140 || dia >= 90) return "s2";
+  if (sys >= 130 || dia >= 80) return "s1";
+  if (sys >= 120) return "elev";
+  return "normal";
+}
+const catText = cls => BP_CATS[cls] + (cls === "crisis" ? " — talk to a clinician" : "");
+
+/* ---- unit helpers (weights stored canonically in lb) ---- */
+const inKg = () => data.unit === "kg";
+const wNum = lb => inKg() ? lb * KG_PER_LB : lb;
+const fmtW = lb => wNum(lb).toFixed(1) + (inKg() ? " kg" : " lb");
+
+function localDT(ms) {
+  const d = new Date(ms), p = n => String(n).padStart(2, "0");
+  return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) +
+    "T" + p(d.getHours()) + ":" + p(d.getMinutes());
+}
+const fmtWhen = t => new Date(t).toLocaleString([], { dateStyle: "medium", timeStyle: "short" });
+
+/* ---- add form: the type select swaps the visible field group ---- */
+const GROUPS = { bp: "g-bp", weight: "g-weight", sleep: "g-sleep", note: "g-note" };
+function paintGroups() {
+  const t = $("fType").value;
+  for (const k in GROUPS) $(GROUPS[k]).hidden = (k !== t);
+}
+$("fType").addEventListener("change", paintGroups);
+
+function paintPreview() {
+  const s = parseFloat($("fSys").value), d = parseFloat($("fDia").value);
+  const el = $("bpPreview");
+  if (isFinite(s) && isFinite(d) && s > 0 && d > 0) {
+    const cls = bpCategory(s, d);
+    el.textContent = catText(cls) + (cls === "crisis" ? " promptly" : "");
+    el.className = "bands preview cat-" + cls;
+  } else { el.textContent = ""; el.className = "bands preview"; }
+}
+$("fSys").addEventListener("input", paintPreview);
+$("fDia").addEventListener("input", paintPreview);
+
+$("addBtn").addEventListener("click", () => {
+  const type = $("fType").value;
+  const msg = $("formMsg");
+  const t = Date.parse($("fWhen").value);
+  if (!isFinite(t)) { msg.textContent = "Pick a date and time first."; return; }
+  const e = { id: uid(), type, t };
+  if (type === "bp") {
+    const sys = parseFloat($("fSys").value), dia = parseFloat($("fDia").value);
+    if (!isFinite(sys) || !isFinite(dia) || sys <= 0 || dia <= 0) {
+      msg.textContent = "Enter both systolic and diastolic."; return;
+    }
+    e.sys = Math.round(sys); e.dia = Math.round(dia);
+    const pulse = parseFloat($("fPulse").value);
+    if (isFinite(pulse) && pulse > 0) e.pulse = Math.round(pulse);
+  } else if (type === "weight") {
+    const v = parseFloat($("fWeight").value);
+    if (!isFinite(v) || v <= 0) { msg.textContent = "Enter a weight."; return; }
+    e.lb = Math.round((inKg() ? v * LB_PER_KG : v) * 100) / 100;
+  } else if (type === "sleep") {
+    const v = parseFloat($("fSleep").value);
+    if (!isFinite(v) || v < 0 || v > 24) { msg.textContent = "Enter sleep hours (0–24)."; return; }
+    e.hours = Math.round(v * 2) / 2;   /* snap to the half-hour steps the field advertises */
+  } else {
+    const txt = $("fNote").value.trim();
+    if (!txt) { msg.textContent = "Write a note first."; return; }
+    e.text = txt;
+  }
+  data.entries.push(e);
+  if (saveData()) msg.textContent = "Added.";
+  ["fSys", "fDia", "fPulse", "fWeight", "fSleep", "fNote"].forEach(id => { $(id).value = ""; });
+  paintPreview();
+  $("fWhen").value = localDT(Date.now());
+  render();
+});
+
+/* ---- unit toggle (display conversion; also converts a half-typed weight) ---- */
+$("unitBtn").addEventListener("click", () => {
+  const w = parseFloat($("fWeight").value);
+  data.unit = inKg() ? "lb" : "kg";
+  if (isFinite(w) && w > 0) {
+    $("fWeight").value = (inKg() ? w * KG_PER_LB : w * LB_PER_KG).toFixed(1);
+  }
+  saveData();
+  paintUnit();
+  render();
+});
+function paintUnit() {
+  const kg = inKg();
+  const b = $("unitBtn");
+  b.textContent = kg ? "Show lb" : "Show kg";
+  b.setAttribute("aria-pressed", String(kg));
+  b.setAttribute("aria-label", kg ? "Show weights in pounds" : "Show weights in kilograms");
+  $("weightLabel").textContent = "Weight (" + (kg ? "kg" : "lb") + ")";
+}
+
+/* ---- trends: latest, 7-day average, sparkline of the last 30 entries ---- */
+const byTypeAsc = t => data.entries.filter(e => e.type === t).sort((a, b) => a.t - b.t);
+const mean = a => a.reduce((s, v) => s + v, 0) / a.length;
+
+function sparkPath(vals, lo, hi) {
+  const W = 220, H = 44, pad = 3, span = (hi - lo) || 1, n = vals.length;
+  return vals.map((v, i) => {
+    const x = n === 1 ? W / 2 : pad + i * (W - 2 * pad) / (n - 1);
+    const y = H - pad - (v - lo) / span * (H - 2 * pad);
+    return (i ? "L" : "M") + x.toFixed(1) + " " + y.toFixed(1);
+  }).join(" ");
+}
+function drawSpark(svg, seriesList, lo, hi) {
+  svg.textContent = "";
+  seriesList.forEach((s, i) => {
+    if (!s.length) return;
+    const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    p.setAttribute("d", sparkPath(s, lo, hi));
+    p.setAttribute("vector-effect", "non-scaling-stroke");
+    if (i > 0) p.setAttribute("class", "dim");
+    svg.append(p);
+  });
+}
+function statParts(id) {
+  const c = $(id);
+  return {
+    latest: c.querySelector(".latest"), cat: c.querySelector(".cat"),
+    avg7: c.querySelector(".avg7"), svg: c.querySelector("svg"), mm: c.querySelector(".mm"),
+  };
+}
+function renderStats() {
+  const cutoff = Date.now() - 7 * DAY;
+
+  /* blood pressure — sparkline carries systolic and (dimmed) diastolic on a shared scale */
+  {
+    const p = statParts("stat-bp"), es = byTypeAsc("bp"), last30 = es.slice(-30);
+    if (!es.length) {
+      p.latest.textContent = "—"; p.cat.textContent = ""; p.cat.className = "cat";
+      p.avg7.textContent = "no readings yet"; p.svg.textContent = ""; p.mm.textContent = "";
+    } else {
+      const last = es[es.length - 1], cls = bpCategory(last.sys, last.dia);
+      p.latest.textContent = last.sys + "/" + last.dia;
+      p.cat.textContent = catText(cls); p.cat.className = "cat cat-" + cls;
+      const w = es.filter(e => e.t >= cutoff);
+      p.avg7.textContent = w.length
+        ? "7-day avg " + Math.round(mean(w.map(e => e.sys))) + "/" + Math.round(mean(w.map(e => e.dia)))
+        : "no readings in the last 7 days";
+      const sys = last30.map(e => e.sys), dia = last30.map(e => e.dia);
+      const lo = Math.min(...dia), hi = Math.max(...sys);
+      drawSpark(p.svg, [sys, dia], lo, hi);
+      p.mm.textContent = "sys " + Math.min(...sys) + "–" + Math.max(...sys) +
+        " · dia " + Math.min(...dia) + "–" + Math.max(...dia) + " mmHg";
+    }
+  }
+  /* weight */
+  {
+    const p = statParts("stat-weight"), es = byTypeAsc("weight"), last30 = es.slice(-30);
+    if (!es.length) {
+      p.latest.textContent = "—"; p.avg7.textContent = "no readings yet";
+      p.svg.textContent = ""; p.mm.textContent = "";
+    } else {
+      p.latest.textContent = fmtW(es[es.length - 1].lb);
+      const w = es.filter(e => e.t >= cutoff);
+      p.avg7.textContent = w.length ? "7-day avg " + fmtW(mean(w.map(e => e.lb)))
+        : "no readings in the last 7 days";
+      const vals = last30.map(e => e.lb);
+      drawSpark(p.svg, [vals], Math.min(...vals), Math.max(...vals));
+      p.mm.textContent = "min " + fmtW(Math.min(...vals)) + " · max " + fmtW(Math.max(...vals));
+    }
+  }
+  /* sleep */
+  {
+    const p = statParts("stat-sleep"), es = byTypeAsc("sleep"), last30 = es.slice(-30);
+    if (!es.length) {
+      p.latest.textContent = "—"; p.avg7.textContent = "no entries yet";
+      p.svg.textContent = ""; p.mm.textContent = "";
+    } else {
+      p.latest.textContent = es[es.length - 1].hours.toFixed(1) + " h";
+      const w = es.filter(e => e.t >= cutoff);
+      p.avg7.textContent = w.length ? "7-day avg " + mean(w.map(e => e.hours)).toFixed(1) + " h"
+        : "no entries in the last 7 days";
+      const vals = last30.map(e => e.hours);
+      drawSpark(p.svg, [vals], Math.min(...vals), Math.max(...vals));
+      p.mm.textContent = "min " + Math.min(...vals).toFixed(1) + " · max " + Math.max(...vals).toFixed(1) + " h";
+    }
+  }
+}
+
+/* ---- entry list: newest first, filterable, soft-confirm delete ---- */
+let filter = "all";
+const TYPE_LABEL = { bp: "BP", weight: "Weight", sleep: "Sleep", note: "Note" };
+function entryValue(e) {
+  if (e.type === "bp") return e.sys + "/" + e.dia + " mmHg" + (e.pulse ? " · " + e.pulse + " bpm" : "");
+  if (e.type === "weight") return fmtW(e.lb);
+  if (e.type === "sleep") return e.hours.toFixed(1) + " h sleep";
+  return e.text;
+}
+function renderList() {
+  const list = $("entryList");
+  list.textContent = "";
+  const all = data.entries.slice().sort((a, b) => b.t - a.t);
+  const shown = filter === "all" ? all : all.filter(e => e.type === filter);
+  $("countLbl").textContent = all.length + (all.length === 1 ? " entry" : " entries") +
+    (filter === "all" ? "" : " · showing " + shown.length);
+  if (!shown.length) {
+    const d = document.createElement("p");
+    d.className = "empty";
+    d.textContent = all.length ? "No entries of this type yet." :
+      "Nothing logged yet — add your first entry above.";
+    list.append(d);
+    return;
+  }
+  shown.forEach(e => {
+    const row = document.createElement("div");
+    row.className = "entry"; row.dataset.type = e.type;
+    const chip = document.createElement("span");
+    chip.className = "e-type"; chip.textContent = TYPE_LABEL[e.type] || e.type;
+    const val = document.createElement("span");
+    val.className = "e-val"; val.textContent = entryValue(e);
+    row.append(chip, val);
+    if (e.type === "bp") {
+      const cls = bpCategory(e.sys, e.dia);
+      const cat = document.createElement("span");
+      cat.className = "e-cat cat-" + cls; cat.textContent = catText(cls);
+      row.append(cat);
+    }
+    const when = document.createElement("span");
+    when.className = "e-when"; when.textContent = fmtWhen(e.t);
+    const del = document.createElement("button");
+    del.className = "del"; del.textContent = "Delete";
+    del.setAttribute("aria-label", "Delete this entry");
+    del.addEventListener("click", () => {
+      if (del.dataset.armed) {
+        data.entries = data.entries.filter(x => x.id !== e.id);
+        saveData(); render();
+      } else {
+        del.dataset.armed = "1"; del.classList.add("armed"); del.textContent = "Confirm?";
+        del.setAttribute("aria-label", "Confirm delete");
+        setTimeout(() => {
+          if (!del.isConnected) return;
+          delete del.dataset.armed; del.classList.remove("armed"); del.textContent = "Delete";
+          del.setAttribute("aria-label", "Delete this entry");
+        }, 4000);
+      }
+    });
+    row.append(when, del);
+    list.append(row);
+  });
+}
+document.querySelectorAll("#filterRow .fbtn").forEach(b => {
+  b.addEventListener("click", () => {
+    filter = b.dataset.f;
+    document.querySelectorAll("#filterRow .fbtn").forEach(x => {
+      const on = x === b;
+      x.classList.toggle("on", on);
+      x.setAttribute("aria-pressed", String(on));
+    });
+    renderList();
+  });
+});
+
+/* ---- CSV export: ISO timestamps, RFC-4180-style quoting ---- */
+function csvCell(s) {
+  s = String(s == null ? "" : s);
+  return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+$("exportBtn").addEventListener("click", () => {
+  const rows = [["timestamp", "type", "systolic", "diastolic", "pulse", "bp_category",
+    "weight_lb", "sleep_hours", "note"]];
+  data.entries.slice().sort((a, b) => a.t - b.t).forEach(e => {
+    rows.push([
+      new Date(e.t).toISOString(), e.type,
+      e.type === "bp" ? e.sys : "", e.type === "bp" ? e.dia : "",
+      e.type === "bp" && e.pulse ? e.pulse : "",
+      e.type === "bp" ? BP_CATS[bpCategory(e.sys, e.dia)] : "",
+      e.type === "weight" ? e.lb : "",
+      e.type === "sleep" ? e.hours : "",
+      e.type === "note" ? e.text : "",
+    ]);
+  });
+  const csv = rows.map(r => r.map(csvCell).join(",")).join("\n") + "\n";
+  const blob = new Blob([csv], { type: "text/csv" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "health-log-" + localDT(Date.now()).slice(0, 10) + ".csv";
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  $("formMsg").textContent = "Exported " + data.entries.length + " entries as CSV.";
+});
+
+/* ---- a11y + boot ---- */
+Suite.liveRegion($("entryList"));
+Suite.liveRegion($("formMsg"));
+function render() { renderStats(); renderList(); }
+$("fWhen").value = localDT(Date.now());
+paintGroups();
+paintUnit();
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,469 @@
+ M API-AND-RELAY.md
+ M ARCHITECTURE.md
+ M CATALOG.md
+ M CLAUDE.md
+ M PWA.md
+ M QUALITY.md
+ M README.md
+ M ROADMAP.md
+ M build.py
+ M core/suite.css
+ M core/suite.js
+ M dist/air.html
+ M dist/airport.html
+ M dist/alerts.html
+ M dist/almanac.html
+ M dist/apod.html
+ M dist/art.html
+ M dist/asteroids.html
+ M dist/books.html
+ M dist/color.html
+ M dist/congress.html
+ M dist/convert.html
+ M dist/currency.html
+ M dist/dataviewer.html
+ M dist/dates.html
+ M dist/daylight.html
+ M dist/dictionary.html
+ M dist/drought.html
+ M dist/elevation.html
+ M dist/emergency.html
+ M dist/factbook.html
+ M dist/fedregister.html
+ M dist/flashcards.html
+ M dist/flight.html
+ M dist/focus.html
+ M dist/foodrecalls.html
+ M dist/gas.html
+ M dist/geo.html
+ M dist/holidays.html
+ M dist/illness.html
+ M dist/index.html
+ M dist/inflation.html
+ M dist/iss.html
+ M dist/jobs.html
+ M dist/launches.html
+ M dist/loan.html
+ M dist/marine.html
+ M dist/markets.html
+ M dist/medicine.html
+ M dist/nearby.html
+ M dist/network.html
+ M dist/normals.html
+ M dist/notes.html
+ M dist/nutrition.html
+ M dist/paper.html
+ M dist/parks.html
+ M dist/passes.html
+ M dist/password.html
+ M dist/printables.html
+ M dist/qr.html
+ M dist/quakes.html
+ M dist/radar.html
+ M dist/random.html
+ M dist/recalls.html
+ M dist/rivers.html
+ M dist/settings.html
+ M dist/snow.html
+ M dist/sound.html
+ M dist/spaceweather.html
+ M dist/sw.js
+ M dist/text.html
+ M dist/tides.html
+ M dist/timers.html
+ M dist/transit.html
+ M dist/treasury.html
+ M dist/tripcost.html
+ M dist/volcano.html
+ M dist/voting.html
+ M dist/weather.html
+ M dist/wiki.html
+ M dist/wildfire.html
+ M dist/wildlife.html
+ M dist/word.html
+ M dist/worldclock.html
+ M dist/yields.html
+ M dist/zip.html
+ M manifest/tools.json
+ M tests/escape-allowlist.json
+ M tests/evidence/color/csp-blob/palette-file.png
+ M tests/evidence/color/csp-blob/palette-hosted.png
+ M tests/evidence/flight/interaction.txt
+ M tests/evidence/flight/localstorage.json
+ M tests/evidence/flight/mobile.png
+ M tests/evidence/flight/v2-after-interaction.png
+ M tests/evidence/flight/v2-dark.png
+ M tests/evidence/flight/v2-light.png
+ M tests/evidence/games-retire/hub-dark.png
+ M tests/evidence/games-retire/hub-light.png
+ M tests/evidence/games-retire/verification.txt
+ M tests/evidence/parks/interaction.txt
+ M tests/evidence/parks/invalid-key-state.png
+ M tests/evidence/parks/localstorage.json
+ M tests/evidence/parks/mobile-390.png
+ M tests/evidence/parks/nokey-designed-state.png
+ M tests/evidence/parks/offline-stale.png
+ M tests/evidence/parks/v2-after-interaction.png
+ M tests/evidence/parks/v2-dark.png
+ M tests/evidence/parks/v2-light.png
+ M tests/flight-built.mjs
+ M tests/games-retire.mjs
+ M tests/interactions/flight.mjs
+ M tests/interactions/parks.mjs
+ M tests/parks-built.mjs
+ M tests/pwa-headed-verify.mjs
+ M tests/verify-tool.mjs
+ M tools/flight.html
+ M tools/index.html
+ M tools/parks.html
+?? .hermes/logs/fable-v4-resume.log
+?? .hermes/logs/fable-v4.log
+?? .hermes/logs/sol-v4-fallback.log
+?? V4_BRIEF.md
+?? assets/arcade/PROVENANCE.md
+?? assets/arcade/bathhouse-brigade-mobile.jpg
+?? assets/arcade/bathhouse-brigade.jpg
+?? assets/arcade/chromatic-chains-desktop.jpg
+?? assets/arcade/chromatic-chains-mobile.jpg
+?? assets/arcade/doom-shareware.jpg
+?? dist/arcade.html
+?? dist/body.html
+?? dist/budget.html
+?? dist/calc.html
+?? dist/checklists.html
+?? dist/cite.html
+?? dist/discussion.html
+?? dist/dns.html
+?? dist/fuellog.html
+?? dist/hash.html
+?? dist/healthlog.html
+?? dist/ics.html
+?? dist/image.html
+?? dist/metronome.html
+?? dist/nasaimages.html
+?? dist/overhead.html
+?? dist/periodic.html
+?? dist/recipes.html
+?? dist/rhymes.html
+?? dist/savings.html
+?? dist/skyevents.html
+?? dist/spending.html
+?? dist/tropical.html
+?? dist/typing.html
+?? dist/wayback.html
+?? dist/weatherhistory.html
+?? dist/worldbank.html
+?? tests/arcade-built.mjs
+?? tests/evidence/body/computed-style-diff.txt
+?? tests/evidence/body/interaction.txt
+?? tests/evidence/body/localstorage.json
+?? tests/evidence/body/mobile.png
+?? tests/evidence/body/v2-after-interaction.png
+?? tests/evidence/body/v2-dark.png
+?? tests/evidence/body/v2-light.png
+?? tests/evidence/budget/computed-style-diff.txt
+?? tests/evidence/budget/exported-budget.json
+?? tests/evidence/budget/interaction.txt
+?? tests/evidence/budget/localstorage.json
+?? tests/evidence/budget/mobile.png
+?? tests/evidence/budget/v2-after-interaction.png
+?? tests/evidence/budget/v2-dark.png
+?? tests/evidence/budget/v2-light.png
+?? tests/evidence/calc/computed-style-diff.txt
+?? tests/evidence/calc/interaction.txt
+?? tests/evidence/calc/localstorage.json
+?? tests/evidence/calc/mobile.png
+?? tests/evidence/calc/v2-after-interaction.png
+?? tests/evidence/calc/v2-dark.png
+?? tests/evidence/calc/v2-light.png
+?? tests/evidence/checklists/bad-import.json
+?? tests/evidence/checklists/checklists-export.json
+?? tests/evidence/checklists/computed-style-diff.txt
+?? tests/evidence/checklists/interaction.txt
+?? tests/evidence/checklists/localstorage.json
+?? tests/evidence/checklists/mobile.png
+?? tests/evidence/checklists/v2-after-interaction.png
+?? tests/evidence/checklists/v2-dark.png
+?? tests/evidence/checklists/v2-light.png
+?? tests/evidence/cite/computed-style-diff.txt
+?? tests/evidence/cite/interaction.txt
+?? tests/evidence/cite/localstorage.json
+?? tests/evidence/cite/mobile.png
+?? tests/evidence/cite/offline-stale.png
+?? tests/evidence/cite/v2-after-interaction.png
+?? tests/evidence/cite/v2-dark.png
+?? tests/evidence/cite/v2-light.png
+?? tests/evidence/discussion/computed-style-diff.txt
+?? tests/evidence/discussion/error-429.png
+?? tests/evidence/discussion/error-500.png
+?? tests/evidence/discussion/interaction.txt
+?? tests/evidence/discussion/localstorage.json
+?? tests/evidence/discussion/mobile.png
+?? tests/evidence/discussion/offline-stale.png
+?? tests/evidence/discussion/v2-after-interaction.png
+?? tests/evidence/discussion/v2-dark.png
+?? tests/evidence/discussion/v2-light.png
+?? tests/evidence/dns/computed-style-diff.txt
+?? tests/evidence/dns/disagree.png
+?? tests/evidence/dns/interaction.txt
+?? tests/evidence/dns/localstorage.json
+?? tests/evidence/dns/mobile.png
+?? tests/evidence/dns/offline-stale.png
+?? tests/evidence/dns/one-resolver-500.png
+?? tests/evidence/dns/v2-after-interaction.png
+?? tests/evidence/dns/v2-dark.png
+?? tests/evidence/dns/v2-light.png
+?? tests/evidence/fuellog/computed-style-diff.txt
+?? tests/evidence/fuellog/decreasing.csv
+?? tests/evidence/fuellog/export.csv
+?? tests/evidence/fuellog/interaction.txt
+?? tests/evidence/fuellog/localstorage.json
+?? tests/evidence/fuellog/malformed.csv
+?? tests/evidence/fuellog/mobile.png
+?? tests/evidence/fuellog/v2-after-interaction.png
+?? tests/evidence/fuellog/v2-dark.png
+?? tests/evidence/fuellog/v2-light.png
+?? tests/evidence/hash/computed-style-diff.txt
+?? tests/evidence/hash/interaction.txt
+?? tests/evidence/hash/localstorage.json
+?? tests/evidence/hash/mobile.png
+?? tests/evidence/hash/v2-after-interaction.png
+?? tests/evidence/hash/v2-dark.png
+?? tests/evidence/hash/v2-light.png
+?? tests/evidence/healthlog/computed-style-diff.txt
+?? tests/evidence/healthlog/export.csv
+?? tests/evidence/healthlog/interaction.txt
+?? tests/evidence/healthlog/localstorage.json
+?? tests/evidence/healthlog/mobile.png
+?? tests/evidence/healthlog/v2-after-interaction.png
+?? tests/evidence/healthlog/v2-dark.png
+?? tests/evidence/healthlog/v2-light.png
+?? tests/evidence/ics/computed-style-diff.txt
+?? tests/evidence/ics/interaction.txt
+?? tests/evidence/ics/localstorage.json
+?? tests/evidence/ics/mobile.png
+?? tests/evidence/ics/v2-after-interaction.png
+?? tests/evidence/ics/v2-dark.png
+?? tests/evidence/ics/v2-light.png
+?? tests/evidence/image/computed-style-diff.txt
+?? tests/evidence/image/error-card.png
+?? tests/evidence/image/interaction.txt
+?? tests/evidence/image/localstorage.json
+?? tests/evidence/image/mobile.png
+?? tests/evidence/image/out-q40.jpg
+?? tests/evidence/image/out-q90.jpg
+?? tests/evidence/image/v2-after-interaction.png
+?? tests/evidence/image/v2-dark.png
+?? tests/evidence/image/v2-light.png
+?? tests/evidence/metronome/computed-style-diff.txt
+?? tests/evidence/metronome/interaction.txt
+?? tests/evidence/metronome/localstorage.json
+?? tests/evidence/metronome/mobile.png
+?? tests/evidence/metronome/v2-after-interaction.png
+?? tests/evidence/metronome/v2-dark.png
+?? tests/evidence/metronome/v2-light.png
+?? tests/evidence/nasaimages/computed-style-diff.txt
+?? tests/evidence/nasaimages/detail.png
+?? tests/evidence/nasaimages/interaction.txt
+?? tests/evidence/nasaimages/localstorage.json
+?? tests/evidence/nasaimages/mobile.png
+?? tests/evidence/nasaimages/offline-stale.png
+?? tests/evidence/nasaimages/results.png
+?? tests/evidence/nasaimages/v2-after-interaction.png
+?? tests/evidence/nasaimages/v2-dark.png
+?? tests/evidence/nasaimages/v2-light.png
+?? tests/evidence/overhead/computed-style-diff.txt
+?? tests/evidence/overhead/empty-state.png
+?? tests/evidence/overhead/error-500.png
+?? tests/evidence/overhead/interaction.txt
+?? tests/evidence/overhead/localstorage.json
+?? tests/evidence/overhead/mobile.png
+?? tests/evidence/overhead/offline-stale.png
+?? tests/evidence/overhead/v2-after-interaction.png
+?? tests/evidence/overhead/v2-dark.png
+?? tests/evidence/overhead/v2-light.png
+?? tests/evidence/periodic/computed-style-diff.txt
+?? tests/evidence/periodic/interaction.txt
+?? tests/evidence/periodic/localstorage.json
+?? tests/evidence/periodic/mobile.png
+?? tests/evidence/periodic/v2-after-interaction.png
+?? tests/evidence/periodic/v2-dark.png
+?? tests/evidence/periodic/v2-light.png
+?? tests/evidence/recipes/computed-style-diff.txt
+?? tests/evidence/recipes/interaction.txt
+?? tests/evidence/recipes/localstorage.json
+?? tests/evidence/recipes/mobile.png
+?? tests/evidence/recipes/print-card.png
+?? tests/evidence/recipes/v2-after-interaction.png
+?? tests/evidence/recipes/v2-dark.png
+?? tests/evidence/recipes/v2-light.png
+?? tests/evidence/recipes/v2-print.png
+?? tests/evidence/rhymes/computed-style-diff.txt
+?? tests/evidence/rhymes/error-cards.png
+?? tests/evidence/rhymes/interaction.txt
+?? tests/evidence/rhymes/localstorage.json
+?? tests/evidence/rhymes/mobile.png
+?? tests/evidence/rhymes/offline-stale.png
+?? tests/evidence/rhymes/v2-after-interaction.png
+?? tests/evidence/rhymes/v2-dark.png
+?? tests/evidence/rhymes/v2-light.png
+?? tests/evidence/savings/computed-style-diff.txt
+?? tests/evidence/savings/interaction.txt
+?? tests/evidence/savings/localstorage.json
+?? tests/evidence/savings/mobile.png
+?? tests/evidence/savings/v2-after-interaction.png
+?? tests/evidence/savings/v2-dark.png
+?? tests/evidence/savings/v2-light.png
+?? tests/evidence/skyevents/computed-style-diff.txt
+?? tests/evidence/skyevents/interaction.txt
+?? tests/evidence/skyevents/localstorage.json
+?? tests/evidence/skyevents/mobile.png
+?? tests/evidence/skyevents/v2-after-interaction.png
+?? tests/evidence/skyevents/v2-dark.png
+?? tests/evidence/skyevents/v2-light.png
+?? tests/evidence/spending/computed-style-diff.txt
+?? tests/evidence/spending/error-429.png
+?? tests/evidence/spending/error-500.png
+?? tests/evidence/spending/interaction.txt
+?? tests/evidence/spending/localstorage.json
+?? tests/evidence/spending/mobile.png
+?? tests/evidence/spending/offline-stale.png
+?? tests/evidence/spending/v2-after-interaction.png
+?? tests/evidence/spending/v2-dark.png
+?? tests/evidence/spending/v2-light.png
+?? tests/evidence/tropical/computed-style-diff.txt
+?? tests/evidence/tropical/error-500.png
+?? tests/evidence/tropical/happy-path.png
+?? tests/evidence/tropical/interaction.txt
+?? tests/evidence/tropical/localstorage.json
+?? tests/evidence/tropical/mobile.png
+?? tests/evidence/tropical/no-location.png
+?? tests/evidence/tropical/offline-stale.png
+?? tests/evidence/tropical/v2-after-interaction.png
+?? tests/evidence/tropical/v2-dark.png
+?? tests/evidence/tropical/v2-light.png
+?? tests/evidence/typing/computed-style-diff.txt
+?? tests/evidence/typing/interaction.txt
+?? tests/evidence/typing/localstorage.json
+?? tests/evidence/typing/v2-after-interaction.png
+?? tests/evidence/typing/v2-dark.png
+?? tests/evidence/typing/v2-light.png
+?? tests/evidence/v4-release/build-check.txt
+?? tests/evidence/v4-release/build.txt
+?? tests/evidence/v4-release/final-validation.txt
+?? tests/evidence/v4-release/focused-foundation-tests.txt
+?? tests/evidence/v4-release/focused-v4-tests.txt
+?? tests/evidence/v4-release/git-status.txt
+?? tests/evidence/v4-release/headed-installability.png
+?? tests/evidence/v4-release/headed-installability.txt
+?? tests/evidence/v4-release/headed-visual-checks.txt
+?? tests/evidence/v4-release/new-tools-tests.txt
+?? tests/evidence/v4-release/nps-live-probe.txt
+?? tests/evidence/v4-release/nps-schema-inventory.txt
+?? tests/evidence/v4-release/nps-secret-scan.txt
+?? tests/evidence/v4-release/pwa-install-offline.txt
+?? tests/evidence/v4-release/pwa-update.txt
+?? tests/evidence/v4-release/release-checklist.md
+?? tests/evidence/v4-release/smoke.txt
+?? tests/evidence/v4-release/visual/arcade-desktop.png
+?? tests/evidence/v4-release/visual/arcade-mobile.png
+?? tests/evidence/v4-release/visual/budget-desktop.png
+?? tests/evidence/v4-release/visual/budget-mobile.png
+?? tests/evidence/v4-release/visual/desktop-contact-sheet.png
+?? tests/evidence/v4-release/visual/flight-desktop.png
+?? tests/evidence/v4-release/visual/flight-mobile.png
+?? tests/evidence/v4-release/visual/hub-desktop.png
+?? tests/evidence/v4-release/visual/hub-mobile.png
+?? tests/evidence/v4-release/visual/mobile-contact-sheet.png
+?? tests/evidence/v4-release/visual/parks-desktop.png
+?? tests/evidence/v4-release/visual/parks-geojson-desktop.png
+?? tests/evidence/v4-release/visual/parks-geojson-mobile.png
+?? tests/evidence/v4-release/visual/parks-mobile.png
+?? tests/evidence/v4-release/visual/typing-desktop.png
+?? tests/evidence/v4-release/visual/typing-mobile.png
+?? tests/evidence/wayback/computed-style-diff.txt
+?? tests/evidence/wayback/error-card-429.png
+?? tests/evidence/wayback/interaction.txt
+?? tests/evidence/wayback/live-cors-probe.txt
+?? tests/evidence/wayback/localstorage.json
+?? tests/evidence/wayback/mobile.png
+?? tests/evidence/wayback/offline-stale.png
+?? tests/evidence/wayback/v2-after-interaction.png
+?? tests/evidence/wayback/v2-dark.png
+?? tests/evidence/wayback/v2-light.png
+?? tests/evidence/weatherhistory/computed-style-diff.txt
+?? tests/evidence/weatherhistory/error-path.png
+?? tests/evidence/weatherhistory/interaction.txt
+?? tests/evidence/weatherhistory/localstorage.json
+?? tests/evidence/weatherhistory/mobile.png
+?? tests/evidence/weatherhistory/offline-stale.png
+?? tests/evidence/weatherhistory/v2-after-interaction.png
+?? tests/evidence/weatherhistory/v2-dark.png
+?? tests/evidence/weatherhistory/v2-light.png
+?? tests/evidence/worldbank/computed-style-diff.txt
+?? tests/evidence/worldbank/error-500.png
+?? tests/evidence/worldbank/interaction.txt
+?? tests/evidence/worldbank/localstorage.json
+?? tests/evidence/worldbank/mobile.png
+?? tests/evidence/worldbank/offline-stale.png
+?? tests/evidence/worldbank/v2-after-interaction.png
+?? tests/evidence/worldbank/v2-dark.png
+?? tests/evidence/worldbank/v2-light.png
+?? tests/favorites-recents.mjs
+?? tests/interactions/body.mjs
+?? tests/interactions/budget.mjs
+?? tests/interactions/calc.mjs
+?? tests/interactions/checklists.mjs
+?? tests/interactions/cite.mjs
+?? tests/interactions/discussion.mjs
+?? tests/interactions/dns.mjs
+?? tests/interactions/fuellog.mjs
+?? tests/interactions/hash.mjs
+?? tests/interactions/healthlog.mjs
+?? tests/interactions/ics.mjs
+?? tests/interactions/image.mjs
+?? tests/interactions/metronome.mjs
+?? tests/interactions/nasaimages.mjs
+?? tests/interactions/overhead.mjs
+?? tests/interactions/periodic.mjs
+?? tests/interactions/recipes.mjs
+?? tests/interactions/rhymes.mjs
+?? tests/interactions/savings.mjs
+?? tests/interactions/skyevents.mjs
+?? tests/interactions/spending.mjs
+?? tests/interactions/tropical.mjs
+?? tests/interactions/typing.mjs
+?? tests/interactions/wayback.mjs
+?? tests/interactions/weatherhistory.mjs
+?? tests/interactions/worldbank.mjs
+?? tests/nps-schema-inventory.mjs
+?? tests/nps-secret-scan.mjs
+?? tests/parks-live-probe.mjs
+?? tests/v4-headed-visual.mjs
+?? tools/arcade.html
+?? tools/body.html
+?? tools/budget.html
+?? tools/calc.html
+?? tools/checklists.html
+?? tools/cite.html
+?? tools/discussion.html
+?? tools/dns.html
+?? tools/fuellog.html
+?? tools/hash.html
+?? tools/healthlog.html
+?? tools/ics.html
+?? tools/image.html
+?? tools/metronome.html
+?? tools/nasaimages.html
+?? tools/overhead.html
+?? tools/periodic.html
+?? tools/recipes.html
+?? tools/rhymes.html
+?? tools/savings.html
+?? tools/skyevents.html
+?? tools/spending.html
+?? tools/tropical.html
+?? tools/typing.html
+?? tools/wayback.html
+?? tools/weatherhistory.html
+?? tools/worldbank.html

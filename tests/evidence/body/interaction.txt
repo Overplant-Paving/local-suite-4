@@ -1,0 +1,16 @@
+empty state on load: visible; disclaimer visible: "These are population-level formulas — useful for orientation, not diagnosis. They know not…"
+metric vector male/30y/180cm/80kg/moderate → BMI 24.7, BMR 1,780 kcal, TDEE 2,759 kcal
+WHO category line: WHO category: Healthy range (WHO adult bands: under 18.5 · 18.5–24.9 · 25–29.9 · 30+).
+healthy-weight range (BMI 18.5–24.9) at 180 cm: 59.9 – 80.7 kg
+zones without resting HR (% of HRmax): method="Method in use: straight % of HRmax (add your resting heart r…", z1=95 – 114 bpm, z5=171 – 190 bpm
+zones with resting 60 (Karvonen): z1=125 – 138 bpm, z4=164 – 177 bpm, z5=177 – 190 bpm; label="Method in use: Karvonen (heart-rate reserve) — target = resting + % × …"
+toggle → imperial: 180 cm / 80 kg converted to 5'11" and 176.5 lb
+imperial vector 5'11" + 176 lb → BMI 24.5, BMR 1780, TDEE 2760, range 133 – 179 lb
+suite.body.v1 after edits: {"unit":"imperial","age":"30","sex":"male","hcm":"180","hft":"5","hin":"11","wkg":"80","wlb":"176","act":"1.55","rhr":"60"}
+reload: unit + inputs restored, BMR recomputed = 1780 kcal
+clear: fields emptied, suite.body.v1 removed, empty state visible, unit back to metric
+a11y: all inputs/selects labeled (label[for] or aria-label); #stats + #zoneMethod aria-live=polite; unit toggle uses aria-pressed
+sex switch to female: BMR 1780 → 1614 (Mifflin −161 constant)
+mobile 390px: scrollWidth 390 <= clientWidth 390, screenshot mobile.png
+theme toggle: light -> dark, aria-pressed=true
+console: clean (no errors)

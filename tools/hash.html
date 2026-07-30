@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>File Integrity &amp; Hash Desk · Local Suite</title>
+<link rel="stylesheet" href="../core/suite.css" data-suite-inline>
+<style>
+  /* match / mismatch palette — 3-layer pattern, same hues as text.html's diff
+     palette (verified AA there in both themes) */
+  :root {
+    --ok-bg: #e2f0e4; --ok-ink: #2f6f3a;
+    --bad-bg: #fbe6e2; --bad-ink: #a3372a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --ok-bg: #1f3325; --ok-ink: #85c893; --bad-bg: #3a2320; --bad-ink: #e88a7c; }
+  }
+  :root[data-theme="light"] {
+    --ok-bg: #e2f0e4; --ok-ink: #2f6f3a; --bad-bg: #fbe6e2; --bad-ink: #a3372a;
+  }
+  :root[data-theme="dark"] {
+    --ok-bg: #1f3325; --ok-ink: #85c893; --bad-bg: #3a2320; --bad-ink: #e88a7c;
+  }
+  body { padding: 1.4rem 1.25rem 4rem; }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  .topbar { display: flex; align-items: center; gap: 1rem; }
+  .topbar .theme-btn, .topbar .fav-btn { float: none; }
+  .topbar .theme-btn { margin-left: auto; }
+  header { margin: 1rem 0 1.2rem; }
+  h1 { font-size: 1.8rem; letter-spacing: -.02em; }
+  .tag { color: var(--muted); margin-top: .35rem; max-width: 48rem; }
+
+  .tabs { display: flex; gap: .4rem; margin-top: .2rem; flex-wrap: wrap; }
+  .tab {
+    border: 1px solid var(--line); background: var(--card); color: var(--muted);
+    border-radius: 999px; padding: .35rem .9rem; cursor: pointer; font-size: .9rem;
+  }
+  .tab.on { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+  .tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .card {
+    display: block; background: var(--card); border: 1px solid var(--line);
+    border-radius: 14px; padding: 1.1rem 1.15rem; box-shadow: var(--shadow);
+    margin-top: 1.1rem;
+  }
+  .card h3 { font-size: .78rem; text-transform: uppercase; letter-spacing: .06em;
+    color: var(--muted); margin-bottom: .6rem; }
+
+  .dropzone {
+    border: 2px dashed var(--line); border-radius: 12px; padding: 1.4rem 1rem;
+    text-align: center; color: var(--muted); transition: border-color .15s, background .15s;
+  }
+  .dropzone.over { border-color: var(--accent); background: var(--accent-soft); }
+  .dropzone p { margin: 0 0 .7rem; }
+  .b {
+    border: 1px solid var(--line); background: var(--card); color: var(--ink);
+    border-radius: 8px; padding: .4rem .7rem; cursor: pointer; font-size: .86rem;
+  }
+  .b:hover { border-color: var(--accent); color: var(--accent); }
+  .b:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .b:active { transform: translateY(1px); }
+  .b.primary { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+  .hint { color: var(--muted); font-size: .82rem; margin-top: .7rem; }
+  .sr-input { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
+
+  .fcard { border: 1px solid var(--line); border-radius: 10px; padding: .8rem .9rem;
+    margin-top: .8rem; background: var(--bg); }
+  .fhead { display: flex; flex-wrap: wrap; align-items: baseline; gap: .3rem .7rem; }
+  .fname { font-weight: 600; word-break: break-word; }
+  .fsize { color: var(--muted); font-size: .84rem; }
+  .fstate { color: var(--muted); font-size: .84rem; margin-left: auto; }
+  .fstate.err { color: var(--bad-ink); }
+  .drow { display: grid; grid-template-columns: 6.2rem 1fr auto; gap: .5rem;
+    align-items: start; margin-top: .55rem; }
+  .drow .algo { font-size: .78rem; text-transform: uppercase; letter-spacing: .04em;
+    color: var(--muted); padding-top: .2rem; }
+  .drow .legacy { display: block; text-transform: none; letter-spacing: 0;
+    font-size: .72rem; color: var(--bad-ink); margin-top: .15rem; }
+  .drow code.dhex {
+    font: .82rem/1.45 ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
+    word-break: break-all; background: var(--chip); border-radius: 6px;
+    padding: .25rem .45rem; user-select: all;
+  }
+  .drow .copy { white-space: nowrap; }
+  @media (max-width: 560px) {
+    .drow { grid-template-columns: 1fr auto; }
+    .drow .algo { grid-column: 1 / -1; padding-top: 0; }
+  }
+
+  #verifyIn, textarea {
+    width: 100%; background: var(--bg); color: var(--ink);
+    border: 1px solid var(--line); border-radius: 10px; padding: .6rem .7rem;
+    font: .9rem/1.5 ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
+  }
+  #verifyIn:focus, textarea:focus { outline: none; border-color: var(--accent); }
+  textarea { min-height: 150px; resize: vertical; }
+  label.fld { display: block; font-size: .86rem; color: var(--muted); margin-bottom: .4rem; }
+
+  .vout { margin-top: .7rem; border-radius: 10px; padding: .6rem .8rem; font-size: .9rem;
+    border: 1px solid transparent; display: none; word-break: break-word; }
+  .vout.show { display: block; }
+  .vout.match { display: block; background: var(--ok-bg); color: var(--ok-ink);
+    border-color: var(--ok-ink); }
+  .vout.mismatch { display: block; background: var(--bad-bg); color: var(--bad-ink);
+    border-color: var(--bad-ink); }
+  .vout.note { display: block; background: var(--chip); color: var(--ink);
+    border-color: var(--line); }
+  .vout b { font-weight: 700; }
+
+  .empty { color: var(--muted); font-size: .9rem; margin-top: .8rem; }
+  .listbar { display: flex; align-items: center; gap: .8rem; margin-top: .3rem; }
+  .listbar h3 { margin-bottom: 0; }
+  .listbar .b { margin-left: auto; }
+  .hidden { display: none !important; }
+
+  .toast {
+    position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%);
+    background: var(--ink); color: var(--bg); padding: .5rem 1rem; border-radius: 999px;
+    font-size: .88rem; opacity: 0; transition: opacity .2s; pointer-events: none;
+    max-width: 90vw; text-align: center;
+  }
+  .toast.show { opacity: 1; }
+  footer { margin-top: 2.5rem; font-size: .82rem; padding-top: 1rem;
+    border-top: 1px solid var(--line); color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="index.html">← suite</a>
+    <button class="theme-btn" id="themeBtn" title="Toggle light/dark">◐ theme</button>
+  </div>
+  <header>
+    <h1>File Integrity &amp; Hash Desk</h1>
+    <p class="tag">Checksum files and text locally — SHA-256, SHA-384, SHA-512 and legacy SHA-1 — and verify a pasted digest against them.</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab on" data-tab="files" aria-pressed="true">Files</button>
+    <button class="tab" data-tab="text" aria-pressed="false">Text</button>
+  </div>
+
+  <!-- FILES -->
+  <section id="tab-files">
+    <div class="card">
+      <div class="dropzone" id="dropzone">
+        <p>Drop files here — or</p>
+        <button class="b primary" id="pickBtn">Choose files</button>
+        <input type="file" id="fileInput" class="sr-input" multiple
+               aria-label="Choose files to hash">
+        <p class="hint">Each file is read fully into memory to hash — very large files
+          (multiple GB) may be slow or fail. Multiple files are fine.</p>
+      </div>
+      <div class="listbar">
+        <h3>Computed digests</h3>
+        <button class="b hidden" id="clearBtn">Clear results</button>
+      </div>
+      <div id="fileList"><p class="empty" id="fileEmpty">No files yet — drop some above
+        or choose them. Digests are computed on this device only.</p></div>
+    </div>
+  </section>
+
+  <!-- TEXT -->
+  <section id="tab-text" class="hidden">
+    <div class="card">
+      <h3>Hash pasted text</h3>
+      <label class="fld" for="textIn">Text is UTF-8 encoded, then hashed with the same four algorithms.</label>
+      <textarea id="textIn" spellcheck="false"
+        placeholder="Type or paste text to hash…"></textarea>
+      <div id="textOut"><p class="empty" id="textEmpty">Digests appear here as you type.</p></div>
+    </div>
+  </section>
+
+  <!-- VERIFY (applies to every digest computed above) -->
+  <div class="card">
+    <h3>Verify an expected digest</h3>
+    <label class="fld" for="verifyIn">Paste the digest a download page gave you — plain hex,
+      <code>sha256:…</code>, a <code>sha256sum</code> line, or BSD
+      <code>SHA256 (file) = …</code>. Case and spacing don't matter.</label>
+    <input id="verifyIn" type="text" autocomplete="off" spellcheck="false"
+           placeholder="e.g. ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad">
+    <div class="vout" id="verifyOut"></div>
+  </div>
+
+  <footer>Fully offline: hashing runs in your browser via the Web Crypto API — no file,
+    text, or digest ever leaves this page. Nothing is stored except your theme choice.
+    SHA-1 is included for legacy comparisons only; it is collision-broken and must not be
+    used to certify integrity.</footer>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script src="../core/suite.js" data-suite-inline></script>
+<script>
+"use strict";
+Suite.theme.init();
+
+const $ = id => document.getElementById(id);
+const ALGOS = ["SHA-256", "SHA-384", "SHA-512", "SHA-1"];
+/* every finished computation, for the verify field:
+   { name, digests: { "SHA-256": hex, ... } }  — text results use name "pasted text" */
+const computed = [];
+
+Suite.liveRegion($("fileList"));
+Suite.liveRegion($("textOut"));
+Suite.liveRegion($("verifyOut"));
+
+/* ---------- tabs ---------- */
+document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => {
+  document.querySelectorAll(".tab").forEach(x => {
+    const on = x === t;
+    x.classList.toggle("on", on);
+    x.setAttribute("aria-pressed", String(on));
+  });
+  $("tab-files").classList.toggle("hidden", t.dataset.tab !== "files");
+  $("tab-text").classList.toggle("hidden", t.dataset.tab !== "text");
+}));
+
+/* ---------- helpers ---------- */
+function hex(buf) {
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("");
+}
+async function digestAll(buf) {
+  if (!crypto.subtle) throw new Error("Web Crypto unavailable in this context");
+  const out = {};
+  for (const a of ALGOS) out[a] = hex(await crypto.subtle.digest(a, buf));
+  return out;
+}
+function fmtSize(n) {
+  if (n < 1024) return n + " B";
+  if (n < 1024 * 1024) return (n / 1024).toFixed(1) + " KB";
+  if (n < 1024 * 1024 * 1024) return (n / 1048576).toFixed(1) + " MB";
+  return (n / 1073741824).toFixed(2) + " GB";
+}
+let toastTimer = null;
+function toast(msg) {
+  const t = $("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 2600);
+}
+
+/* copy with graceful degradation: async clipboard → execCommand → manual-select hint.
+   clipboard may reject on file:// — every path is caught, never an unhandled error. */
+async function copyDigest(text, hexEl) {
+  try {
+    if (!navigator.clipboard || !navigator.clipboard.writeText) throw new Error("no async clipboard");
+    await navigator.clipboard.writeText(text);
+    toast("Digest copied to clipboard");
+    return;
+  } catch (e) { /* fall through to legacy path */ }
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand("copy");
+    ta.remove();
+    if (ok) { toast("Digest copied to clipboard"); return; }
+  } catch (e) { /* fall through to manual fallback */ }
+  try {
+    const range = document.createRange();
+    range.selectNodeContents(hexEl);
+    const sel = getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  } catch (e) { /* selection is best-effort */ }
+  toast("Clipboard unavailable here — digest selected, press Ctrl/Cmd+C to copy");
+}
+
+/* one labelled digest row (built with createElement — no user data near innerHTML) */
+function digestRow(algo, value, ownerName) {
+  const row = document.createElement("div");
+  row.className = "drow";
+  row.dataset.algo = algo;
+  const lab = document.createElement("span");
+  lab.className = "algo";
+  lab.textContent = algo;
+  if (algo === "SHA-1") {
+    const warn = document.createElement("span");
+    warn.className = "legacy";
+    warn.textContent = "legacy — collision-broken, verify only";
+    lab.appendChild(warn);
+  }
+  const code = document.createElement("code");
+  code.className = "dhex";
+  code.textContent = value;
+  const btn = document.createElement("button");
+  btn.className = "b copy";
+  btn.textContent = "copy";
+  btn.setAttribute("aria-label", "Copy " + algo + " digest of " + ownerName);
+  btn.addEventListener("click", () => copyDigest(value, code));
+  row.append(lab, code, btn);
+  return row;
+}
+
+/* ---------- files ---------- */
+$("pickBtn").addEventListener("click", () => $("fileInput").click());
+$("fileInput").addEventListener("change", () => {
+  addFiles($("fileInput").files);
+  $("fileInput").value = ""; /* allow re-picking the same file */
+});
+const dz = $("dropzone");
+["dragenter", "dragover"].forEach(ev => dz.addEventListener(ev, e => {
+  e.preventDefault();
+  dz.classList.add("over");
+}));
+["dragleave", "drop"].forEach(ev => dz.addEventListener(ev, e => {
+  e.preventDefault();
+  dz.classList.remove("over");
+}));
+dz.addEventListener("drop", e => {
+  if (e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files);
+});
+
+$("clearBtn").addEventListener("click", () => {
+  $("fileList").querySelectorAll(".fcard").forEach(el => el.remove());
+  for (let i = computed.length - 1; i >= 0; i--) {
+    if (computed[i].name !== "pasted text") computed.splice(i, 1);
+  }
+  $("fileEmpty").classList.remove("hidden");
+  $("clearBtn").classList.add("hidden");
+  runVerify();
+});
+
+async function addFiles(fileList) {
+  const files = [...(fileList || [])];
+  if (!files.length) return;
+  $("fileEmpty").classList.add("hidden");
+  $("clearBtn").classList.remove("hidden");
+  for (const f of files) await processFile(f); /* sequential: deterministic order, bounded memory */
+}
+
+async function processFile(file) {
+  const card = document.createElement("div");
+  card.className = "fcard";
+  const head = document.createElement("div");
+  head.className = "fhead";
+  const name = document.createElement("span");
+  name.className = "fname";
+  name.textContent = file.name || "(unnamed file)";
+  const size = document.createElement("span");
+  size.className = "fsize";
+  size.textContent = fmtSize(file.size);
+  const state = document.createElement("span");
+  state.className = "fstate";
+  state.textContent = "computing…";
+  head.append(name, size, state);
+  card.append(head);
+  $("fileList").append(card);
+  try {
+    const buf = await file.arrayBuffer(); /* whole file in memory, as noted in the UI */
+    const digests = await digestAll(buf);
+    for (const a of ALGOS) card.append(digestRow(a, digests[a], name.textContent));
+    state.textContent = "4 digests computed";
+    computed.push({ name: name.textContent, digests });
+    runVerify();
+  } catch (e) {
+    state.className = "fstate err";
+    state.textContent = "failed: " + (e && e.message ? e.message : "could not read file");
+  }
+}
+
+/* ---------- text tab ---------- */
+let textTimer = null;
+let textRun = 0;
+$("textIn").addEventListener("input", () => {
+  clearTimeout(textTimer);
+  textTimer = setTimeout(hashText, 120);
+});
+async function hashText() {
+  const run = ++textRun;
+  const val = $("textIn").value;
+  const out = $("textOut");
+  const drop = () => {
+    for (let i = computed.length - 1; i >= 0; i--) {
+      if (computed[i].name === "pasted text") computed.splice(i, 1);
+    }
+  };
+  if (!val) {
+    out.replaceChildren();
+    const p = document.createElement("p");
+    p.className = "empty";
+    p.textContent = "Digests appear here as you type.";
+    out.append(p);
+    drop();
+    runVerify();
+    return;
+  }
+  try {
+    const digests = await digestAll(new TextEncoder().encode(val));
+    if (run !== textRun) return; /* superseded by newer input */
+    out.replaceChildren();
+    const meta = document.createElement("p");
+    meta.className = "hint";
+    meta.textContent = "UTF-8, " + new TextEncoder().encode(val).length + " bytes";
+    out.append(meta);
+    for (const a of ALGOS) out.append(digestRow(a, digests[a], "pasted text"));
+    drop();
+    computed.push({ name: "pasted text", digests });
+    runVerify();
+  } catch (e) {
+    if (run !== textRun) return;
+    out.replaceChildren();
+    const p = document.createElement("p");
+    p.className = "empty";
+    p.textContent = "Hashing failed: " + (e && e.message ? e.message : "unknown error");
+    out.append(p);
+  }
+}
+
+/* ---------- verify field ----------
+   Accepted shapes (case/whitespace tolerant):
+     plain hex                    ba7816…ad   (spaces/newlines inside allowed)
+     algo prefix                  sha256:…    sha-512 = …
+     checksum-file line           <hex>  <filename>   (sha256sum/shasum output)
+     BSD tag format               SHA256 (file.iso) = <hex>                    */
+function parseExpected(raw) {
+  let s = String(raw == null ? "" : raw).trim();
+  if (!s) return null;
+  let hint = null;
+  const bsd = s.match(/^sha-?(1|256|384|512)\s*\(([^)]*)\)\s*=\s*([\s\S]+)$/i);
+  if (bsd) { hint = "SHA-" + bsd[1]; s = bsd[3]; }
+  else {
+    const pre = s.match(/^sha-?(1|256|384|512)\s*[:=]\s*([\s\S]+)$/i);
+    if (pre) { hint = "SHA-" + pre[1]; s = pre[2]; }
+  }
+  const sumLine = s.match(/^([0-9a-f]{40,128})\s+\*?\S/i); /* "<hex>  file" */
+  if (sumLine) s = sumLine[1];
+  s = s.replace(/\s+/g, "").toLowerCase();
+  if (!/^[0-9a-f]+$/.test(s)) return { error: "notHex" };
+  const byLen = { 40: "SHA-1", 64: "SHA-256", 96: "SHA-384", 128: "SHA-512" };
+  const algo = byLen[s.length];
+  if (!algo) return { error: "badLength", length: s.length };
+  return { hex: s, algo, hint };
+}
+
+$("verifyIn").addEventListener("input", runVerify);
+function runVerify() {
+  const out = $("verifyOut");
+  const p = parseExpected($("verifyIn").value);
+  out.className = "vout"; /* reset */
+  out.replaceChildren();
+  if (!p) return;
+  const b = document.createElement("b");
+  const rest = document.createElement("span");
+  if (p.error === "notHex") {
+    out.classList.add("note");
+    b.textContent = "Not a digest — ";
+    rest.textContent = "expected hex characters (0-9, a-f), optionally with an algorithm prefix.";
+  } else if (p.error === "badLength") {
+    out.classList.add("note");
+    b.textContent = "Unrecognized length — ";
+    rest.textContent = p.length + " hex chars; SHA-1/256/384/512 digests are 40, 64, 96 or 128.";
+  } else if (p.hint && p.hint !== p.algo) {
+    /* e.g. "sha512:<40 hex chars>" — likely truncated or mislabelled; don't guess */
+    out.classList.add("note");
+    b.textContent = "Prefix disagrees with length — ";
+    rest.textContent = "the prefix says " + p.hint + " but the value is " + p.hex.length +
+      " hex chars (" + p.algo + " length). Check for truncation before comparing.";
+  } else {
+    const hits = computed.filter(c => c.digests[p.algo] === p.hex);
+    if (hits.length) {
+      out.classList.add("match");
+      b.textContent = "MATCH";
+      rest.textContent = " — this is the " + p.algo + " digest of " +
+        [...new Set(hits.map(h => h.name))].join(" and ") + ".";
+    } else {
+      out.classList.add("mismatch");
+      b.textContent = "MISMATCH";
+      rest.textContent = computed.length
+        ? " — no computed " + p.algo + " digest equals this value. " +
+          "The file is not the one this digest describes."
+        : " — nothing computed yet. Add a file or text above, then compare.";
+    }
+  }
+  out.append(b, rest);
+}
+</script>
+</body>
+</html>

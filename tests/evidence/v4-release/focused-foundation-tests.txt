@@ -1,0 +1,122 @@
+multiple locations: PASS {"migration":true,"uniqueIds":["home","home-2"],"legacyWriterSync":true,"labelClear":true,"activeFallback":true,"finalClear":true,"invalidRejected":true,"unknownFieldsPreserved":true,"futureSchemaPreserved":true,"damagedDataPreserved":true,"inFlightGuard":{"rejected":true,"cached":null},"builtHub":{"toolLinks":100,"activeLabel":"Home","collection":{"schema":1,"activeId":"saved-location","items":[{"id":"saved-location","revision":1,"lat":40.7128,"lon":-74.006,"label":"Home"}]}},"wildfireScoped":true}
+location cross-tab: PASS {"reloads":2,"active":{"lat":34.0522,"lon":-118.2437,"label":"B"}}
+automatic first location: PASS {
+  "cold": {
+    "saved": {
+      "lat": 37.7749,
+      "lon": -122.4194,
+      "label": "My location (37.7749, -122.4194)"
+    },
+    "loads": 2,
+    "setupCardGone": true,
+    "errs": []
+  },
+  "propagated": {
+    "geoCalls": 0,
+    "loads": 1,
+    "showsLocation": true,
+    "errs": []
+  },
+  "denied": {
+    "askedOnce": true,
+    "deniedFlag": "denied",
+    "askedAgain": 0,
+    "loads": 2,
+    "stillOffersManual": true,
+    "errs": []
+  },
+  "autoDeny": {
+    "notRemembered": true,
+    "asksAgain": 1,
+    "errs": []
+  },
+  "toggledOff": {
+    "geoCalls": 0,
+    "location": null,
+    "errs": []
+  },
+  "typingWins": {
+    "loads": 1,
+    "savedAnyway": true,
+    "inputSurvived": "hello typed input",
+    "errs": []
+  },
+  "noLoop": {
+    "loads": 1,
+    "errs": []
+  },
+  "hub": {
+    "status": "My location (37.7749, -122.4194) is now active and shared with every tool.",
+    "switcherVisible": true,
+    "options": [
+      "My location (37.7749, -122.4194)"
+    ],
+    "errs": []
+  },
+  "toggle": {
+    "warnsAboutRefusal": true,
+    "offWrites": "off",
+    "onClears": true,
+    "errs": []
+  }
+}
+settings guided key setup: PASS {
+  "cspAllows": true,
+  "step1Label": "Step 1 of 6 · api.data.gov",
+  "step1Signup": "https://api.data.gov/signup/",
+  "step1Fields": [
+    "prof_email",
+    "prof_first",
+    "prof_last"
+  ],
+  "step1CoversThree": true,
+  "profile": {
+    "email": "someone@example.com",
+    "first": "Ada"
+  },
+  "fanout": {
+    "nasa": true,
+    "congress": true,
+    "usda": true,
+    "eiaUntouched": true,
+    "npsUntouched": true
+  },
+  "fanoutProbedOnlySiblings": true,
+  "rejected": "EIA rejected this key — check for a stray space or a truncated paste.",
+  "pasteRouted": true,
+  "ambiguousChoices": [
+    "NASA",
+    "Congress.gov",
+    "USDA FoodData",
+    "EIA",
+    "Park Service",
+    "Check and file it",
+    "Ignore"
+  ],
+  "identifiedNasaFirst": true,
+  "armedNoRequest": true,
+  "armedLabel": "Spend 1 request?",
+  "aviationstackCounted": true,
+  "expectedRejections": 1,
+  "issues": []
+}
+
+file://
+  ok   no CSP violation after the drop
+  ok   no console errors
+  ok   no "Could not read that image"
+  ok   palette revealed
+  ok   six colours extracted — ["#35649d","#995d46","#c83c3c","#c83c3c","#3ca05a","#3ca05a"]
+  ok   swatches rendered — 6
+  ok   preview canvas shown — block
+
+hosted
+  ok   no CSP violation after the drop
+  ok   no console errors
+  ok   no "Could not read that image"
+  ok   palette revealed
+  ok   six colours extracted — ["#35649d","#995d46","#c83c3c","#c83c3c","#3ca05a","#3ca05a"]
+  ok   swatches rendered — 6
+  ok   preview canvas shown — block
+
+color-photo: all assertions green

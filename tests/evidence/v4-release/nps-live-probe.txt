@@ -1,0 +1,34 @@
+NPS live contract probe — 2026-07-30T18:06:46.968Z
+park=yell, one request per resource, X-Api-Key header auth (key never printed)
+
+/activities  HTTP 200  envelope total=40 data[1]  rate=970/1000
+/activities/parks  HTTP 200  envelope total=1 data[1]  activityId=present  rate=969/1000
+/alerts  HTTP 200  envelope total=8 data[1]  rate=968/1000
+/amenities  HTTP 200  envelope total=127 data[1]  rate=967/1000
+/amenities/parksplaces  HTTP 200  envelope total=57 data[1]  rate=966/1000
+/amenities/parksvisitorcenters  HTTP 200  envelope total=37 data[1]  rate=965/1000
+/articles  HTTP 200  envelope total=385 data[1]  rate=964/1000
+/campgrounds  HTTP 200  envelope total=12 data[1]  rate=963/1000
+/events  HTTP 200  envelope total=29 data[1]  rate=962/1000
+/feespasses  HTTP 200  envelope total=1 data[1]  rate=961/1000
+/lessonplans  HTTP 200  envelope total=13 data[1]  rate=960/1000
+/mapdata/parkboundaries/{sitecode}  HTTP 200  feature collection features[1]  rate=959/1000
+/multimedia/audio  HTTP 200  envelope total=169 data[1]  rate=958/1000
+/multimedia/galleries  HTTP 200  envelope total=265 data[1]  rate=957/1000
+/multimedia/galleries/assets  HTTP 200  envelope total=107 data[1]  galleryId=present  rate=956/1000
+/multimedia/videos  HTTP 200  envelope total=291 data[1]  rate=955/1000
+/newsreleases  HTTP 200  envelope total=16 data[1]  rate=954/1000
+/parkinglots  HTTP 200  envelope total=11 data[1]  rate=953/1000
+/parks  HTTP 200  envelope total=1 data[1]  rate=952/1000
+/passportstamplocations  HTTP 200  envelope total=13 data[1]  rate=951/1000
+/people  HTTP 200  envelope total=4 data[1]  rate=950/1000
+/places  HTTP 200  envelope total=532 data[1]  rate=949/1000
+/roadevents  HTTP 200  feature collection features[2]  rate=948/1000
+/thingstodo  HTTP 200  envelope total=87 data[1]  rate=947/1000
+/topics  HTTP 200  envelope total=83 data[1]  rate=946/1000
+/topics/parks  HTTP 200  envelope total=1 data[1]  topicId=present  rate=945/1000
+/tours  HTTP 200  envelope total=9 data[1]  rate=944/1000
+/visitorcenters  HTTP 200  envelope total=11 data[1]  rate=943/1000
+/webcams  HTTP 200  envelope total=10 data[1]  rate=942/1000
+
+probe summary: 29 healthy, 0 unhealthy of 29 documented resources

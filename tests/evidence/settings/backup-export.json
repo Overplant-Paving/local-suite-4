@@ -1,11 +1,13 @@
 {
   "format": "local-suite.backup.v2",
-  "exported": "2026-07-25T08:51:55.586Z",
-  "keys": 10,
+  "exported": "2026-07-30T18:56:53.713Z",
+  "keys": 12,
   "data": {
     "suite.cache.demo.one": "{\"t\":1752000000000,\"v\":{\"rows\":[1,2,3],\"note\":\"cache envelope\"}}",
     "suite.cache.demo.two": "{\"t\":1752000000001,\"v\":\"second envelope\"}",
     "suite.focus.settings": "{\"focus\":25,\"short\":5,\"long\":15,\"rounds\":4,\"chime\":60,\"auto\":1}",
+    "suite.hub.favorites": "[\"weather\",\"calc\",\"retired-v2-tool\"]",
+    "suite.hub.recents": "[{\"id\":\"calc\",\"t\":1785427200123},{\"id\":\"weather\",\"t\":1785427100456},{\"id\":\"retired-v2-tool\",\"t\":1700000000789}]",
     "suite.key.finnhub": "fake-finnhub-key-for-roundtrip-123",
     "suite.location": "{\"lat\":37.77,\"lon\":-122.42,\"label\":\"San Francisco\"}",
     "suite.locations": "{\"schema\":1,\"activeId\":\"saved-location\",\"items\":[{\"id\":\"saved-location\",\"revision\":1,\"lat\":37.77,\"lon\":-122.42,\"label\":\"San Francisco\"}]}",

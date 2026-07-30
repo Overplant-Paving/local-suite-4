@@ -1,0 +1,29 @@
+no-location boot: designed card "Set your location" with ZIP form (label: "US ZIP code")
+office chip: "OKX" (from points properties.cwa)
+office line: "National Weather Service New York NY · for New York, NY"
+issuance: "Issued 2 h ago · Jul 30, 11:21 AM" (fixture issued exactly 2 h before the run)
+freshness stamp: "Updated Jul 30, 1:21 PM"
+sections (8): SYNOPSIS [open] · NEAR TERM [open] · SHORT TERM · LONG TERM · AVIATION · MARINE · PRELIMINARY POINT TEMPS/POPS · OKX WATCHES/WARNINGS/ADVISORIES
+open/closed defaults: SYNOPSIS + NEAR TERM (timeframe "THROUGH TONIGHT") open, 6 closed
+unwrapping: 3 hard-wrapped fixture lines render as one paragraph ("High pressure gradually builds across the region through Thursday while …"); SYNOPSIS keeps its 2 paragraphs
+temps/PoPs table: <pre> with 3 rows, columns intact ("NYC       84  71  88  73 /  10  10  20  30")
+"&&" separators and the $$ signature block are stripped from the rendered discussion
+earlier-discussions select: 5 options (fixture list had 6) — [Jul 30, 11:21 AM · latest | Jul 30, 5:21 AM | Jul 29, 11:21 PM | Jul 29, 5:21 PM | Jul 29, 11:21 AM]
+selected the 8-h-old discussion → second fixture rendered ("Weak troughing lingers offshore…"), issuance now "Issued 8 h ago · Jul 30, 5:21 AM"
+cache keys: suite.cache.discussion.list.OKX, suite.cache.discussion.point.40.713x-74.006, suite.cache.discussion.prod.4f6a8f3e-8e0f-4c9d-9a01-000000000001, suite.cache.discussion.prod.4f6a8f3e-8e0f-4c9d-9a01-000000000002
+a11y: aria-live=polite on #state/#afd/#stamp; select labeled "Earlier discussions"; themeBtn aria-pressed=false; changeBtn aria-expanded=false
+change-location button toggles the ZIP card with aria-expanded true→false
+ZIP path: entered 10001 (Enter submits) → stubbed zippopotam → suite.location={"lat":40.7128,"lon":-74.006,"label":"New York, NY"} → discussion loaded
+error path: points route fulfilled HTTP 500 (no cache) → designed card "Couldn't reach the forecast office", detail "HTTP 500", retry button present
+rate-limit path: HTTP 429 → distinct card "Rate-limited by the weather service" (detail "HTTP 429")
+stale path: caches back-dated 8 d, all http(s) aborted → renders from cache with stamp "Offline — cached from Jul 22, 1:21 PM" (8 sections, 5 options)
+restored (fresh cache, served without refetch): stamp "Updated Jul 30, 1:21 PM"
+mobile 390×844: page scrollWidth 390 <= clientWidth 390 (unwrapped paragraphs reflow; the temps table scrolls inside its own <pre>)
+theme toggle: light -> dark, aria-pressed=true
+CONSOLE ISSUES:
+  console.error: Failed to load resource: net::ERR_FAILED
+  console.error: Failed to load resource: net::ERR_FAILED
+  console.error: Failed to load resource: net::ERR_FAILED
+  console.error: Failed to load resource: net::ERR_FAILED
+  console.error: Failed to load resource: net::ERR_FAILED
+  console.error: Failed to load resource: net::ERR_FAILED

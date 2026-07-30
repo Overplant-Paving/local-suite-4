@@ -1,0 +1,14 @@
+timestamp,type,systolic,diastolic,pulse,bp_category,weight_lb,sleep_hours,note
+2026-01-10T14:00:00.000Z,bp,118,78,62,Normal,,,
+2026-01-11T14:00:00.000Z,bp,124,79,,Elevated,,,
+2026-01-12T14:00:00.000Z,bp,132,85,,Stage 1 hypertension,,,
+2026-01-13T14:00:00.000Z,bp,145,95,,Stage 2 hypertension,,,
+2026-01-14T15:30:00.000Z,bp,185,122,,Hypertensive crisis,,,
+2026-01-15T13:00:00.000Z,note,,,,,,,"Felt dizzy, ""morning"" run"
+2026-07-24T18:20:00.000Z,weight,,,,,180,,
+2026-07-26T18:20:00.000Z,bp,118,76,,Normal,,,
+2026-07-27T18:20:00.000Z,weight,,,,,181,,
+2026-07-28T18:20:00.000Z,bp,122,78,,Elevated,,,
+2026-07-28T18:20:00.000Z,sleep,,,,,,6.5,
+2026-07-29T18:20:00.000Z,weight,,,,,183,,
+2026-07-29T18:20:00.000Z,sleep,,,,,,7.5,

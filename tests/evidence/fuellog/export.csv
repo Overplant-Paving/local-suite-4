@@ -1,0 +1,6 @@
+date,odometer_mi,gallons,total_cost,partial,note
+2025-01-05,20000,11,38.50,no,first fill
+2025-01-12,20330,11,39.60,no,
+2025-01-19,20450,4,15.00,yes,"topped up, ""half tank"""
+2025-01-26,20780,8,30.00,no,
+2025-02-02,21080,10,34.00,no,

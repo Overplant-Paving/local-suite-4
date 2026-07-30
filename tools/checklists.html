@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Checklist & Routine Tracker · Local Suite</title>
+<link rel="stylesheet" href="../core/suite.css" data-suite-inline>
+<style>
+  body { padding: 1.4rem 1.25rem 4rem; }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  .topbar { display: flex; align-items: center; gap: 1rem; }
+  .topbar .theme-btn, .topbar .fav-btn { float: none; }
+  .topbar .theme-btn { margin-left: auto; }
+  header { margin: 1rem 0 1.2rem; }
+  h1 { font-size: 1.8rem; letter-spacing: -.02em; }
+  .tag { color: var(--muted); margin-top: .35rem; max-width: 48rem; }
+
+  .btn { border: 1px solid var(--accent); background: var(--accent); color: var(--bg); border-radius: 9px; padding: .5rem .9rem; cursor: pointer; font-size: .92rem; font-family: inherit; }
+  .btn.ghost { background: var(--card); color: var(--accent); }
+  .btn.small { padding: .32rem .7rem; font-size: .82rem; }
+  .btn:hover:not(:disabled) { filter: brightness(1.05); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  input[type="text"], select {
+    padding: .5rem .7rem; font-size: .95rem; color: var(--ink); font-family: inherit;
+    border: 1px solid var(--line); border-radius: 9px; background: var(--card); outline: none;
+  }
+  input[type="text"]:focus, select:focus, button:focus-visible { border-color: var(--accent); outline: 2px solid var(--accent); outline-offset: 1px; }
+  .muted { color: var(--muted); }
+  .hidden { display: none !important; }
+
+  .toolbar { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-bottom: .9rem; }
+  .toolbar select { flex: 1 1 180px; min-width: 0; max-width: 100%; }
+
+  /* inline name form + soft-confirm bar (no native dialogs — calmer and testable) */
+  .inline-bar {
+    display: flex; flex-wrap: wrap; gap: .5rem; align-items: center;
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: .7rem .8rem; margin-bottom: .9rem; box-shadow: var(--shadow);
+  }
+  .inline-bar input[type="text"] { flex: 1 1 200px; min-width: 0; }
+  .inline-bar .msg { flex: 1 1 220px; min-width: 0; font-size: .92rem; overflow-wrap: anywhere; }
+
+  /* templates */
+  .tpls { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: .8rem; margin-bottom: 1.1rem; }
+  .tplcard { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: .95rem 1rem; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: .45rem; }
+  .tplcard h3 { font-size: 1rem; }
+  .tplcard p { font-size: .8rem; color: var(--muted); overflow-wrap: anywhere; }
+  .tplcard .btn { margin-top: auto; align-self: flex-start; }
+  .tpls-head { font-size: .8rem; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin: .2rem 0 .55rem; }
+
+  /* progress card */
+  .progress-card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: .9rem 1.05rem; box-shadow: var(--shadow); margin-bottom: .9rem;
+    display: flex; flex-wrap: wrap; gap: .55rem .9rem; align-items: center;
+  }
+  .progress-card .ptext { font-weight: 600; font-size: .95rem; white-space: nowrap; }
+  progress { flex: 1 1 160px; min-width: 0; height: 9px; accent-color: var(--accent); border-radius: 5px; -webkit-appearance: none; appearance: none; }
+  progress::-webkit-progress-bar { background: var(--chip); border-radius: 5px; }
+  progress::-webkit-progress-value { background: var(--accent); border-radius: 5px; }
+  progress::-moz-progress-bar { background: var(--accent); border-radius: 5px; }
+  .progress-card .btn { margin-left: auto; }
+
+  /* add-item form */
+  .addform { display: flex; gap: .5rem; margin-bottom: .8rem; }
+  .addform input { flex: 1; min-width: 0; }
+
+  /* items */
+  ul.items { list-style: none; margin: 0; padding: 0; }
+  .item {
+    display: flex; align-items: center; gap: .6rem; padding: .5rem .35rem;
+    border-bottom: 1px solid var(--line); font-size: .95rem;
+  }
+  .item input[type="checkbox"] { width: 1.05rem; height: 1.05rem; accent-color: var(--accent); flex: none; cursor: pointer; }
+  .item label { flex: 1; min-width: 0; overflow-wrap: anywhere; cursor: pointer; padding: .15rem 0; }
+  .item.done label { color: var(--muted); text-decoration: line-through; }
+  .item input.edit-input { flex: 1; min-width: 0; }
+  .item .acts { display: flex; gap: .3rem; flex: none; }
+  .iconbtn { border: 1px solid var(--line); background: var(--bg); color: var(--muted); border-radius: 7px; padding: .18rem .48rem; cursor: pointer; font-size: .85rem; font-family: inherit; }
+  .iconbtn:hover:not(:disabled) { color: var(--accent); border-color: var(--accent); }
+  .iconbtn:disabled { opacity: .35; cursor: not-allowed; }
+
+  .empty { color: var(--muted); padding: .6rem 0 1rem; }
+  .list-empty { color: var(--muted); padding: 1.2rem 0; text-align: center; }
+
+  .datarow { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-top: 1.4rem; padding-top: .9rem; border-top: 1px solid var(--line); }
+  #status { font-size: .85rem; color: var(--muted); overflow-wrap: anywhere; }
+  #quotaNote { color: var(--muted); font-size: .85rem; margin-top: .6rem; }
+  footer { font-size: .82rem; padding-top: 1.2rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="index.html">← suite</a>
+    <button class="theme-btn" id="themeBtn" title="Toggle light/dark">◐ theme</button>
+  </div>
+  <header><h1>Checklist &amp; Routine Tracker</h1><p class="tag">Reusable lists that reset — pack, shop, open, close. Check things off, then reset the checks and run the routine again; nothing leaves this browser.</p></header>
+
+  <div class="toolbar">
+    <select id="listPick" aria-label="Active list"></select>
+    <button class="btn" id="newListBtn">New list</button>
+    <button class="btn ghost" id="templatesBtn" aria-pressed="false">Templates</button>
+    <button class="btn ghost" id="renameBtn">Rename</button>
+    <button class="btn ghost" id="deleteBtn">Delete</button>
+  </div>
+
+  <!-- inline name form (new / rename) -->
+  <div class="inline-bar hidden" id="nameForm">
+    <label class="muted" for="nameInput" id="nameLabel" style="font-size:.88rem">List name</label>
+    <input type="text" id="nameInput" maxlength="80" placeholder="e.g. Morning routine">
+    <button class="btn small" id="nameSave">Save</button>
+    <button class="btn ghost small" id="nameCancel">Cancel</button>
+  </div>
+
+  <!-- soft confirm (delete list / reset checks) -->
+  <div class="inline-bar hidden" id="confirmBar">
+    <span class="msg" id="confirmMsg"></span>
+    <button class="btn small" id="confirmYes">Confirm</button>
+    <button class="btn ghost small" id="confirmNo">Cancel</button>
+  </div>
+
+  <!-- starter templates -->
+  <section id="templates" class="hidden">
+    <p class="tpls-head">Start from a template — it becomes a normal list you can edit</p>
+    <div class="tpls" id="tplGrid"></div>
+  </section>
+
+  <p class="empty hidden" id="emptyHint">No checklists yet. Pick a starter template above, or create a blank list.</p>
+
+  <!-- active list -->
+  <section id="listView" class="hidden">
+    <div class="progress-card">
+      <span class="ptext" id="progressText">0 of 0 · 0%</span>
+      <progress id="bar" max="1" value="0" aria-label="List completion"></progress>
+      <button class="btn ghost small" id="resetBtn">Reset checks</button>
+    </div>
+    <form class="addform" id="addForm">
+      <input type="text" id="newItem" maxlength="200" placeholder="Add an item and press Enter" aria-label="New item text">
+      <button class="btn" type="submit" id="addBtn">Add</button>
+    </form>
+    <ul class="items" id="items"></ul>
+    <p class="list-empty hidden" id="listEmpty">This list is empty — add its first item above.</p>
+  </section>
+
+  <div class="datarow">
+    <button class="btn ghost small" id="exportBtn">Export JSON</button>
+    <button class="btn ghost small" id="importBtn">Import JSON</button>
+    <input type="file" id="importFile" accept=".json,application/json" class="hidden" aria-label="Checklists JSON file to import">
+    <span id="status"></span>
+  </div>
+  <p id="quotaNote" class="hidden">Storage is full — this change could not be saved. Export a backup, then clear some browser data.</p>
+
+  <footer>No network — lists live in this browser's storage under <code>suite.checklists.v1</code>. Export a JSON backup any time.</footer>
+</div>
+
+<script src="../core/suite.js" data-suite-inline></script>
+<script>
+"use strict";
+
+Suite.theme.init();
+
+const $ = id => document.getElementById(id);
+const KEY = "suite.checklists.v1";
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+/* ---- built-in starter templates (copied into a fresh, fully editable list) ---- */
+const TEMPLATES = [
+  { name: "Travel packing", items: ["Passport / ID", "Phone charger", "Toiletries kit", "Medications", "Socks & underwear", "Rain jacket", "Headphones", "Reusable water bottle"] },
+  { name: "Grocery staples", items: ["Eggs", "Milk", "Bread", "Coffee", "Rice or pasta", "Onions & garlic", "Frozen vegetables", "Olive oil"] },
+  { name: "Camping trip", items: ["Tent & stakes", "Sleeping bag", "Headlamp + batteries", "Camp stove & fuel", "First-aid kit", "Water filter", "Matches / lighter", "Trash bags"] },
+];
+
+/* ---- data: one object under suite.checklists.v1 -> { lists: [...], active: id } ---- */
+function sanitize(v) {
+  if (!v || typeof v !== "object" || !Array.isArray(v.lists)) return null;
+  const lists = v.lists.map(l => {
+    if (!l || typeof l !== "object" || typeof l.name !== "string" || !l.name.trim()) return null;
+    return {
+      id: String(l.id || uid()),
+      name: l.name.slice(0, 80),
+      items: (Array.isArray(l.items) ? l.items : []).map(it => ({
+        id: String((it && it.id) || uid()),
+        text: String(it && it.text != null ? it.text : "").slice(0, 200),
+        done: !!(it && it.done),
+      })).filter(it => it.text.trim() !== ""),
+    };
+  }).filter(Boolean);
+  let active = typeof v.active === "string" ? v.active : null;
+  if (!lists.some(l => l.id === active)) active = lists.length ? lists[0].id : null;
+  return { lists, active };
+}
+let data = sanitize(Suite.store.get(KEY)) || { lists: [], active: null };
+
+function save() {
+  const ok = Suite.store.set(KEY, data);
+  $("quotaNote").classList.toggle("hidden", ok);
+  return ok;
+}
+const activeList = () => data.lists.find(l => l.id === data.active) || null;
+function uniqueName(base) {
+  let name = base, n = 2;
+  while (data.lists.some(l => l.name === name)) name = base + " " + n++;
+  return name;
+}
+
+/* ---- inline name form (new / rename) ---- */
+let nameMode = "new";
+function openNameForm(mode) {
+  nameMode = mode;
+  hideConfirm();
+  $("nameForm").classList.remove("hidden");
+  $("nameLabel").textContent = mode === "rename" ? "Rename list" : "New list name";
+  $("nameInput").value = mode === "rename" && activeList() ? activeList().name : "";
+  $("nameInput").focus();
+}
+function closeNameForm() { $("nameForm").classList.add("hidden"); }
+function commitName() {
+  const name = $("nameInput").value.trim().slice(0, 80);
+  if (!name) return;
+  if (nameMode === "rename") {
+    const l = activeList(); if (!l) return;
+    l.name = name;
+  } else {
+    const l = { id: uid(), name: uniqueName(name), items: [] };
+    data.lists.push(l);
+    data.active = l.id;
+  }
+  closeNameForm(); save(); render();
+}
+$("newListBtn").addEventListener("click", () => openNameForm("new"));
+$("renameBtn").addEventListener("click", () => { if (activeList()) openNameForm("rename"); });
+$("nameSave").addEventListener("click", commitName);
+$("nameCancel").addEventListener("click", closeNameForm);
+$("nameInput").addEventListener("keydown", e => {
+  if (e.key === "Enter") { e.preventDefault(); commitName(); }
+  else if (e.key === "Escape") closeNameForm();
+});
+
+/* ---- soft confirm bar (delete list, reset checks) ---- */
+let pendingConfirm = null;
+function askConfirm(msg, yesLabel, fn) {
+  closeNameForm();
+  pendingConfirm = fn;
+  $("confirmMsg").textContent = msg;
+  $("confirmYes").textContent = yesLabel;
+  $("confirmBar").classList.remove("hidden");
+  $("confirmYes").focus();
+}
+function hideConfirm() { pendingConfirm = null; $("confirmBar").classList.add("hidden"); }
+$("confirmYes").addEventListener("click", () => {
+  const fn = pendingConfirm; hideConfirm();
+  if (fn) fn();
+});
+$("confirmNo").addEventListener("click", hideConfirm);
+
+$("deleteBtn").addEventListener("click", () => {
+  const l = activeList(); if (!l) return;
+  askConfirm(`Delete "${l.name}" and its ${l.items.length} item(s)? This can't be undone.`, "Delete list", () => {
+    data.lists = data.lists.filter(x => x.id !== l.id);
+    data.active = data.lists.length ? data.lists[0].id : null;
+    save(); render();
+    setStatus(`Deleted "${l.name}".`);
+  });
+});
+
+/* Reset checks — the point of the tool: unchecks everything, keeps every item. */
+$("resetBtn").addEventListener("click", () => {
+  const l = activeList(); if (!l) return;
+  const done = l.items.filter(i => i.done).length;
+  if (!done) { setStatus("Nothing checked — the list is already fresh."); return; }
+  askConfirm(`Uncheck all ${done} checked item(s) in "${l.name}"? Items are kept.`, "Reset checks", () => {
+    l.items.forEach(i => { i.done = false; });
+    save(); render();
+    setStatus(`Checks reset — "${l.name}" is ready to run again.`);
+  });
+});
+
+/* ---- templates ---- */
+let templatesOpen = false;
+$("templatesBtn").addEventListener("click", () => {
+  templatesOpen = !templatesOpen;
+  render();
+});
+function buildTemplateCards() {
+  const grid = $("tplGrid");
+  grid.textContent = "";
+  TEMPLATES.forEach((t, i) => {
+    const card = document.createElement("div");
+    card.className = "tplcard";
+    const h = document.createElement("h3"); h.textContent = t.name;
+    const p = document.createElement("p");
+    p.textContent = t.items.length + " items · " + t.items.slice(0, 3).join(", ") + "…";
+    const b = document.createElement("button");
+    b.className = "btn small"; b.type = "button";
+    b.dataset.tpl = String(i);
+    b.textContent = "Use template";
+    b.setAttribute("aria-label", "Create a list from the " + t.name + " template");
+    b.addEventListener("click", () => {
+      const l = {
+        id: uid(),
+        name: uniqueName(t.name),
+        items: t.items.map(text => ({ id: uid(), text, done: false })),
+      };
+      data.lists.push(l);
+      data.active = l.id;
+      templatesOpen = false;
+      save(); render();
+      setStatus(`Created "${l.name}" from the template — edit it freely.`);
+    });
+    card.append(h, p, b);
+    grid.append(card);
+  });
+}
+buildTemplateCards();
+
+/* ---- items ---- */
+$("addForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const l = activeList(); if (!l) return;
+  const text = $("newItem").value.trim().slice(0, 200);
+  if (!text) return;
+  l.items.push({ id: uid(), text, done: false });
+  $("newItem").value = "";
+  save(); render();
+  $("newItem").focus();
+});
+
+function moveItem(l, idx, dir) {
+  const j = idx + dir;
+  if (j < 0 || j >= l.items.length) return;
+  const [it] = l.items.splice(idx, 1);
+  l.items.splice(j, 0, it);
+  save(); render();
+  /* keep keyboard focus on the same item's same-direction button after re-render */
+  const row = $("items").querySelector(`.item[data-id="${it.id}"]`);
+  if (row) {
+    const btn = row.querySelector(`[data-act="${dir < 0 ? "up" : "down"}"]`);
+    if (btn && !btn.disabled) btn.focus();
+    else row.querySelector('input[type="checkbox"]').focus();
+  }
+}
+
+function startEdit(l, item, row) {
+  const label = row.querySelector("label");
+  const input = document.createElement("input");
+  input.type = "text"; input.className = "edit-input"; input.maxLength = 200;
+  input.value = item.text;
+  input.setAttribute("aria-label", "Edit item text");
+  let closed = false;
+  const commit = () => {
+    if (closed) return; closed = true;
+    const t = input.value.trim().slice(0, 200);
+    if (t) item.text = t;
+    save(); render();
+  };
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter") { e.preventDefault(); commit(); }
+    else if (e.key === "Escape") { closed = true; render(); }
+  });
+  input.addEventListener("blur", commit);
+  label.replaceWith(input);
+  input.focus(); input.select();
+}
+
+function renderItems(l) {
+  const ul = $("items");
+  ul.textContent = "";
+  $("listEmpty").classList.toggle("hidden", l.items.length > 0);
+  l.items.forEach((item, idx) => {
+    const li = document.createElement("li");
+    li.className = "item" + (item.done ? " done" : "");
+    li.dataset.id = item.id;
+
+    const cb = document.createElement("input");
+    cb.type = "checkbox"; cb.id = "ck-" + item.id; cb.checked = item.done;
+    cb.addEventListener("change", () => { item.done = cb.checked; save(); render(); });
+
+    const label = document.createElement("label");
+    label.htmlFor = cb.id;
+    label.textContent = item.text;
+
+    const acts = document.createElement("div");
+    acts.className = "acts";
+    const mk = (act, glyph, aria, disabled) => {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "iconbtn"; b.dataset.act = act;
+      b.textContent = glyph; b.setAttribute("aria-label", aria);
+      b.disabled = !!disabled;
+      return b;
+    };
+    const up = mk("up", "↑", "Move item up", idx === 0);
+    const down = mk("down", "↓", "Move item down", idx === l.items.length - 1);
+    const edit = mk("edit", "✎", "Edit item");
+    const del = mk("del", "✕", "Delete item");
+    up.addEventListener("click", () => moveItem(l, l.items.indexOf(item), -1));
+    down.addEventListener("click", () => moveItem(l, l.items.indexOf(item), +1));
+    edit.addEventListener("click", () => startEdit(l, item, li));
+    del.addEventListener("click", () => {
+      l.items = l.items.filter(i => i.id !== item.id);
+      save(); render();
+    });
+    acts.append(up, down, edit, del);
+
+    li.append(cb, label, acts);
+    ul.append(li);
+  });
+}
+
+/* ---- progress: "7 of 12 · 58%" + native <progress> ---- */
+function renderProgress(l) {
+  const total = l.items.length;
+  const done = l.items.filter(i => i.done).length;
+  const pct = total ? Math.round(done / total * 100) : 0;
+  $("progressText").textContent = `${done} of ${total} · ${pct}%`;
+  const bar = $("bar");
+  bar.max = Math.max(total, 1);
+  bar.value = done;
+  $("resetBtn").disabled = done === 0;
+}
+
+/* ---- top-level render ---- */
+function render() {
+  const has = data.lists.length > 0;
+  const pick = $("listPick");
+  pick.textContent = "";
+  data.lists.forEach(l => {
+    const o = document.createElement("option");
+    o.value = l.id; o.textContent = l.name;
+    if (l.id === data.active) o.selected = true;
+    pick.append(o);
+  });
+  pick.disabled = !has;
+  $("renameBtn").disabled = !has;
+  $("deleteBtn").disabled = !has;
+  $("emptyHint").classList.toggle("hidden", has);
+  $("templates").classList.toggle("hidden", has && !templatesOpen);
+  $("templatesBtn").setAttribute("aria-pressed", String(!has || templatesOpen));
+  $("listView").classList.toggle("hidden", !has);
+
+  const l = activeList();
+  if (l) { renderProgress(l); renderItems(l); }
+}
+$("listPick").addEventListener("change", () => {
+  data.active = $("listPick").value;
+  hideConfirm(); closeNameForm();
+  save(); render();
+});
+
+/* ---- export / import the whole store as JSON ---- */
+$("exportBtn").addEventListener("click", () => {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "checklists.json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+  setStatus("Exported " + data.lists.length + " list(s) to checklists.json.");
+});
+$("importBtn").addEventListener("click", () => $("importFile").click());
+$("importFile").addEventListener("change", e => {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    let incoming = null;
+    try { incoming = sanitize(JSON.parse(r.result)); } catch (err) { /* handled below */ }
+    if (!incoming) {
+      setStatus("Could not read that file — expected a checklists JSON export.");
+    } else {
+      data = incoming;
+      save(); render();
+      setStatus("Imported " + data.lists.length + " list(s).");
+    }
+    e.target.value = "";
+  };
+  r.readAsText(f);
+});
+
+function setStatus(msg) { $("status").textContent = msg; }
+
+/* ---- a11y: announce progress + status changes ---- */
+Suite.liveRegion($("progressText"));
+Suite.liveRegion($("status"));
+
+render();
+</script>
+</body>
+</html>

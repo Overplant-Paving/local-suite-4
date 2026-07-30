@@ -1,0 +1,24 @@
+empty state: drop zone visible, workspace + error card hidden
+original facts: 320 × 200 px · 2.5 KB · image/png (fixture.png)
+controls initialised: 320 / 200 / 100%, format=PNG, quality disabled (lossless)
+preview canvas: 320x200, 64000 opaque px, 60000 colored px
+initial auto-encode completed: PNG · 320 × 200 px · 2.5 KB — ≈ same size as the original
+aspect lock, width edit: 160 → 160 × 100 (readout: 320 × 200 → 160 × 100 (50%))
+aspect lock, height edit: 50 → 80 × 50 (25%)
+aspect unlock: width 123 keeps height 50, readout: 320 × 200 → 123 × 50 (aspect changed)
+re-lock: height snapped to 77 (round(123·200/320))
+percent edit: 50% → 160 × 100
+JPEG q90 encode readout: JPEG · 160 × 100 px · 1.9 KB — 26% smaller than the original
+JPEG q90 download: fixture-160x100.jpg, 1895 bytes, magic=JPEG, decodes to 160×100
+JPEG q40 vs q90: 1290 B vs 1895 B (differ: true, q40 smaller: true)
+WebP download: fixture-160x100.webp, 796 bytes, magic=RIFF/WEBP, 160×100
+PNG re-encode: fixture-160x100.png, 1245 bytes, magic=PNG; note: "PNG is lossless — the quality slider doesn’t apply."
+text-file error card: “notes.txt” is text/plain, not an image. Pick a JPEG, PNG, WebP, GIF, or another image format your browser understands.
+corrupt-file error card: “broken.png” claims to be an image (image/png) but couldn’t be decoded. It may be corrupted or in a format this browser doesn’t support.
+second image loaded clean: 100 × 60 px JPEG, fields reset (100/60/100%, lock on), readout: JPEG · 100 × 60 px · 1021 B — 24% smaller than the original
+preview of 100px-wide image renders at 102px (no blurry upscale)
+a11y: drop role=button tabindex=0 aria-label="Choose an image file, or drop one here"; aria-live=polite on #result + #dimOut; all 6 controls labelled; preview aria-label="Preview of the loaded image"
+storage: localStorage keys = [suite.theme, suite.hub.recents] — nothing tool-owned beyond suite.theme
+mobile 390×844: scrollWidth 390 <= clientWidth 390, screenshot mobile.png
+theme toggle: light -> dark, aria-pressed=true
+console: clean (no errors)

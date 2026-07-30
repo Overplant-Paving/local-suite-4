@@ -1,0 +1,8 @@
+{
+  "note": "new-in-v2 tool — no v1 original; parity N/A",
+  "v2": {
+    "suite.body.v1": "{\"unit\":\"metric\",\"age\":\"30\",\"sex\":\"male\",\"hcm\":\"180\",\"hft\":\"\",\"hin\":\"\",\"wkg\":\"80\",\"wlb\":\"\",\"act\":\"1.55\",\"rhr\":\"60\"}",
+    "suite.theme": "dark",
+    "suite.hub.recents": "[{\"id\":\"body\",\"t\":1785435605085}]"
+  }
+}

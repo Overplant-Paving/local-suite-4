@@ -1,0 +1,8 @@
+{
+  "note": "new-in-v2 tool — no v1 original; parity N/A",
+  "v2": {
+    "suite.budget.v1": "{\"income1\":4000,\"income2\":1000,\"cats\":[{\"name\":\"Housing\",\"amt\":1500,\"tag\":\"need\"},{\"name\":\"Utilities\",\"amt\":300,\"tag\":\"need\"},{\"name\":\"Groceries\",\"amt…(542 chars)",
+    "suite.hub.recents": "[{\"id\":\"budget\",\"t\":1785435613036}]",
+    "suite.theme": "dark"
+  }
+}

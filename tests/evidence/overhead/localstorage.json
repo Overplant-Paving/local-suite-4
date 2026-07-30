@@ -1,0 +1,10 @@
+{
+  "note": "new-in-v2 tool — no v1 original; parity N/A",
+  "v2": {
+    "suite.hub.recents": "[{\"id\":\"overhead\",\"t\":1785435823953}]",
+    "suite.location": "{\"lat\":40.7,\"lon\":-74,\"label\":\"New York City, NY\"}",
+    "suite.cache.overhead.40.70x-74.00.25": "{\"t\":1785435823943,\"v\":{\"ac\":[{\"hex\":\"a00003\",\"type\":\"adsb_icao\",\"flight\":\"UAL456  \",\"r\":\"N789UA\",\"t\":\"B738\",\"desc\":\"BOEING 737-800\",\"ownOp\":\"UNITED A…(1667 chars)",
+    "suite.theme": "dark",
+    "suite.cache.overhead.40.70x-74.00.50": "{\"t\":1785435823943,\"v\":{\"ac\":[{\"hex\":\"a00003\",\"type\":\"adsb_icao\",\"flight\":\"UAL456  \",\"r\":\"N789UA\",\"t\":\"B738\",\"desc\":\"BOEING 737-800\",\"ownOp\":\"UNITED A…(1667 chars)"
+  }
+}

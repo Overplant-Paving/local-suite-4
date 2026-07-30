@@ -1,0 +1,72 @@
+{
+  "lists": [
+    {
+      "id": "ms7u8onr8cgx",
+      "name": "AM routine",
+      "items": [
+        {
+          "id": "ms7u8opiyv2z",
+          "text": "Make coffee",
+          "done": false
+        },
+        {
+          "id": "ms7u8opzth0t",
+          "text": "Journal for 5 minutes",
+          "done": false
+        },
+        {
+          "id": "ms7u8oovzwts",
+          "text": "Stretch",
+          "done": false
+        }
+      ]
+    },
+    {
+      "id": "ms7u8pegjcj9",
+      "name": "Travel packing",
+      "items": [
+        {
+          "id": "ms7u8pegux8s",
+          "text": "Passport / ID",
+          "done": true
+        },
+        {
+          "id": "ms7u8pegs9m6",
+          "text": "Phone charger",
+          "done": false
+        },
+        {
+          "id": "ms7u8pegx9cv",
+          "text": "Toiletries kit",
+          "done": false
+        },
+        {
+          "id": "ms7u8peglipz",
+          "text": "Medications",
+          "done": false
+        },
+        {
+          "id": "ms7u8pegtfns",
+          "text": "Socks & underwear",
+          "done": false
+        },
+        {
+          "id": "ms7u8pegwzi8",
+          "text": "Rain jacket",
+          "done": false
+        },
+        {
+          "id": "ms7u8peg3d8a",
+          "text": "Headphones",
+          "done": false
+        },
+        {
+          "id": "ms7u8pegjro8",
+          "text": "Reusable water bottle",
+          "done": false
+        }
+      ]
+    }
+  ],
+  "active": "ms7u8pegjcj9"
+}

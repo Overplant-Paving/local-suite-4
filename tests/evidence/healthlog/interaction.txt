@@ -1,0 +1,23 @@
+disclaimer visible, cites 2017 ACC/AHA, 'not medical advice' + clinician wording present
+datetime-local default on load: 2026-07-30T13:20
+BP vector 118/78 -> "Normal"
+BP vector 124/79 -> "Elevated"
+BP vector 132/85 -> "Stage 1 hypertension"
+BP vector 145/95 -> "Stage 2 hypertension"
+BP vector 185/122 -> "Hypertensive crisis — talk to a clinician" · preview: "Hypertensive crisis — talk to a clinician promptly"
+crisis wording on entry: "Hypertensive crisis — talk to a clinician"; pulse 62 bpm rendered
+BP stat card: latest 122/78 (Elevated), "7-day avg 120/77"
+BP sparkline: 2 paths, d starts "M3.0 26.4 L38.7 24.3 L74…", labels "sys 118–185 · dia 76–122 mmHg"
+weight stat card: latest 183.0 lb, "7-day avg 181.3 lb", min/max "min 170.0 lb · max 183.0 lb"
+kg toggle: latest 83.0 kg, 180 lb row shows 81.6 kg, input label "Weight (kg)", aria-pressed=true
+lb toggle back: latest 183.0 lb, aria-pressed=false
+sleep: step=0.5, latest 7.5 h, "7-day avg 7.0 h", sparkline path present
+note entry added: Felt dizzy, "morning" run
+filters: bp=7, sleep=2, all=14, aria-pressed tracks the active filter
+delete: first click -> "Confirm?" (still 14 rows), second click -> 13 rows
+CSV: 14 lines, filename health-log-2026-07-30.csv, crisis line "2026-01-14T15:30:00.000Z,bp,185,122,,Hypertensive crisis,,,"
+persistence: suite.healthlog.v1 = 13 entries; reload keeps list, stats, categories
+a11y: #entryList aria-live set, 0 unlabeled inputs/selects/textareas, toggles expose aria-pressed
+mobile 390px: scrollWidth 390 <= clientWidth 390, screenshot mobile.png
+theme toggle: light -> dark, aria-pressed=true
+console: clean (no errors)

@@ -33,6 +33,12 @@ const SEED = {
   "suite.cache.demo.one": JSON.stringify({ t: 1752000000000, v: { rows: [1, 2, 3], note: "cache envelope" } }),
   "suite.cache.demo.two": JSON.stringify({ t: 1752000000001, v: "second envelope" }),
   "suite.units": "F",                           // bare v1-style string (not JSON)
+  "suite.hub.favorites": JSON.stringify(["weather", "calc", "retired-v2-tool"]),
+  "suite.hub.recents": JSON.stringify([
+    { id: "calc", t: 1785427200123 },
+    { id: "weather", t: 1785427100456 },
+    { id: "retired-v2-tool", t: 1700000000789 }
+  ]),
   "suite.focus.settings": JSON.stringify({ focus: 25, short: 5, long: 15, rounds: 4, chime: 60, auto: 1 }),
   "suite.notes.test": '{"txt":"café ☕ — naïve ünïcode"}',          // multi-byte fidelity
   "suite.roundtrip.spacing": '{ "a":1,   "b": [2,3] , "c":"x" }'   // non-canonical spacing:

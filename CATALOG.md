@@ -177,6 +177,19 @@ Departure-board-style view: METARs/TAFs for airports you care about, decoded to 
 Track one dated commercial flight with status, current or last-known coordinates, altitude,
 speed, and the provider's estimated arrival time.
 - **Data:** Aviationstack `https://api.aviationstack.com/v1/flights?access_key={key}&flight_iata=AA100&limit=100`, with records disambiguated locally by service date; when Aviationstack omits `live`, the tracker resolves its `aircraft.icao24` through keyless Airplanes.live `https://api.airplanes.live/v2/hex/{icao24}`. The Aviationstack personal tier advertises 100 requests/month; historical lookup is paid-only. Successful keyed Aviationstack and keyed-to-ADS-B position probes were live-verified Jul 2026; Airplanes.live returned `Access-Control-Allow-Origin: *` for `Origin: null`.
+- **Weather map (v4):** the regional map combines the aircraft position with a live
+  precipitation grid from keyless Open-Meteo `https://api.open-meteo.com/v1/forecast`
+  (32-point multi-location `current=precipitation,weather_code` in one request, 5 min TTL)
+  and active SIGMET hazard polygons from `https://api.weather.gov/aviation/sigmets`
+  (10 min TTL; the aviation feed emits `[lat, lon]` rings, corrected client-side).
+  Departure/arrival conditions come from `https://api.weather.gov/stations/{ICAO}/observations/latest`
+  (10 min TTL, decoded, raw METAR shown when present; NWS covers mostly US airports — a
+  designed "not available" card otherwise), and the arrival-hour outlook resolves the
+  station's coordinates via `https://api.weather.gov/stations/{ICAO}` (7 d TTL) into an
+  Open-Meteo hourly forecast (30 min TTL). All four weather surfaces are keyless + CORS-open
+  (`Access-Control-Allow-Origin: *` re-verified 2026-07-30), so the map works from file://
+  and each panel shows its own cached/stale stamp. The IWXXM TAF detail feed was evaluated
+  and rejected: `api.weather.gov/stations/{id}/tafs/...` serves XML only.
 - **Key:** personal Aviationstack key, user-created at `https://aviationstack.com/signup/free`, stored as `suite.key.aviationstack`; never committed · **Local:** file:// live-verified for both provider surfaces Jul 2026 · **Complexity:** M
 - **Suggested file:** `flight.html`
 
@@ -215,12 +228,26 @@ activities, learning material, multimedia, amenities, topic catalogs, road data,
   `X-Api-Key` header (free personal key; default 1,000 requests per rolling hour). Park and
   resource images are served from `https://www.nps.gov/common/uploads/`. Both hosts are CORS/CSP
   allowlisted for `file://`; header preflight and `Origin: null` were verified Jul 2026.
-- **Behavior:** directory cached 30 days; resource groups load only when their tab opens; most
-  content follows the NPS two-hour publication cadence; reference/media data use longer TTLs;
-  stale cache is labeled and retained offline. `/events`, `/roadevents`, and
-  `/mapdata/parkboundaries/{sitecode}` returned upstream 4xx/5xx errors during live verification,
-  so those resources remain visible but load on demand. Gallery assets are scoped by `galleryId`
-  because that endpoint ignores `parkCode`.
+- **Behavior:** a lightweight directory is cached 30 days, but the selected `/parks?parkCode=…`
+  detail has a separate two-hour identity and its real provider/cache timestamp is shown.
+  Resource groups load sequentially only when their tab opens, preventing a rejected key or 429
+  from fanning out; exposed rate headers and the cooldown are visible. Standard resources use
+  `start`/`limit` pagination while Events uses `pageNumber`/`pageSize`. Reference/media data use
+  longer TTLs; stale cache is labeled and retained offline. Gallery assets are scoped by
+  `galleryId` (including paging) because that endpoint ignores `parkCode`.
+- **v4 re-audit (2026-07-30):** the official swagger specification still documents exactly these
+  29 resources — none added, renamed, or removed since v3 — and a conservative one-request-per-
+  resource live probe returned HTTP 200 for all 29 (evidence:
+  `tests/evidence/v4-release/nps-live-probe.txt`). `/events` and `/roadevents`, which failed
+  upstream during v3 verification, are healthy again and now load with their tab; real WZDx
+  road events nest their fields under `core_details`, which the page unwraps.
+  `/mapdata/parkboundaries/{sitecode}` is also healthy but its GeoJSON runs 190–315 KB per park
+  (measured yell/dena), so it stays on demand, is never written to browser storage, and is now
+  drawn as a simplified boundary outline with geometry types, coordinate count, bounds, center,
+  and approximate area. Road GeoJSON retains and describes its geometry. Endpoint-specific
+  renderers expose campground site/reservation/accessibility data, event timing/location/
+  recurrence, parking live wait/accessibility, visitor-center contacts/hours/directions, activity
+  duration/location/accessibility, relationship contents, and multimedia/caption facts.
 - **Key:** free key · **Local:** file:// ✅ · **Complexity:** L
 - **Suggested file:** `parks.html`
 
@@ -532,7 +559,7 @@ unavailable (`worker-src 'self'` + `file://`), `blob:` image URLs are refused by
 `img-src 'self' data:` — use `createImageBitmap` + canvas + `toDataURL` — while downloads via
 `URL.createObjectURL` + `a[download]` work fine, as `notes`/`paper`/`loan`/`qr` already prove.
 
-### 10.14 Calculator & Percentage Workbench — *proposed (not built)*
+### 10.14 Calculator & Percentage Workbench — *built* ✅ (v4)
 A tape, not a keypad: every line is an expression you can go back and edit, with its result beside
 it and earlier lines referencable, so a household calculation stays visible instead of vanishing
 into a running total. Modes for percent-of / percent-change / markup-vs-margin, tip and tax with an
@@ -547,9 +574,11 @@ in the tape. Worth mirroring the fraction parsing already in `convert.html` for 
   (hex/bin/dec/oct, bit toggles, two's complement), **duration & timesheet math** (add/subtract
   `hh:mm`, total a week — `dates.html` owns calendar-day math and shouldn't grow a second model),
   and **unit-price comparison** ("is the big box cheaper?"), cross-linked from `convert.html`.
-- **Complexity:** S/M · **Suggested file:** `calc.html` · **Storage:** `suite.calc.tape`, `suite.calc.mode`
+- **Data:** none — fully offline · **Key:** none · **Local:** file:// ✅
+- **Complexity:** M · **Suggested file:** `calc.html` · **Storage:** `suite.calc.tape`, `suite.calc.mode`
+- **As built (v4):** editable tape with `ans` chaining and receipt-style percent forms; tip & split with explicit odd-cent reconciliation; unit-price verdicts; BigInt base/two's-complement desk; hh:mm duration math with an hourly-rate line. Hand-written recursive-descent parser — nothing is ever eval'd.
 
-### 10.15 File Integrity & Hash Desk — *proposed (not built)*
+### 10.15 File Integrity & Hash Desk — *built* ✅ (v4)
 Drop files in, get hashes out: SHA-256 (default), SHA-1, SHA-512, with size, MIME type and
 last-modified. Paste a published checksum for a large PASS / DOES NOT MATCH verdict — whitespace and
 case tolerant, algorithm inferred from digest length — rather than making anyone compare 64 hex
@@ -561,9 +590,11 @@ explicit threshold and, above it, show a designed "too large to hash in the brow
 limit and the OS command that does it instead — the same first-class-state treatment the
 blocked-source tools get. Cancel must work mid-hash. Reuse the drop-zone and its Enter/Space
 keyboard path from `color.html`.
-- **Complexity:** S/M · **Suggested file:** `hash.html` · **Storage:** `suite.hash.algo`, `suite.hash.recent` (names and digests only — never file contents)
+- **Data:** none — fully offline (Web Crypto) · **Key:** none · **Local:** file:// ✅
+- **Complexity:** S · **Suggested file:** `hash.html` · **Storage:** none beyond `suite.theme` (as built, nothing about hashed files is retained)
+- **As built (v4):** SHA-256/384/512 + legacy-labeled SHA-1 for dropped files and pasted text; the verify field accepts plain hex, `sha256:` prefixes, `sha256sum` lines, and BSD tag format for a MATCH/MISMATCH verdict naming the algorithm.
 
-### 10.16 Checklist & Routine Tracker — *proposed (not built)*
+### 10.16 Checklist & Routine Tracker — *built* ✅ (v4)
 Templates and runs, kept deliberately calm. A template is the master list (packing, pre-trip,
 seasonal maintenance, weekly chores) with sections and per-item notes; a run is one instance of
 working through it, remembering when it started and finished, archived rather than celebrated when
@@ -574,9 +605,11 @@ habit grids, and Focus/Timers. JSON export/import following `flashcards.html`, p
 user-authored content, so every write checks what `Suite.store.set` returns and surfaces a save
 failure — this is the class of tool where silent quota loss actually costs someone something.
 Editing a template mid-run must not rewrite the run in progress: a run snapshots its items at start.
-- **Complexity:** S/M · **Suggested file:** `checklists.html` · **Storage:** `suite.checklists.templates`, `suite.checklists.runs`
+- **Data:** none — fully offline · **Key:** none · **Local:** file:// ✅
+- **Complexity:** M · **Suggested file:** `checklists.html` · **Storage:** `suite.checklists.v1`
+- **As built (v4):** named lists with progress, keyboard-accessible reorder, starter templates, JSON export/import, and the defining reset-the-checks-keep-the-items action for routines and packing lists.
 
-### 10.17 Image Toolbox — *proposed (not built)*
+### 10.17 Image Toolbox — *built* ✅ (v4)
 Local-only resize (max dimension or percentage, aspect locked), crop, rotate/flip, PNG/JPEG/WebP
 conversion, a quality slider with live before/after byte counts, and metadata-stripping by canvas
 re-encode. No uploads, ever — the everyday "make this 4 MB photo emailable" errand currently means
@@ -586,9 +619,11 @@ on an `<img>`: the generated CSP refuses `blob:` image URLs, while the bitmap pa
 working with untainted `getImageData` and a successful `toDataURL()`. Ship the honest caveats —
 re-encoding drops common metadata but is not a forensic sanitizer, lossy output is lossy,
 transparency survives only in formats that have it — plus explicit dimension and memory limits.
-- **Complexity:** M · **Suggested file:** `image.html` · **Storage:** `suite.image.prefs`
+- **Data:** none — fully offline · **Key:** none · **Local:** file:// ✅
+- **Complexity:** M · **Suggested file:** `image.html` · **Storage:** none beyond `suite.theme`
+- **As built (v4):** `createImageBitmap` decode with a canvas preview (no `blob:` URLs, per the generated CSP), resize by width/height/percent with aspect lock, JPEG/PNG/WebP re-encode with quality and size-change readouts, and the honest EXIF note: canvas re-encoding outputs a file with no metadata.
 
-### 10.18 Calendar / ICS Maker — *proposed (not built)*
+### 10.18 Calendar / ICS Maker — *built* ✅ (v4)
 Compose events (one-off, all-day, simple recurrence) and export a valid `.ics`; import a local
 `.ics` into a private read-only agenda view. Seeded from a countdown in 8.2, an observance in 4.6,
 or a meeting time from 8.1 — nothing in the suite can currently leave it as a calendar entry. File
@@ -598,7 +633,9 @@ the user's calendar app, which is the worst possible failure for a tool whose wh
 a file: CRLF line endings, 75-octet line folding, escaping `,` `;` and newlines in text fields,
 `DTSTART` in floating vs `TZID` vs UTC form, and DST-boundary events each need a test, with a
 compose → export → re-import → compare round-trip as the cheapest way to hold the line.
-- **Complexity:** M · **Suggested file:** `ics.html` · **Storage:** `suite.ics.drafts`
+- **Data:** none — fully offline · **Key:** none · **Local:** file:// ✅
+- **Complexity:** M · **Suggested file:** `ics.html` · **Storage:** `suite.ics.draft`
+- **As built (v4):** RFC 5545-strict serializer — CRLF, 75-octet folding, ordered TEXT escaping, floating local times, exclusive all-day DTEND, weekly BYDAY with COUNT/UNTIL endings, VALARM reminders — with a live preview, human summary sentence, and draft persistence.
 
 **Considered and deliberately not proposed**, so the next reader doesn't re-propose them: recipe
 scaling (7.3 has a Recipe scaler tab), Base64/URL encode-decode, text SHA-256 and text diff (all
@@ -607,6 +644,20 @@ refinance what-ifs (10.11), dice and pick-from-list (10.5). Storage and quota di
 10.13 as a section, not as a tool.
 
 ---
+
+## 11 · Games & Arcade
+
+### 11.1 The Arcade — *built* ✅ (v4)
+A launcher for five browser games from this suite's own workshop: Bathhouse Brigade (desktop and
+mobile editions), Chromatic Chains (desktop and mobile editions), and DOOM 1993 shareware in an
+EmulatorJS/PrBoom wrapper. Every card links to its live GitHub Pages deployment (all five
+verified playable 2026-07-30) plus the source repository, honestly labeled.
+- **Data:** none — zero network requests. Card art is copied from the game repositories
+  (DOOM: a screenshot of the repository's own deployment, credited to id Software), optimized,
+  and inlined at build time via the `data-suite-asset` marker; provenance in
+  `assets/arcade/PROVENANCE.md`.
+- **Key:** none · **Local:** file:// ✅ (games themselves open on GitHub Pages) · **Complexity:** S
+- **Suggested file:** `arcade.html`
 
 ## Suggested build order
 
@@ -661,7 +712,7 @@ The short version of everything above. **CORS ✓** = documented/community-confi
 | openFDA | `api.fda.gov` | none (1k/day) | ✓ |
 | NHTSA recalls/VIN | `api.nhtsa.gov`, `vpic.nhtsa.dot.gov` | none | ✓ (echoes Origin; verified Jul 2026) |
 | CPSC recalls | `saferproducts.gov/RestWebServices` | none | ✓ (verified Jul 2026) |
-| NPS parks | `developer.nps.gov/api/v1` | free key (1k/hr) | ✓ (built `file://` live-key verification Jul 2026: 26 healthy resources; events, road events, and boundaries failed upstream and remain explicit on-demand checks) |
+| NPS parks | `developer.nps.gov/api/v1` | free key (1k/hr) | ✓ (official Swagger inventory and conservative built `file://` live-key verification Jul 30 2026: all 29 resources healthy; boundaries remain on demand because the GeoJSON is large) |
 | Nager.Date holidays | `date.nager.at/api/v3` | none | ✓ |
 | Census geocoder | `geocoding.geo.census.gov` | none | ✗ fetch / ✓ JSONP |
 | Census data (ACS) | `api.census.gov/data` | none (500/day) | ✓ (community) |
@@ -685,4 +736,10 @@ The short version of everything above. **CORS ✓** = documented/community-confi
 | ipify / ipapi.co | `api.ipify.org` / `ipapi.co` | none | ✓ |
 | xkcd | `xkcd.com/info.0.json` | none | ✗ |
 | USAspending | `api.usaspending.gov/api/v2` | none | ✓ (community) |
+| Google + Cloudflare DNS-over-HTTPS | `dns.google/resolve`, `cloudflare-dns.com/dns-query` | none | ✓ (live `file://` verification Jul 30 2026; explicit lookup only) |
+| Datamuse rhymes | `api.datamuse.com/words` | none | ✓ (live `file://` verification Jul 30 2026; cached per query) |
+| Crossref works | `api.crossref.org/works` | none | ✓ (live `file://` verification Jul 30 2026; DOI lookup with polite cache) |
+| NASA Image Library | `images-api.nasa.gov`, media at `images-assets.nasa.gov` | none | ✓ (live `file://` verification Jul 30 2026) |
+| World Bank indicators | `api.worldbank.org/v2` | none | ✓ (live `file://` verification Jul 30 2026; JSON format requested) |
+| Internet Archive availability | `archive.org/wayback/available` | none | ✓ (live `file://` verification Jul 30 2026; explicit URL check) |
 | OSRM demo routing | `router.project-osrm.org` | none | ✓ (community; be gentle) |

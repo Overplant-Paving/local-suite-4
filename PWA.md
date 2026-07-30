@@ -28,8 +28,9 @@ from `file://` behaves byte-identically to the pre-PWA build.
   `start_url: index.html`, `display: standalone`. Per-tool deep links work because every tool is
   just a page.
 - **`dist/sw.js`** — precache list = every dist HTML file + icons + webmanifest. Cache name
-  includes a content hash of the precache set (`suite-v3-<hash>`), so any rebuild that changes
-  anything produces a new cache.
+  includes a content hash of the precache set (`suite-v4-<hash>`; the activate handler deletes
+  only older `suite-v4-*` caches), so any rebuild that changes anything produces a new cache
+  without touching supported v3 caches on the same GitHub Pages origin.
 
 ## 3. Caching strategy
 
@@ -41,8 +42,10 @@ from `file://` behaves byte-identically to the pre-PWA build.
   SW cache layer would serve stale data without the "cached from <time>" honesty. One caching
   brain, not two.
 - **Update policy:** new SW calls `skipWaiting()`; on `activate`, `clients.claim()` + delete old
-  `suite-vN-*` caches. Worst case a user sees fresh HTML one reload late — acceptable for this
-  suite; never let an old cache pin the whole suite stale.
+  `suite-v4-*` caches. CacheStorage is origin-wide rather than service-worker-scope-wide, so v3's
+  `suite-v3-*` namespace is preserved when both supported releases are visited on GitHub Pages.
+  Worst case a user sees fresh HTML one reload late — acceptable for this suite; never let an old
+  v4 cache pin the whole v4 suite stale.
 
 ## 4. Offline matrix
 
@@ -77,8 +80,8 @@ A user who lives in file:// mode and then installs the PWA starts with empty set
   Asserted by diff: `tests/evidence/phase3/file-parity-diff.txt`.
 - **Precache is sequential and revalidating** (`cache: "no-cache"` per request, one at a
   time), not `addAll`: a host's `max-age` (GitHub Pages: 600 s) must never precache stale
-  bytes on update, and the 76-way `addAll` burst was observed to fail its install during
-  verification. Cache name `suite-v3-<sha256[:12]>` over the full precache contents. The v3
+  bytes on update, and the earlier all-at-once `addAll` burst was observed to fail its install during
+  verification. Cache name `suite-v4-<sha256[:12]>` over the full precache contents. The v3
   release also allows same-origin images in generated CSP so Chromium can load the manifest icons;
   the headed installability gate checks this explicitly.
 - **`--check` gains a fatal `pwa-sync` gate** (dist sw.js + webmanifest must match a fresh
@@ -87,6 +90,9 @@ A user who lives in file:// mode and then installs the PWA starts with empty set
   for Chrome's own scheduled check (which spec-bypasses the HTTP cache for the SW script
   exactly the same way) — the natural check is hours-delayed and throttle-guarded, which a
   test cannot wait out. Verified end to end: `tests/evidence/phase3/pwa-update-verify.txt`.
+- **Same-origin coexistence verification** seeds a v3 cache and an obsolete v4 cache before v4
+  activation, then proves that v3 remains byte-readable while only the obsolete v4 cache is
+  removed: `node tests/pwa-verify.mjs coexist`.
 - **Icons** are rendered once from `core/icons/icon.svg` by `core/icons/make-icons.mjs`
   (Playwright) and checked in; the maskable variant is the same full-bleed art with the
   glyph inside the central safe zone.

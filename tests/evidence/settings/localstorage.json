@@ -2,8 +2,10 @@
   "note": "new-in-v2 tool — no v1 original; parity N/A",
   "v2": {
     "suite.roundtrip.spacing": "{ \"a\":1,   \"b\": [2,3] , \"c\":\"x\" }",
+    "suite.hub.recents": "[{\"id\":\"calc\",\"t\":1785427200123},{\"id\":\"weather\",\"t\":1785427100456},{\"id\":\"retired-v2-tool\",\"t\":1700000000789}]",
     "suite.location": "{\"lat\":37.77,\"lon\":-122.42,\"label\":\"San Francisco\"}",
     "suite.units": "F",
+    "suite.hub.favorites": "[\"weather\",\"calc\",\"retired-v2-tool\"]",
     "suite.locations": "{\"schema\":1,\"activeId\":\"saved-location\",\"items\":[{\"id\":\"saved-location\",\"revision\":1,\"lat\":37.77,\"lon\":-122.42,\"label\":\"San Francisco\"}]}",
     "suite.focus.settings": "{\"focus\":25,\"short\":5,\"long\":15,\"rounds\":4,\"chime\":60,\"auto\":1}",
     "suite.key.finnhub": "fake-finnhub-key-for-roundtrip-123",

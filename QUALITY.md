@@ -89,7 +89,7 @@ that has never been seen to fail is assumed broken.
 
 **Tier 2 — smoke suite, mandatory:** `tests/smoke.mjs` (Playwright — the one npm concession,
 isolated in `tests/`, never required for *building*, always required for *shipping*). For each of
-every generated HTML file (currently 73 tools plus the hub, 74 files):
+every generated HTML file (currently 100 tools plus the hub, 101 files):
 
 1. open via `file://`
 2. assert zero console errors

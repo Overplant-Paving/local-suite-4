@@ -1,0 +1,8 @@
+{
+  "note": "new-in-v2 tool — no v1 original; parity N/A",
+  "v2": {
+    "suite.hub.recents": "[{\"id\":\"fuellog\",\"t\":1785435623933}]",
+    "suite.fuellog.v1": "{\"schema\":1,\"activeId\":\"civic\",\"vehicles\":[{\"id\":\"civic\",\"name\":\"Civic\",\"fills\":[{\"id\":\"fms7u9r80-0\",\"date\":\"2025-01-05\",\"odo\":20000,\"gal\":11,\"cost\":3…(609 chars)",
+    "suite.theme": "dark"
+  }
+}

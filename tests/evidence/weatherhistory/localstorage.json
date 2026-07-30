@@ -1,0 +1,14 @@
+{
+  "note": "new-in-v2 tool — no v1 original; parity N/A",
+  "v2": {
+    "suite.cache.weatherhistory.day.40.7889x-73.9669.2019-07-15": "{\"t\":1785430800000,\"v\":{\"latitude\":40.7889,\"longitude\":-73.9669,\"generationtime_ms\":1,\"utc_offset_seconds\":-14400,\"timezone\":\"America/New_York\",\"timez…(660 chars)",
+    "suite.hub.recents": "[{\"id\":\"weatherhistory\",\"t\":1785430800000}]",
+    "suite.location": "{\"lat\":40.7889,\"lon\":-73.9669,\"label\":\"Test Ridge, NY\"}",
+    "suite.cache.weatherhistory.ctx.38.72509x-9.1498.2019-07-15": "{\"t\":1785430800000,\"v\":{\"latitude\":38.72509,\"longitude\":-9.1498,\"generationtime_ms\":9.8,\"utc_offset_seconds\":-14400,\"timezone\":\"America/New_York\",\"tim…(77162 chars)",
+    "suite.cache.weatherhistory.day.38.72509x-9.1498.2019-07-15": "{\"t\":1785430800000,\"v\":{\"latitude\":38.72509,\"longitude\":-9.1498,\"generationtime_ms\":1,\"utc_offset_seconds\":-14400,\"timezone\":\"America/New_York\",\"timez…(660 chars)",
+    "suite.cache.weatherhistory.ctx.40.7889x-73.9669.2019-07-15": "{\"t\":1785430800000,\"v\":{\"latitude\":40.7889,\"longitude\":-73.9669,\"generationtime_ms\":9.8,\"utc_offset_seconds\":-14400,\"timezone\":\"America/New_York\",\"tim…(77162 chars)",
+    "suite.cache.weatherhistory.ctx.40.7889x-73.9669.2026-07-25": "{\"t\":1785430800000,\"v\":{\"latitude\":40.7889,\"longitude\":-73.9669,\"generationtime_ms\":9.8,\"utc_offset_seconds\":-14400,\"timezone\":\"America/New_York\",\"tim…(77141 chars)",
+    "suite.theme": "dark",
+    "suite.cache.weatherhistory.day.40.7889x-73.9669.2026-07-25": "{\"t\":1785430800000,\"v\":{\"latitude\":40.7889,\"longitude\":-73.9669,\"generationtime_ms\":1,\"utc_offset_seconds\":-14400,\"timezone\":\"America/New_York\",\"timez…(660 chars)"
+  }
+}

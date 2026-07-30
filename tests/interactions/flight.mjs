@@ -37,8 +37,62 @@ export function fixture(date) {
   };
 }
 
+/* v4 weather-layer fixtures — every NWS / Open-Meteo request is route-fulfilled
+   so the deterministic run stays fully offline. */
+export function obsFixture() {
+  return { properties: {
+    timestamp: new Date(Date.now() - 12 * 60000).toISOString(), textDescription: "Light Rain",
+    rawMessage: "KJFK 301651Z 18012G20KT 6SM -RA BKN020 22/18 A2992",
+    temperature: { value: 22 }, windSpeed: { value: 22.2, unitCode: "wmoUnit:m_s" }, windDirection: { value: 180 },
+    windGust: { value: 37, unitCode: "wmoUnit:m_s" }, visibility: { value: 9656 },
+    cloudLayers: [{ amount: "BKN", base: { value: 610 } }]
+  } };
+}
+export function sigmetFixture() {
+  /* ring uses the NWS aviation [lat, lon] order on purpose — the page must correct it */
+  return { type: "FeatureCollection", features: [{ type: "Feature",
+    geometry: { type: "Polygon", coordinates: [[[40.5, -104.5], [40.5, -102.5], [38.0, -102.5], [38.0, -104.5], [40.5, -104.5]]] },
+    properties: { hazard: "CONVECTIVE" } }] };
+}
+export function routeWeather(page, counters = {}) {
+  counters.grid = 0; counters.metar = 0; counters.sigmet = 0; counters.outlook = 0; counters.station = 0;
+  return Promise.all([
+    page.route(/api\.weather\.gov\/stations\/[A-Z0-9]+\/observations\/latest/, route => {
+      counters.metar++;
+      return route.fulfill({ status: 200, contentType: "application/geo+json", body: JSON.stringify(obsFixture()) });
+    }),
+    page.route(/api\.weather\.gov\/stations\/[A-Z0-9]+$/, route => {
+      counters.station++;
+      return route.fulfill({ status: 200, contentType: "application/geo+json",
+        body: JSON.stringify({ geometry: { type: "Point", coordinates: [-118.408, 33.9425] }, properties: { stationIdentifier: "KLAX" } }) });
+    }),
+    page.route(/api\.weather\.gov\/aviation\/sigmets/, route => {
+      counters.sigmet++;
+      return route.fulfill({ status: 200, contentType: "application/geo+json", body: JSON.stringify(sigmetFixture()) });
+    }),
+    page.route(/api\.open-meteo\.com\/v1\/forecast/, route => {
+      const u = new URL(route.request().url());
+      if (u.searchParams.get("current")) {
+        counters.grid++;
+        const n = (u.searchParams.get("latitude") || "").split(",").length;
+        const rows = Array.from({ length: n }, (_, i) => ({ current: { precipitation: i % 5 === 0 ? 1.2 : 0, weather_code: i % 5 === 0 ? 61 : 2 } }));
+        return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(rows) });
+      }
+      counters.outlook++;
+      const t0 = new Date(); t0.setUTCMinutes(0, 0, 0);
+      const time = Array.from({ length: 72 }, (_, i) => new Date(t0.getTime() + i * 3600000).toISOString().slice(0, 16));
+      const fill = v => time.map(() => v);
+      return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({
+        hourly: { time, temperature_2m: fill(24), precipitation_probability: fill(40),
+          wind_speed_10m: fill(19), wind_gusts_10m: fill(32), weather_code: fill(61) } }) });
+    }),
+  ]);
+}
+
 export async function interact({ page, log, evidenceDir }) {
   let mode = "active", calls = 0, positionCalls = 0, leakedKey = false, serviceDate = "";
+  const wxCalls = {};
+  await routeWeather(page, wxCalls);
   await page.route(API_RE, async route => {
     calls++;
     const u = new URL(route.request().url());
@@ -129,9 +183,66 @@ export async function interact({ page, log, evidenceDir }) {
       active.planeMarkers !== 1 || active.bodyContainsKey || leakedKey) throw new Error("active render failed: " + JSON.stringify(active));
   log(`active flight rendered without exposing key: ${JSON.stringify(active)}`);
 
-  // Stale fallback: age the envelope, abort the forced refresh, and retain visibly labeled data.
+  /* v4 weather map: precip cells + SIGMET outline share the map with the plane;
+     METAR panels decode; the world view stays one keypress away. */
+  await page.waitForFunction(() => /Weather layer/.test(document.getElementById("wxStamp").textContent));
+  await page.waitForFunction(() => /Outlook near arrival/.test(document.getElementById("arrWx").textContent));
+  const weather = await page.evaluate(() => ({
+    stamp: document.getElementById("wxStamp").textContent,
+    precipCells: document.querySelectorAll("#map rect").length,
+    sigmetPaths: [...document.querySelectorAll("#map path")].filter(p => p.querySelector("title")).length,
+    plane: document.querySelectorAll("#map g").length,
+    legendVisible: !document.getElementById("wxLegend").hidden,
+    wxPressed: document.getElementById("viewWx").getAttribute("aria-pressed"),
+      panelsVisible: !document.getElementById("wxPanels").hidden,
+      depConditions: document.getElementById("depWx").innerText,
+      arrOutlook: document.getElementById("arrWx").innerText,
+  }));
+  if (!weather.precipCells || weather.sigmetPaths !== 1 || weather.plane !== 1 || !weather.legendVisible ||
+      weather.wxPressed !== "true" || !weather.panelsVisible ||
+      !/Light Rain/.test(weather.depConditions) || !/Observed 12 minutes ago/.test(weather.depConditions) ||
+      !/Wind 50 mph from 180°, gusting 83/.test(weather.depConditions) ||
+      !/Outlook near arrival/.test(weather.arrOutlook) || !/40% chance/.test(weather.arrOutlook))
+    throw new Error("weather map failed: " + JSON.stringify(weather));
+  log(`weather map: ${weather.precipCells} precip cells, 1 SIGMET (order-corrected), NWS 22.2 m/s → 50 mph and 37 m/s gust → 83 mph: ${JSON.stringify(weather.stamp)}`);
+  await page.click("#viewWorld");
+  const world = await page.evaluate(() => ({
+    pressed: document.getElementById("viewWorld").getAttribute("aria-pressed"),
+    legendHidden: document.getElementById("wxLegend").hidden,
+    landPaths: document.querySelectorAll("#map path").length,
+  }));
+  if (world.pressed !== "true" || !world.legendHidden || world.landPaths < 5) throw new Error("world view failed: " + JSON.stringify(world));
+  log(`world view toggle: ${JSON.stringify(world)}`);
+  await page.click("#viewWx");
+  log(`deterministic weather requests: ${JSON.stringify(wxCalls)}`);
+
+  // Weather freshness is recomputed per refresh: stale fallback must not stick
+  // after the next successful grid + SIGMET response.
   await page.evaluate(() => {
-    const k = Object.keys(localStorage).find(x => x.startsWith("suite.cache.flight."));
+    for (const k of Object.keys(localStorage)) if (k.startsWith("suite.cache.flight.wx.")) {
+      const e = JSON.parse(localStorage.getItem(k)); e.t = Date.now() - 3600000;
+      localStorage.setItem(k, JSON.stringify(e));
+    }
+  });
+  const abortWeather = route => route.abort();
+  await page.route(/api\.weather\.gov\//, abortWeather);
+  await page.route(/api\.open-meteo\.com\//, abortWeather);
+  await page.click("#refreshBtn");
+  await page.waitForFunction(() => /Weather layer cached/.test(document.getElementById("wxStamp").textContent));
+  const staleStamp = (await page.locator("#wxStamp").innerText()).trim();
+  await page.unroute(/api\.weather\.gov\//, abortWeather);
+  await page.unroute(/api\.open-meteo\.com\//, abortWeather);
+  await page.click("#refreshBtn");
+  await page.waitForFunction(() => {
+    const s = document.getElementById("wxStamp").textContent;
+    return /Weather layer/.test(s) && !/cached/.test(s);
+  });
+  const freshStamp = (await page.locator("#wxStamp").innerText()).trim();
+  log(`weather stale→fresh refresh resets cache label: ${JSON.stringify(staleStamp)} → ${JSON.stringify(freshStamp)}`);
+
+  // Flight-data stale fallback: age the envelope, abort the forced refresh, and retain visibly labeled data.
+  await page.evaluate(() => {
+    const k = Object.keys(localStorage).find(x => x.startsWith("suite.cache.flight.") && !x.startsWith("suite.cache.flight.wx."));
     const e = JSON.parse(localStorage.getItem(k)); e.t = Date.now() - 3600000; localStorage.setItem(k, JSON.stringify(e));
   });
   await page.evaluate(() => { window.__flightNativeFetch = window.fetch; window.fetch = () => Promise.reject(new Error("offline")); });

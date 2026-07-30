@@ -1,0 +1,913 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calculator &amp; Percentage Workbench · Local Suite</title>
+<link rel="stylesheet" href="../core/suite.css" data-suite-inline>
+<style>
+  body { padding: 1.4rem 1.25rem 4rem; }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  .topbar { display: flex; align-items: center; gap: 1rem; }
+  .topbar .theme-btn, .topbar .fav-btn { float: none; }
+  .topbar .theme-btn { margin-left: auto; }
+  header { margin: 1rem 0 1.2rem; }
+  h1 { font-size: 1.8rem; letter-spacing: -.02em; }
+  .tag { color: var(--muted); margin-top: .35rem; max-width: 48rem; }
+
+  .modes { display: flex; flex-wrap: wrap; gap: .45rem; margin: 1.3rem 0 1.1rem; }
+  .mode {
+    border: 1px solid var(--line); background: var(--card); color: var(--muted);
+    border-radius: 999px; padding: .4rem .9rem; font-size: .9rem; cursor: pointer;
+  }
+  .mode.on { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+  .mode:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+  }
+
+  .panel {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 1.1rem 1.15rem 1.25rem; box-shadow: var(--shadow); margin-bottom: 1rem;
+  }
+  .panel[hidden] { display: none; }
+  h2 { font-size: 1.05rem; margin: 0 0 .6rem; }
+  label { font-size: .78rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; display: block; margin-bottom: .3rem; }
+  input, select {
+    width: 100%; padding: .55rem .65rem; font-size: 1rem; color: var(--ink);
+    border: 1px solid var(--line); border-radius: 10px; background: var(--bg); outline: none;
+    font-family: inherit; min-width: 0;
+  }
+  input:focus, select:focus { border-color: var(--accent); }
+  .hint { font-size: .82rem; color: var(--muted); margin-top: .55rem; }
+  .hint code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  .btn {
+    border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+    border-radius: 8px; padding: .4rem .8rem; cursor: pointer; font-size: .9rem;
+  }
+  .note { font-size: .82rem; color: var(--muted); min-height: 1.1em; margin-top: .4rem; }
+
+  /* tape */
+  .trow { display: flex; gap: .5rem; align-items: center; margin-bottom: .45rem; }
+  .texp {
+    flex: 1 1 0; min-width: 0; /* the input shrinks; the result keeps its width */
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  .tres {
+    flex: 0 0 auto; max-width: 45%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-weight: 600; color: var(--accent); font-size: .95rem;
+  }
+  .tres.err { color: var(--muted); font-weight: 400; font-style: italic; }
+  .tdel {
+    border: 1px solid var(--line); background: var(--bg); color: var(--muted);
+    border-radius: 8px; width: 1.8rem; height: 1.8rem; line-height: 1; cursor: pointer; flex: 0 0 auto;
+  }
+  .tape-actions { display: flex; align-items: center; gap: .8rem; flex-wrap: wrap; margin-top: .7rem; }
+
+  /* shared field grids */
+  .frow { display: grid; grid-template-columns: repeat(3, 1fr); gap: .7rem; align-items: end; }
+  @media (max-width: 520px) { .frow { grid-template-columns: 1fr 1fr; } }
+  .qtips { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .55rem; align-items: center; }
+  .qtips .btn { font-size: .82rem; padding: .3rem .6rem; }
+  .outlist { margin-top: .9rem; font-size: .95rem; }
+  .outlist div { padding: .28rem 0; border-bottom: 1px dashed var(--line); display: flex; gap: .6rem; justify-content: space-between; flex-wrap: wrap; }
+  .outlist div:last-child { border-bottom: 0; }
+  .outlist b { font-variant-numeric: tabular-nums; }
+  .recon { margin-top: .6rem; font-size: .88rem; color: var(--ink); background: var(--accent-soft); border-radius: 8px; padding: .5rem .65rem; }
+
+  /* unit price */
+  .uprow { border: 1px solid var(--line); border-radius: 10px; padding: .6rem .7rem .65rem; margin-bottom: .55rem; background: var(--bg); }
+  .uprow.best { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+  .uphead { display: flex; gap: .55rem; align-items: end; flex-wrap: wrap; }
+  .uphead .fld { flex: 1 1 5.5rem; min-width: 0; }
+  .uplbl { font-weight: 700; color: var(--muted); align-self: center; padding-top: .9rem; }
+  .uprow.best .uplbl { color: var(--accent); }
+  .upres { margin-top: .45rem; font-size: .9rem; color: var(--muted); }
+  .uprow.best .upres { color: var(--accent); font-weight: 600; }
+  .verdict { margin-top: .7rem; font-size: .92rem; }
+
+  /* number base */
+  .bgrid { display: grid; grid-template-columns: 6.5rem 1fr; gap: .4rem .8rem; margin-top: .9rem; align-items: baseline; }
+  .bgrid .k { font-size: .78rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+  .bgrid .v { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; word-break: break-all; font-size: .95rem; }
+  .bsub { margin-top: 1rem; }
+  @media (max-width: 420px) { .bgrid { grid-template-columns: 4.6rem 1fr; } }
+
+  /* duration */
+  .drow { display: flex; gap: .5rem; align-items: center; margin-bottom: .45rem; }
+  .drow select { width: 4.2rem; flex: 0 0 auto; }
+  .drow input { flex: 1 1 auto; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  .drun { flex: 0 0 auto; min-width: 4.2rem; text-align: right; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--muted); font-size: .9rem; }
+  .dtotal { margin-top: .8rem; font-size: 1.05rem; }
+  .dtotal b { color: var(--accent); font-variant-numeric: tabular-nums; }
+  .raterow { display: grid; grid-template-columns: minmax(6rem, 11rem) 1fr; gap: .7rem; align-items: end; margin-top: .9rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="index.html">← suite</a>
+    <button class="theme-btn" id="themeBtn" title="Toggle light/dark">◐ theme</button>
+  </div>
+  <header>
+    <h1>Calculator &amp; Percentage Workbench</h1>
+    <p class="tag">An editable calculation tape plus tip-splitting, unit-price comparison, number bases,
+      and time-sheet math — parsed by hand, computed on your machine, saved locally.</p>
+  </header>
+
+  <div class="modes" id="modes">
+    <button class="mode on" data-m="tape" aria-pressed="true">Tape</button>
+    <button class="mode" data-m="tip" aria-pressed="false">Tip &amp; split</button>
+    <button class="mode" data-m="unit" aria-pressed="false">Unit price</button>
+    <button class="mode" data-m="base" aria-pressed="false">Number base</button>
+    <button class="mode" data-m="dur" aria-pressed="false">Duration</button>
+  </div>
+
+  <!-- ============ tape ============ -->
+  <section class="panel" id="sec-tape">
+    <h2>Calculation tape</h2>
+    <div id="tape"></div>
+    <div class="tape-actions">
+      <button class="btn" id="tapeClear">Clear tape</button>
+      <span class="hint" style="margin-top:0">Enter starts a new line · <code>ans</code> is the previous
+        result · try <code>64.50 + 18%</code>, <code>18% of 64.50</code>, <code>1 1/2 + 3/4</code></span>
+    </div>
+    <p class="note" id="saveNote"></p>
+  </section>
+
+  <!-- ============ tip & split ============ -->
+  <section class="panel" id="sec-tip" hidden>
+    <h2>Tip &amp; split</h2>
+    <div class="frow">
+      <div>
+        <label for="tipBill">Bill ($)</label>
+        <input id="tipBill" type="text" inputmode="decimal" autocomplete="off" placeholder="64.50">
+      </div>
+      <div>
+        <label for="tipPct">Tip %</label>
+        <input id="tipPct" type="text" inputmode="decimal" autocomplete="off" value="18">
+      </div>
+      <div>
+        <label for="tipPeople">People</label>
+        <input id="tipPeople" type="number" min="1" step="1" value="2">
+      </div>
+    </div>
+    <div class="qtips" id="qtips">
+      <span class="hint" style="margin-top:0">quick tip:</span>
+      <button class="btn" data-v="10">10%</button>
+      <button class="btn" data-v="15">15%</button>
+      <button class="btn" data-v="18">18%</button>
+      <button class="btn" data-v="20">20%</button>
+      <button class="btn" data-v="22">22%</button>
+    </div>
+    <div class="qtips">
+      <input type="checkbox" id="tipUnequal" style="width:auto">
+      <label for="tipUnequal" style="margin:0;text-transform:none;letter-spacing:0;font-size:.9rem;color:var(--ink)">Unequal shares</label>
+      <input id="tipWeights" type="text" autocomplete="off" placeholder="shares, e.g. 2,1,1"
+             aria-label="Share weights, one number per person" style="flex:1;min-width:8rem;display:none">
+    </div>
+    <div class="outlist" id="tipOut"></div>
+  </section>
+
+  <!-- ============ unit price ============ -->
+  <section class="panel" id="sec-unit" hidden>
+    <h2>Unit price</h2>
+    <p class="hint" style="margin-top:0;margin-bottom:.8rem">Which package is actually cheaper? Enter each
+      option's shelf price and how much you get.</p>
+    <div id="upRows"></div>
+    <button class="btn" id="upAdd">+ add option</button>
+    <p class="verdict" id="upVerdict"></p>
+  </section>
+
+  <!-- ============ number base ============ -->
+  <section class="panel" id="sec-base" hidden>
+    <h2>Number base</h2>
+    <div class="frow" style="grid-template-columns:2fr 1fr">
+      <div>
+        <label for="nbVal">Value</label>
+        <input id="nbVal" type="text" autocomplete="off" spellcheck="false" placeholder="255, 0xFF, 0b1010, 0o17">
+      </div>
+      <div>
+        <label for="nbBase">Base</label>
+        <select id="nbBase">
+          <option value="auto">auto (by prefix)</option>
+          <option value="dec">decimal</option>
+          <option value="hex">hex</option>
+          <option value="bin">binary</option>
+          <option value="oct">octal</option>
+        </select>
+      </div>
+    </div>
+    <div class="bgrid" id="nbOut">
+      <span class="k">decimal</span><span class="v" id="nbDec">—</span>
+      <span class="k">hex</span><span class="v" id="nbHex">—</span>
+      <span class="k">binary</span><span class="v" id="nbBin">—</span>
+      <span class="k">octal</span><span class="v" id="nbOct">—</span>
+    </div>
+    <div class="bsub">
+      <h2>Two's complement</h2>
+      <div class="bgrid">
+        <span class="k">8-bit</span><span class="v" id="tc8">—</span>
+        <span class="k">16-bit</span><span class="v" id="tc16">—</span>
+        <span class="k">32-bit</span><span class="v" id="tc32">—</span>
+      </div>
+    </div>
+    <div class="bsub">
+      <h2>Bitwise operation</h2>
+      <div class="frow">
+        <div>
+          <label for="nbOp">Operation</label>
+          <select id="nbOp">
+            <option value="">none</option>
+            <option value="and">AND</option>
+            <option value="or">OR</option>
+            <option value="xor">XOR</option>
+            <option value="shl">&lt;&lt; shift left</option>
+            <option value="shr">&gt;&gt; shift right</option>
+          </select>
+        </div>
+        <div>
+          <label for="nbB">Second operand</label>
+          <input id="nbB" type="text" autocomplete="off" spellcheck="false" placeholder="0b1010">
+        </div>
+      </div>
+      <div class="bgrid" id="opOut" hidden>
+        <span class="k">result dec</span><span class="v" id="opDec">—</span>
+        <span class="k">hex</span><span class="v" id="opHex">—</span>
+        <span class="k">binary</span><span class="v" id="opBin">—</span>
+        <span class="k">octal</span><span class="v" id="opOct">—</span>
+      </div>
+    </div>
+    <p class="note" id="nbErr"></p>
+  </section>
+
+  <!-- ============ duration ============ -->
+  <section class="panel" id="sec-dur" hidden>
+    <h2>Duration</h2>
+    <p class="hint" style="margin-top:0;margin-bottom:.8rem">Add or subtract <code>hh:mm</code> entries
+      (decimal hours like <code>1.5</code> work too). The right column is the running total.</p>
+    <div id="durRows"></div>
+    <button class="btn" id="durAdd">+ add entry</button>
+    <p class="dtotal" id="durTotal"></p>
+    <div class="raterow">
+      <div>
+        <label for="durRate">Rate ($/hour)</label>
+        <input id="durRate" type="text" inputmode="decimal" autocomplete="off" placeholder="22.50">
+      </div>
+      <p class="dtotal" id="durMoney" style="margin:0"></p>
+    </div>
+  </section>
+
+  <footer>No network, no keys — every calculation happens on your machine. The tape and active mode
+    are saved in your browser's local storage only.</footer>
+</div>
+
+<script src="../core/suite.js" data-suite-inline></script>
+<script>
+"use strict";
+Suite.theme.init();
+
+/* =====================================================================
+   Expression engine — hand-written tokenizer + recursive-descent parser.
+   No eval, no Function constructor, ever.
+
+   Grammar (precedence low → high):
+     expr    := add
+     add     := mul (("+"|"-") mul)*      right-hand percent literal means
+                                          percent OF the left operand:
+                                          64.50 + 18%  →  64.50 + 64.50·0.18
+     mul     := unary (("*"|"/"|"of") unary)*
+                                          120 * 15%  →  120·0.15
+                                          18% of 64.50 → 64.50·0.18
+     unary   := "-" unary | pow           so -3^2 = -(3^2) = -9 (math convention)
+     pow     := primary ("^" unary)?      right-associative: 2^3^2 = 512
+     primary := number ["%"] | "(" expr ")" ["%"] | "ans" ["%"]
+   Numbers accept commas, a leading $, and mixed fractions ("1 1/2").
+   A percent used on its own is its fraction (50% → 0.5).
+   ===================================================================== */
+const ERR = { div0: "÷ 0 — undefined", ans: "ans unavailable", range: "out of range", syntax: "unrecognized" };
+
+function tokenize(src) {
+  const toks = [];
+  const s = String(src);
+  const OPS = { "+": "+", "-": "-", "−": "-", "*": "*", "×": "*", "·": "*",
+                "/": "/", "÷": "/", "^": "^", "(": "(", ")": ")", "%": "%" };
+  let i = 0;
+  while (i < s.length) {
+    const c = s[i];
+    if (c === " " || c === "\t") { i++; continue; }
+    if (c === "$") { i++; continue; }
+    if ((c >= "0" && c <= "9") || c === ".") {
+      const rest = s.slice(i);
+      const mixed = rest.match(/^(\d+)[ \t]+(\d+)\/(\d+)(?![\d.])/); /* "1 1/2" */
+      if (mixed) {
+        const den = parseInt(mixed[3], 10);
+        if (den === 0) throw { code: "div0" };
+        toks.push({ t: "num", v: parseInt(mixed[1], 10) + parseInt(mixed[2], 10) / den });
+        i += mixed[0].length; continue;
+      }
+      const m = rest.match(/^(?:\d[\d,]*(?:\.\d*)?|\.\d+)/);
+      const v = parseFloat(m[0].replace(/,/g, ""));
+      if (!isFinite(v)) throw { code: "syntax" };
+      toks.push({ t: "num", v });
+      i += m[0].length; continue;
+    }
+    if (/[A-Za-z]/.test(c)) {
+      const m = s.slice(i).match(/^[A-Za-z]+/);
+      const w = m[0].toLowerCase();
+      if (w === "ans") toks.push({ t: "ans" });
+      else if (w === "of") toks.push({ t: "of" });
+      else throw { code: "syntax" };
+      i += m[0].length; continue;
+    }
+    if (OPS[c]) { toks.push({ t: OPS[c] }); i++; continue; }
+    throw { code: "syntax" };
+  }
+  return toks;
+}
+
+/* Values flow through the parser as {n, pct}; val() collapses a percent
+   to its fraction when it is used as a plain number. */
+function runExpr(src, ans) {
+  const toks = tokenize(src);
+  if (!toks.length) throw { code: "empty" };
+  let p = 0;
+  const peek = () => toks[p];
+  const eat = t => (toks[p] && toks[p].t === t) ? toks[p++] : null;
+  const val = x => x.pct ? x.n / 100 : x.n;
+
+  function primary() {
+    const tok = peek();
+    if (!tok) throw { code: "syntax" };
+    let node;
+    if (tok.t === "num") { p++; node = { n: tok.v, pct: false }; }
+    else if (tok.t === "ans") {
+      p++;
+      if (ans === null || ans === undefined) throw { code: "ans" };
+      node = { n: ans, pct: false };
+    } else if (tok.t === "(") {
+      p++;
+      const inner = add();
+      if (!eat(")")) throw { code: "syntax" };
+      node = { n: val(inner), pct: false };
+    } else throw { code: "syntax" };
+    if (eat("%")) node = { n: node.n, pct: true };
+    return node;
+  }
+  function pow() {
+    const base = primary();
+    if (eat("^")) {
+      const e = unary(); /* right-assoc, exponent may carry its own sign */
+      return { n: Math.pow(val(base), val(e)), pct: false };
+    }
+    return base;
+  }
+  function unary() {
+    if (eat("-")) { const u = unary(); return { n: -u.n, pct: u.pct }; }
+    return pow();
+  }
+  function mul() {
+    let left = unary();
+    for (;;) {
+      if (eat("*")) {
+        const r = unary();
+        if (left.pct !== r.pct) { const pc = left.pct ? left : r, num = left.pct ? r : left;
+          left = { n: num.n * pc.n / 100, pct: false }; }
+        else left = { n: val(left) * val(r), pct: false };
+      } else if (eat("/")) {
+        const r = unary();
+        const d = val(r);
+        if (d === 0) throw { code: "div0" };
+        left = { n: val(left) / d, pct: false };
+      } else if (eat("of")) {
+        if (!left.pct) throw { code: "syntax" }; /* only "N% of x" makes sense */
+        const r = unary();
+        left = { n: val(r) * left.n / 100, pct: false };
+      } else break;
+    }
+    return left;
+  }
+  function add() {
+    let left = mul();
+    for (;;) {
+      const t = peek() && (peek().t === "+" || peek().t === "-") ? toks[p++].t : null;
+      if (!t) break;
+      const r = mul();
+      if (r.pct && !left.pct) { /* percent-of-left-operand semantics */
+        const delta = left.n * r.n / 100;
+        left = { n: t === "+" ? left.n + delta : left.n - delta, pct: false };
+      } else {
+        const a = val(left), b = val(r);
+        left = { n: t === "+" ? a + b : a - b, pct: false };
+      }
+    }
+    return left;
+  }
+
+  const out = add();
+  if (p !== toks.length) throw { code: "syntax" };
+  const n = val(out);
+  if (!isFinite(n)) throw { code: "range" };
+  return n;
+}
+
+/* Display: round away float dust at the 9th decimal, never show NaN. */
+function fmtNum(n) {
+  const r = Math.abs(n) < 1e15 ? Math.round(n * 1e9) / 1e9 : n;
+  if (Object.is(r, -0)) return "0";
+  const s = String(r);
+  return (s.includes("e") || s.includes("E")) ? r.toExponential(6).replace(/\.?0+e/, "e") : s;
+}
+/* Money always travels as integer cents. */
+function money(cents) {
+  const sign = cents < 0 ? "-" : "";
+  return sign + "$" + (Math.abs(cents) / 100).toFixed(2);
+}
+function parseMoney(str) {
+  const s = String(str == null ? "" : str).trim().replace(/[$,\s]/g, "");
+  if (!s || !/^-?(?:\d+(?:\.\d*)?|\.\d+)$/.test(s)) return NaN;
+  return parseFloat(s);
+}
+
+/* ================= persistence (manifest keys only) ================= */
+const KEY_TAPE = "suite.calc.tape";
+const KEY_MODE = "suite.calc.mode";
+const saveNote = document.getElementById("saveNote");
+function noteSave(ok) {
+  saveNote.textContent = ok ? "" : "Couldn't save — browser storage is full. The tape still works, it just won't survive a reload.";
+}
+
+/* ========================== mode switching ========================== */
+const MODES = ["tape", "tip", "unit", "base", "dur"];
+const modeBtns = Array.from(document.querySelectorAll("#modes .mode"));
+function setMode(m, persist) {
+  if (!MODES.includes(m)) m = "tape";
+  modeBtns.forEach(b => {
+    const on = b.dataset.m === m;
+    b.classList.toggle("on", on);
+    b.setAttribute("aria-pressed", String(on));
+  });
+  MODES.forEach(id => { document.getElementById("sec-" + id).hidden = id !== m; });
+  if (persist) noteSave(Suite.store.set(KEY_MODE, m));
+}
+modeBtns.forEach(b => b.addEventListener("click", () => setMode(b.dataset.m, true)));
+
+/* ============================== tape ============================== */
+const tapeEl = Suite.liveRegion(document.getElementById("tape"));
+
+function relabelTape() {
+  Array.from(tapeEl.children).forEach((row, i) => {
+    row.querySelector(".texp").setAttribute("aria-label", "Expression line " + (i + 1));
+    row.querySelector(".tdel").setAttribute("aria-label", "Delete line " + (i + 1));
+  });
+}
+function saveTape() {
+  const lines = Array.from(tapeEl.querySelectorAll(".texp")).map(i => i.value);
+  noteSave(Suite.store.set(KEY_TAPE, lines));
+}
+function recomputeTape() {
+  let ans = null;
+  Array.from(tapeEl.children).forEach(row => {
+    const inp = row.querySelector(".texp"), res = row.querySelector(".tres");
+    const text = inp.value.trim();
+    res.classList.remove("err");
+    if (!text) { res.textContent = ""; return; } /* blank separator line: ans carries over */
+    try {
+      const n = runExpr(text, ans);
+      res.textContent = "= " + fmtNum(n);
+      res.title = res.textContent;
+      ans = n;
+    } catch (e) {
+      res.classList.add("err");
+      res.textContent = ERR[e && e.code] || ERR.syntax;
+      res.title = res.textContent;
+      ans = null; /* a broken line breaks the ans chain — honestly */
+    }
+  });
+}
+function addTapeRow(text, focus) {
+  const row = document.createElement("div");
+  row.className = "trow";
+  const inp = document.createElement("input");
+  inp.className = "texp"; inp.type = "text"; inp.autocomplete = "off";
+  inp.spellcheck = false; inp.value = text || "";
+  inp.setAttribute("inputmode", "text");
+  const res = document.createElement("span"); res.className = "tres";
+  const del = document.createElement("button"); del.className = "tdel"; del.textContent = "×";
+  row.append(inp, res, del);
+  tapeEl.append(row);
+  inp.addEventListener("input", () => { recomputeTape(); saveTape(); });
+  inp.addEventListener("keydown", e => {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    const rows = Array.from(tapeEl.children);
+    const idx = rows.indexOf(row);
+    if (idx === rows.length - 1) addTapeRow("", true);
+    else rows[idx + 1].querySelector(".texp").focus();
+    saveTape();
+  });
+  del.addEventListener("click", () => {
+    if (tapeEl.children.length === 1) inp.value = "";
+    else row.remove();
+    relabelTape(); recomputeTape(); saveTape();
+  });
+  relabelTape();
+  if (focus) inp.focus();
+}
+document.getElementById("tapeClear").addEventListener("click", () => {
+  tapeEl.innerHTML = "";
+  addTapeRow("", true);
+  recomputeTape(); saveTape();
+});
+(function initTape() {
+  const saved = Suite.store.get(KEY_TAPE, null);
+  if (Array.isArray(saved) && saved.length && saved.every(x => typeof x === "string")) {
+    saved.slice(0, 200).forEach(line => addTapeRow(line, false));
+  } else {
+    addTapeRow("", false);
+  }
+  recomputeTape();
+})();
+
+/* =========================== tip & split =========================== */
+const tipBill = document.getElementById("tipBill");
+const tipPct = document.getElementById("tipPct");
+const tipPeople = document.getElementById("tipPeople");
+const tipUnequal = document.getElementById("tipUnequal");
+const tipWeights = document.getElementById("tipWeights");
+const tipOut = Suite.liveRegion(document.getElementById("tipOut"));
+
+/* Split integer cents by weights: floor each exact share, then hand the
+   leftover cents (always < number of people) to the largest fractional
+   parts, earliest person on ties. Returns {shares, extra} in cents. */
+function splitCents(totalC, weights) {
+  const sum = weights.reduce((a, b) => a + b, 0);
+  const exact = weights.map(w => totalC * w / sum);
+  const shares = exact.map(Math.floor);
+  let rem = totalC - shares.reduce((a, b) => a + b, 0);
+  const order = exact.map((e, i) => ({ i, f: e - Math.floor(e) }))
+    .sort((a, b) => (b.f - a.f) || (a.i - b.i));
+  const extra = new Array(weights.length).fill(0);
+  for (let k = 0; k < rem && order.length; k++) {
+    const idx = order[k % order.length].i;
+    extra[idx]++; shares[idx]++;
+  }
+  return { shares, extra };
+}
+function outRow(parent, label, value, bold) {
+  const d = document.createElement("div");
+  const l = document.createElement("span"); l.textContent = label;
+  const v = document.createElement(bold ? "b" : "span"); v.textContent = value;
+  d.append(l, v); parent.append(d);
+}
+function renderTip() {
+  tipWeights.style.display = tipUnequal.checked ? "" : "none";
+  tipPeople.disabled = tipUnequal.checked;
+  tipOut.innerHTML = "";
+  const bill = parseMoney(tipBill.value);
+  if (!isFinite(bill) || bill < 0) {
+    const p = document.createElement("p"); p.className = "hint";
+    p.textContent = "Enter the bill amount to split.";
+    tipOut.append(p); return;
+  }
+  const pctRaw = parseMoney(tipPct.value);
+  const pct = isFinite(pctRaw) && pctRaw >= 0 ? pctRaw : 0;
+  const billC = Math.round(bill * 100);
+  const exactTipC = billC * pct / 100;
+  const tipC = Math.round(exactTipC);
+  const totalC = billC + tipC;
+
+  let weights, labelFor;
+  if (tipUnequal.checked) {
+    weights = tipWeights.value.split(/[,;\s]+/).map(parseFloat).filter(w => isFinite(w) && w > 0);
+    if (weights.length < 2) {
+      outRow(tipOut, "Tip (" + pct + "%)", money(tipC), true);
+      outRow(tipOut, "Total", money(totalC), true);
+      const p = document.createElement("p"); p.className = "hint";
+      p.textContent = "Enter at least two share weights, e.g. 2,1,1 — one number per person.";
+      tipOut.append(p); return;
+    }
+    labelFor = i => "Person " + (i + 1) + " (share " + weights[i] + ")";
+  } else {
+    let n = parseInt(tipPeople.value, 10);
+    if (!isFinite(n) || n < 1) n = 1;
+    weights = new Array(n).fill(1);
+    labelFor = i => "Person " + (i + 1);
+  }
+
+  let tipLine = money(tipC) + " (" + pct + "% of " + money(billC) + ")";
+  if (tipC !== exactTipC) { /* rounding shown, honestly */
+    tipLine += " — rounded to the cent from $" + (exactTipC / 100).toFixed(4);
+  }
+  outRow(tipOut, "Tip", tipLine, true);
+  outRow(tipOut, "Total", money(totalC), true);
+
+  const { shares, extra } = splitCents(totalC, weights);
+  shares.forEach((s, i) => outRow(tipOut, labelFor(i), money(s), false));
+
+  const absorbers = extra.map((e, i) => e > 0 ? i : -1).filter(i => i >= 0);
+  const recon = document.createElement("p");
+  recon.className = "recon";
+  if (!absorbers.length) {
+    recon.textContent = "Reconciliation: splits evenly at " + money(shares[0]) + " each — no odd cents.";
+  } else {
+    const remC = absorbers.reduce((a, i) => a + extra[i], 0);
+    const names = absorbers.map(i => "Person " + (i + 1));
+    const who = names.length === 1 ? names[0]
+      : names.slice(0, -1).join(", ") + " and " + names[names.length - 1];
+    recon.textContent = "Reconciliation: shares round down to the cent and leave " + money(remC) +
+      " unassigned — " + who + (names.length === 1 ? " absorbs " : " each absorb ") +
+      "the odd cent so the shares sum exactly to " + money(totalC) + ".";
+  }
+  tipOut.append(recon);
+}
+[tipBill, tipPct, tipPeople, tipWeights].forEach(el => el.addEventListener("input", renderTip));
+tipUnequal.addEventListener("change", renderTip);
+document.getElementById("qtips").addEventListener("click", e => {
+  const b = e.target.closest("button[data-v]");
+  if (!b) return;
+  tipPct.value = b.dataset.v;
+  renderTip();
+});
+renderTip();
+
+/* =========================== unit price =========================== */
+const upRows = document.getElementById("upRows");
+const upVerdict = Suite.liveRegion(document.getElementById("upVerdict"));
+function upLetter(i) { return String.fromCharCode(65 + i); }
+function relabelUp() {
+  Array.from(upRows.children).forEach((row, i) => {
+    const L = upLetter(i);
+    row.querySelector(".uplbl").textContent = L;
+    row.querySelector(".upp").setAttribute("aria-label", "Option " + L + " price");
+    row.querySelector(".upq").setAttribute("aria-label", "Option " + L + " quantity");
+    row.querySelector(".upu").setAttribute("aria-label", "Option " + L + " unit");
+    row.querySelector(".updel").setAttribute("aria-label", "Remove option " + L);
+  });
+}
+function perFmt(v) { /* unit prices to a tenth of a cent when small */
+  return "$" + (v >= 10 ? v.toFixed(2) : v.toFixed(3));
+}
+function renderUp() {
+  const entries = [];
+  Array.from(upRows.children).forEach((row, i) => {
+    const price = parseMoney(row.querySelector(".upp").value);
+    const qty = parseMoney(row.querySelector(".upq").value);
+    const unit = row.querySelector(".upu").value.trim() || "unit";
+    const res = row.querySelector(".upres");
+    row.classList.remove("best");
+    if (isFinite(price) && price >= 0 && isFinite(qty) && qty > 0) {
+      const per = price / qty;
+      res.textContent = perFmt(per) + " per " + unit;
+      entries.push({ i, per, unit, row });
+    } else {
+      res.textContent = "enter price and quantity";
+    }
+  });
+  if (entries.length < 2) {
+    upVerdict.textContent = entries.length === 1
+      ? "Add a second option to compare." : "Fill in at least two options to compare.";
+    return;
+  }
+  const sorted = entries.slice().sort((a, b) => a.per - b.per || a.i - b.i);
+  const best = sorted[0], next = sorted[1];
+  best.row.classList.add("best");
+  const units = new Set(entries.map(e => e.unit.toLowerCase()));
+  let text;
+  if (next.per === best.per) {
+    text = "Options " + upLetter(best.i) + " and " + upLetter(next.i) + " tie at " +
+      perFmt(best.per) + " per " + best.unit + " — buy whichever you prefer.";
+  } else {
+    const savings = ((next.per - best.per) / next.per * 100).toFixed(1);
+    text = "Option " + upLetter(best.i) + " is the better deal at " + perFmt(best.per) +
+      " per " + best.unit + " — " + savings + "% cheaper than Option " + upLetter(next.i) + ".";
+  }
+  if (units.size > 1) {
+    text += " Heads up: the units differ (" + Array.from(units).join(" vs ") +
+      "), so compare like units before trusting this.";
+  }
+  upVerdict.textContent = text;
+}
+function addUpRow(price, qty, unit) {
+  const row = document.createElement("div"); row.className = "uprow";
+  const head = document.createElement("div"); head.className = "uphead";
+  const lbl = document.createElement("span"); lbl.className = "uplbl";
+  const mk = (cls, labelText, placeholder, mode) => {
+    const wrap = document.createElement("div"); wrap.className = "fld";
+    const lab = document.createElement("label"); lab.textContent = labelText;
+    const inp = document.createElement("input");
+    inp.className = cls; inp.type = "text"; inp.autocomplete = "off";
+    inp.placeholder = placeholder;
+    if (mode) inp.setAttribute("inputmode", mode);
+    wrap.append(lab, inp); return { wrap, inp };
+  };
+  const p = mk("upp", "Price ($)", "3.49", "decimal");
+  const q = mk("upq", "Quantity", "12", "decimal");
+  const u = mk("upu", "Unit", "oz", null);
+  p.inp.value = price || ""; q.inp.value = qty || ""; u.inp.value = unit || "";
+  const del = document.createElement("button"); del.className = "tdel updel"; del.textContent = "×";
+  head.append(lbl, p.wrap, q.wrap, u.wrap, del);
+  const res = document.createElement("p"); res.className = "upres"; res.textContent = "enter price and quantity";
+  row.append(head, res);
+  upRows.append(row);
+  [p.inp, q.inp, u.inp].forEach(inp => inp.addEventListener("input", renderUp));
+  del.addEventListener("click", () => {
+    if (upRows.children.length > 2) { row.remove(); relabelUp(); renderUp(); }
+  });
+  relabelUp();
+}
+document.getElementById("upAdd").addEventListener("click", () => { addUpRow(); renderUp(); });
+addUpRow(); addUpRow(); renderUp();
+
+/* =========================== number base ===========================
+   64-bit BigInt math. Two's-complement views: a value fits width w when
+   -(2^(w-1)) <= v <= 2^w - 1; the stored bits are BigInt.asUintN(w, v). */
+const nbVal = document.getElementById("nbVal");
+const nbBase = document.getElementById("nbBase");
+const nbOp = document.getElementById("nbOp");
+const nbB = document.getElementById("nbB");
+const nbErr = Suite.liveRegion(document.getElementById("nbErr"));
+const nbOutEls = {
+  dec: document.getElementById("nbDec"), hex: document.getElementById("nbHex"),
+  bin: document.getElementById("nbBin"), oct: document.getElementById("nbOct")
+};
+const tcEls = { 8: document.getElementById("tc8"), 16: document.getElementById("tc16"), 32: document.getElementById("tc32") };
+const opOut = document.getElementById("opOut");
+const opEls = {
+  dec: document.getElementById("opDec"), hex: document.getElementById("opHex"),
+  bin: document.getElementById("opBin"), oct: document.getElementById("opOct")
+};
+Suite.liveRegion(document.getElementById("nbOut"));
+Suite.liveRegion(opOut);
+
+function parseBaseVal(str, sel) {
+  let s = String(str == null ? "" : str).trim().replace(/[_\s]/g, "");
+  if (!s) return { empty: true };
+  let neg = false;
+  if (s[0] === "+" || s[0] === "-") { neg = s[0] === "-"; s = s.slice(1); }
+  let base = sel;
+  const low = s.toLowerCase();
+  if (sel === "auto") {
+    if (low.startsWith("0x")) { base = "hex"; s = s.slice(2); }
+    else if (low.startsWith("0b")) { base = "bin"; s = s.slice(2); }
+    else if (low.startsWith("0o")) { base = "oct"; s = s.slice(2); }
+    else base = "dec";
+  } else if ({ hex: "0x", bin: "0b", oct: "0o" }[sel] &&
+             low.startsWith({ hex: "0x", bin: "0b", oct: "0o" }[sel])) {
+    s = s.slice(2);
+  }
+  const re = { dec: /^\d+$/, hex: /^[0-9a-fA-F]+$/, bin: /^[01]+$/, oct: /^[0-7]+$/ }[base];
+  if (!s || !re.test(s)) return { err: "“" + str.trim() + "” is not a valid " + { dec: "decimal", hex: "hex", bin: "binary", oct: "octal" }[base] + " number." };
+  let v = BigInt(({ dec: "", hex: "0x", bin: "0b", oct: "0o" }[base]) + s);
+  if (neg) v = -v;
+  if (v > 2n ** 64n - 1n || v < -(2n ** 63n)) return { err: "Out of the supported 64-bit range." };
+  return { v };
+}
+function baseStrings(v) {
+  const neg = v < 0n, a = neg ? -v : v, sg = neg ? "-" : "";
+  return {
+    dec: sg + a.toString(10),
+    hex: sg + "0x" + a.toString(16).toUpperCase(),
+    bin: sg + "0b" + a.toString(2),
+    oct: sg + "0o" + a.toString(8)
+  };
+}
+function twosView(v, w) {
+  const min = -(2n ** BigInt(w - 1)), max = 2n ** BigInt(w) - 1n;
+  if (v < min || v > max) return "out of range for " + w + "-bit";
+  const u = BigInt.asUintN(w, v);
+  return "0x" + u.toString(16).toUpperCase().padStart(w / 4, "0") +
+    " · 0b" + u.toString(2).padStart(w, "0");
+}
+function renderBase() {
+  nbErr.textContent = "";
+  const a = parseBaseVal(nbVal.value, nbBase.value);
+  const dashAll = () => {
+    Object.values(nbOutEls).forEach(el => { el.textContent = "—"; });
+    Object.values(tcEls).forEach(el => { el.textContent = "—"; });
+  };
+  if (a.empty) { dashAll(); opOut.hidden = true; return; }
+  if (a.err) { dashAll(); opOut.hidden = true; nbErr.textContent = a.err; return; }
+  const strs = baseStrings(a.v);
+  Object.keys(nbOutEls).forEach(k => { nbOutEls[k].textContent = strs[k]; });
+  [8, 16, 32].forEach(w => { tcEls[w].textContent = twosView(a.v, w); });
+
+  const op = nbOp.value;
+  if (!op) { opOut.hidden = true; return; }
+  const b = parseBaseVal(nbB.value, nbBase.value);
+  if (b.empty) { opOut.hidden = true; return; }
+  if (b.err) { opOut.hidden = true; nbErr.textContent = "Second operand: " + b.err; return; }
+  let r;
+  if (op === "and") r = a.v & b.v;
+  else if (op === "or") r = a.v | b.v;
+  else if (op === "xor") r = a.v ^ b.v;
+  else { /* shifts */
+    if (b.v < 0n || b.v > 64n) { opOut.hidden = true; nbErr.textContent = "Shift count must be between 0 and 64."; return; }
+    r = op === "shl" ? a.v << b.v : a.v >> b.v;
+  }
+  if (r > 2n ** 64n - 1n || r < -(2n ** 63n)) { opOut.hidden = true; nbErr.textContent = "Result is out of the supported 64-bit range."; return; }
+  const rs = baseStrings(r);
+  Object.keys(opEls).forEach(k => { opEls[k].textContent = rs[k]; });
+  opOut.hidden = false;
+}
+[nbVal, nbB].forEach(el => el.addEventListener("input", renderBase));
+[nbBase, nbOp].forEach(el => el.addEventListener("change", renderBase));
+renderBase();
+
+/* ============================ duration ============================ */
+const durRows = document.getElementById("durRows");
+const durTotal = Suite.liveRegion(document.getElementById("durTotal"));
+const durMoney = Suite.liveRegion(document.getElementById("durMoney"));
+const durRate = document.getElementById("durRate");
+
+function parseHM(s) { /* "1:30" → 90 min; "1.5" → 90 min */
+  const t = String(s || "").trim();
+  if (!t) return null;
+  let m = t.match(/^(\d+):([0-5]?\d)$/);
+  if (m) return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+  m = t.match(/^(\d+(?:\.\d+)?)$/);
+  if (m) return Math.round(parseFloat(m[1]) * 60);
+  return NaN; /* non-empty but unreadable */
+}
+function fmtHM(min) {
+  const sg = min < 0 ? "-" : "", a = Math.abs(min);
+  return sg + Math.floor(a / 60) + ":" + String(a % 60).padStart(2, "0");
+}
+function relabelDur() {
+  Array.from(durRows.children).forEach((row, i) => {
+    row.querySelector("select").setAttribute("aria-label", "Entry " + (i + 1) + " add or subtract");
+    row.querySelector("input").setAttribute("aria-label", "Entry " + (i + 1) + " time (hh:mm)");
+    row.querySelector(".tdel").setAttribute("aria-label", "Remove entry " + (i + 1));
+  });
+}
+function renderDur() {
+  let cum = 0, skipped = 0;
+  Array.from(durRows.children).forEach(row => {
+    const sign = row.querySelector("select").value === "-" ? -1 : 1;
+    const min = parseHM(row.querySelector("input").value);
+    const run = row.querySelector(".drun");
+    if (min === null) { run.textContent = ""; return; }
+    if (isNaN(min)) { run.textContent = "?"; skipped++; return; }
+    cum += sign * min;
+    run.textContent = fmtHM(cum);
+  });
+  const h = Math.floor(Math.abs(cum) / 60), mm = Math.abs(cum) % 60;
+  durTotal.innerHTML = "";
+  const tl = document.createElement("span"); tl.textContent = "Total: ";
+  const tv = document.createElement("b"); tv.textContent = fmtHM(cum) + " (" + (cum < 0 ? "-" : "") + h + " h " + mm + " m)";
+  durTotal.append(tl, tv);
+  if (skipped) {
+    const sk = document.createElement("span"); sk.className = "hint";
+    sk.textContent = " — " + skipped + " unreadable " + (skipped === 1 ? "entry" : "entries") + " not counted (use hh:mm)";
+    durTotal.append(sk);
+  }
+  const rate = parseMoney(durRate.value);
+  if (isFinite(rate) && rate >= 0) {
+    /* integer-cent rounding: minutes × rate-in-dollars → cents, rounded once */
+    const cents = Math.round(cum * rate * 100 / 60);
+    durMoney.innerHTML = "";
+    const a = document.createElement("span"); a.textContent = "At " + money(Math.round(rate * 100)) + "/hour: ";
+    const b = document.createElement("b"); b.textContent = money(cents);
+    durMoney.append(a, b);
+  } else {
+    durMoney.textContent = durRate.value.trim() ? "Enter the rate as a number, e.g. 22.50" : "";
+  }
+}
+function addDurRow(sign, time, focus) {
+  const row = document.createElement("div"); row.className = "drow";
+  const sel = document.createElement("select");
+  ["+", "-"].forEach(s => { const o = document.createElement("option"); o.value = s; o.textContent = s === "+" ? "+" : "−"; sel.append(o); });
+  sel.value = sign || "+";
+  const inp = document.createElement("input");
+  inp.type = "text"; inp.autocomplete = "off"; inp.placeholder = "1:30";
+  inp.setAttribute("inputmode", "numeric"); inp.value = time || "";
+  const run = document.createElement("span"); run.className = "drun";
+  const del = document.createElement("button"); del.className = "tdel"; del.textContent = "×";
+  row.append(sel, inp, run, del);
+  durRows.append(row);
+  sel.addEventListener("change", renderDur);
+  inp.addEventListener("input", renderDur);
+  inp.addEventListener("keydown", e => {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    const rows = Array.from(durRows.children);
+    if (rows.indexOf(row) === rows.length - 1) addDurRow("+", "", true);
+    else rows[rows.indexOf(row) + 1].querySelector("input").focus();
+  });
+  del.addEventListener("click", () => {
+    if (durRows.children.length > 1) { row.remove(); relabelDur(); renderDur(); }
+    else { inp.value = ""; renderDur(); }
+  });
+  relabelDur();
+  if (focus) inp.focus();
+}
+document.getElementById("durAdd").addEventListener("click", () => { addDurRow("+", "", true); renderDur(); });
+durRate.addEventListener("input", renderDur);
+addDurRow(); addDurRow();
+renderDur();
+
+/* restore last mode (also hides the non-default sections on first paint) */
+setMode(Suite.store.get(KEY_MODE, "tape"), false);
+</script>
+</body>
+</html>

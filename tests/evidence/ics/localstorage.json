@@ -1,0 +1,8 @@
+{
+  "note": "new-in-v2 tool — no v1 original; parity N/A",
+  "v2": {
+    "suite.ics.draft": "{\"title\":\"Team sync\",\"loc\":\"\",\"desc\":\"\",\"url\":\"\",\"allDay\":false,\"startDate\":\"2027-03-01\",\"startTime\":\"09:00\",\"endDate\":\"2027-03-01\",\"endTime\":\"10:00\",…(238 chars)",
+    "suite.theme": "dark",
+    "suite.hub.recents": "[{\"id\":\"ics\",\"t\":1785437809144}]"
+  }
+}

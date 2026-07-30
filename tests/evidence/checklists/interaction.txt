@@ -1,0 +1,25 @@
+empty state: 3 starter templates visible, empty hint=true, list view hidden=true
+created list, picker options: [Morning routine], list view visible=true
+added 3 items: [Stretch, Make coffee, Journal], progress="0 of 3 · 0%" bar=0/3
+checked 2 of 3 (one via label click): progress="2 of 3 · 67%" bar=2/3, checked=2
+unchecked one: progress="1 of 3 · 33%"
+a11y: checkbox/label for-id association=true, icon aria-labels=[Move item up | Move item down | Edit item | Delete item], templates aria-pressed=false
+edited item 3: now "Journal for 5 minutes"
+reorder: moved row 1 down -> [Make coffee, Stretch, Journal for 5 minutes]; edge buttons disabled: first ↑=true, last ↓=true
+reorder: moved last row up -> [Make coffee, Journal for 5 minutes, Stretch]
+all checked before reset: progress="3 of 3 · 100%"
+reset soft-confirm shown: "Uncheck all 3 checked item(s) in "Morning routine"? Items are kept."
+after cancel: progress unchanged "3 of 3 · 100%", confirm hidden=true
+after reset-checks confirm: progress="0 of 3 · 0%", items kept=3 [Make coffee, Journal for 5 minutes, Stretch], status="Checks reset — "Morning routine" is ready to run again."
+rename: form prefilled "Morning routine" -> picker now [AM routine]
+template: picker=[AM routine, Travel packing], active list has 8 items, first="Passport / ID", progress="0 of 8 · 0%"
+storage keys: [suite.checklists.v1, suite.hub.recents, suite.theme]
+after reload: lists=[AM routine, Travel packing], active="Travel packing", items=8, progress="1 of 8 · 13%"
+export: filename="checklists.json", valid JSON with 2 lists [AM routine:3 items, Travel packing:8 items], active id present=true
+delete soft-confirm: "Delete "AM routine" and its 3 item(s)? This can't be undone."
+after delete: picker=[Travel packing]
+import round-trip: status="Imported 2 list(s).", picker=[AM routine, Travel packing], store="AM routine:3:0|Travel packing:8:1"
+malformed import: status="Could not read that file — expected a checklists JSON export.", lists still=2
+mobile 390px: doc no-overflow=true, body no-overflow=true (mobile.png)
+theme toggle: light -> dark, aria-pressed=true
+console: clean (no errors)

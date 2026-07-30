@@ -1,0 +1,18 @@
+download: href=blob:null/210b276e-3bb8-4414-b… type=text/calendar filename=team-sync.ics
+CRLF + folding: 24 physical lines, all <=75 octets, 3 continuation line(s) start with a space
+VEVENT verified: DTSTART/DTEND floating local, escaped SUMMARY/LOCATION/DESCRIPTION, RRULE=FREQ=WEEKLY;BYDAY=MO,WE;COUNT=10, TRIGGER:-PT15M, UID:0826b1f6-aa8e-48ef-9da8-02684ff48123@local-suite, DTSTAMP:20260730T185647Z
+human summary (count variant): Weekly on Mon, Wed, 10 times, starting Mar 1, 2027, 9:00 AM · reminder 15 min before
+UNTIL variant: RRULE:FREQ=WEEKLY;BYDAY=MO,WE;UNTIL=20270630T235959 · summary: Weekly on Mon, Wed until Jun 30, 2027, starting Mar 1, 2027, 9:00 AM · reminder 15 min before
+all-day Mar 1–3: DTSTART;VALUE=DATE:20270301, DTEND;VALUE=DATE:20270304 (exclusive), UNTIL=20270630 (DATE)
+single-day all-day: DTEND;VALUE=DATE:20270302
+validation end<start: err="The event ends before it starts.", download href removed, aria-disabled=true, preview cleared
+URL scheme guard: javascript: and data: rejected; download disabled and preview cleared
+zero-duration event: DTEND omitted (RFC 5545 §3.6.1)
+draft restored after reload: {"title":"Team sync","freq":"weekly","mo":true,"we":true,"tu":false,"ends":"until","until":"2027-06-30","endDate":"2027-03-05"}
+preview regenerated from restored draft on load
+a11y: all 21 form controls have labels; theme button aria-pressed=false
+mobile 390px: scrollWidth 390 <= clientWidth 390, screenshot mobile.png
+clear draft: form reset to defaults, suite.ics.draft removed
+final state: weekly Mon/Wed event re-filled · summary: Weekly on Mon, Wed, 10 times, starting Mar 1, 2027, 9:00 AM · reminder 15 min before
+theme toggle: light -> dark, aria-pressed=true
+console: clean (no errors)

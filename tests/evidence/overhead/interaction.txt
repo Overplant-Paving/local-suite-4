@@ -1,0 +1,30 @@
+no-location state: designed setup card — heading "Set your location", ZIP input + geolocation button present
+ZIP path: stubbed zippopotam 10001 -> suite.location={"lat":40.7,"lon":-74,"label":"New York City, NY"}; locbar shows "New York City, NY"
+first query URL: https://api.airplanes.live/v2/point/40.7/-74/25 (radius default 25 nm)
+sort order by distance: a00001 < a00002 < a00003 < ae0004 (ground 1.4 mi first, C-17 8.7 mi last)
+ground rendering: "N42GD C172 · CESSNA 172 Skyhawk 1.4 mi Non ground · 6 mph"
+airborne rendering: "DAL123N301DN A321 · AIRBUS A321 · DELTA AIR LINES INC 5.2 mi E4,300 ft · 230 mph"
+exact-math check: aircraft at +0.1° lat -> "UAL456N789UA B738 · BOEING 737-800 · UNITED AIRLINES INC 6.9 mi N12,000 ft · 369 mph" (haversine 6.9093 mi, bearing 0° = N)
+badges: "RCH88110-0213MILITARYEMERGENCY C17 · BOEING C-17A Globemaster III · UNITED STATES AIR FORCE 8.7 mi SW9,000 ft · 288 mph" (dbFlags&1 -> MILITARY, squawk 7700/emergency general -> EMERGENCY)
+count line: "4 aircraft within 25 nm (~29 mi) · 1 more reported without a position" (notes the 1 position-less aircraft)
+plot: 4 markers [a00001, a00002, a00003, ae0004], ring labels [7, 14, 22, 29 mi], callsign labels [N42GD, DAL123, UAL456, RCH881], center marker present
+row click (UAL456): row aria-pressed=true, plot marker .sel=true
+marker click (DAL123): row aria-pressed=true, previous deselected=true, marker title="DAL123 · 5.2 mi E · 4,300 ft"
+radius 25 -> 50 nm: re-query URL https://api.airplanes.live/v2/point/40.7/-74/50; outer ring relabeled "58 mi"; cache key suite.cache.overhead.40.70x-74.00.50 written
+empty state: "No ADS-B aircraft reported within 50 nm right now. Community receiver coverage varies by area and altitude — try a wider radius, or refresh in a moment." — rings kept, 0 markers
+manual Refresh restored the 4-aircraft board; freshness stamp: "Updated 1:20:41 PM"
+rate note visible: "Airplanes.live asks for ≤1 request/second — this tool makes one per refresh."
+a11y: labeled selects ("Search radius", "Auto-refresh"), stamp/count aria-live=polite, rows expose aria-pressed, theme button aria-label="Toggle light/dark theme"
+auto-refresh 30s: +31 s fake clock -> exactly 1 request (total 5)
+document.hidden mocked true -> note "Auto-refresh paused — tab hidden"; +120 s fake clock -> 0 further requests (paused)
+tab visible again -> 1 catch-up request, pause note cleared ("")
+request error during auto tick -> select reset to Off, note "Auto-refresh stopped — network problem; showing cached data", stamp "Offline — cached from 1:23:12 PM · live refresh failed" (cached board still shown: 4 rows)
+storage keys (auto/radius persist nothing of their own): suite.cache.overhead.40.70x-74.00.25, suite.cache.overhead.40.70x-74.00.50, suite.hub.recents, suite.location, suite.theme
+offline cold boot: 4 aircraft rendered from back-dated cache; stamp "Offline — cached from 1:13:43 PM · live refresh failed"; controls reset to defaults {"radius":"25","auto":"0"} — nothing persisted
+HTTP 500 (no cache): designed error card — "Couldn't reach Airplanes.live HTTP 500 — and nothing is cached for this spot and radius yet. Check your connection, then refresh."
+restored view served from re-freshened cache without a network request; stamp "Updated 1:23:43 PM"
+mobile 390x844: scrollWidth 390 <= clientWidth 390 — no horizontal overflow
+theme toggle: light -> dark, aria-pressed=true
+CONSOLE ISSUES:
+  console.error: Failed to load resource: net::ERR_FAILED
+  console.error: Failed to load resource: net::ERR_FAILED

@@ -1,0 +1,15 @@
+{
+  "note": "new-in-v2 tool — no v1 original; parity N/A",
+  "v2": {
+    "suite.cache.worldbank.USA.NY.GDP.MKTP.CD": "{\"t\":1785435678632,\"v\":[{\"page\":1,\"pages\":1,\"per_page\":50,\"total\":10,\"sourceid\":\"2\",\"lastupdated\":\"2026-07-13\"},[{\"indicator\":{\"id\":\"NY.GDP.MKTP.CD\",\"…(2095 chars)",
+    "suite.cache.worldbank.USA.NY.GDP.PCAP.CD": "{\"t\":1785435678632,\"v\":[{\"page\":1,\"pages\":1,\"per_page\":50,\"total\":5,\"sourceid\":\"2\",\"lastupdated\":\"2026-07-13\"},[{\"indicator\":{\"id\":\"NY.GDP.PCAP.CD\",\"v…(1059 chars)",
+    "suite.cache.worldbank.USA.SP.URB.TOTL.IN.ZS": "{\"t\":1785435678632,\"v\":[{\"page\":1,\"pages\":1,\"per_page\":50,\"total\":5,\"sourceid\":\"2\",\"lastupdated\":\"2026-07-13\"},[{\"indicator\":{\"id\":\"SP.URB.TOTL.IN.ZS\"…(1084 chars)",
+    "suite.hub.recents": "[{\"id\":\"worldbank\",\"t\":1785435678644}]",
+    "suite.cache.worldbank.USA.SP.DYN.LE00.IN": "{\"t\":1785435678632,\"v\":[{\"page\":1,\"pages\":1,\"per_page\":50,\"total\":30,\"sourceid\":\"2\",\"lastupdated\":\"2026-07-13\"},[{\"indicator\":{\"id\":\"SP.DYN.LE00.IN\",\"…(5749 chars)",
+    "suite.cache.worldbank.USA.SP.POP.TOTL": "{\"t\":1785435678632,\"v\":[{\"page\":1,\"pages\":1,\"per_page\":50,\"total\":11,\"sourceid\":\"2\",\"lastupdated\":\"2026-07-13\"},[{\"indicator\":{\"id\":\"SP.POP.TOTL\",\"val…(2167 chars)",
+    "suite.cache.worldbank.countries": "{\"t\":1785435678632,\"v\":[{\"page\":1,\"pages\":1,\"per_page\":\"400\",\"total\":5},[{\"id\":\"AFE\",\"iso2Code\":\"ZH\",\"name\":\"Africa Eastern and Southern\",\"region\":{\"i…(652 chars)",
+    "suite.cache.worldbank.USA.FP.CPI.TOTL.ZG": "{\"t\":1785435678632,\"v\":[{\"page\":1,\"pages\":1,\"per_page\":50,\"total\":5,\"sourceid\":\"2\",\"lastupdated\":\"2026-07-13\"},[{\"indicator\":{\"id\":\"FP.CPI.TOTL.ZG\",\"v…(1047 chars)",
+    "suite.cache.worldbank.USA.IT.NET.USER.ZS": "{\"t\":1785435678632,\"v\":[{\"page\":1,\"pages\":1,\"per_page\":50,\"total\":4,\"sourceid\":\"2\",\"lastupdated\":\"2026-07-13\"},[{\"indicator\":{\"id\":\"IT.NET.USER.ZS\",\"v…(866 chars)",
+    "suite.theme": "dark"
+  }
+}

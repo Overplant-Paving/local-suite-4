@@ -1,0 +1,16 @@
+{
+  "note": "new-in-v2 tool — no v1 original; parity N/A",
+  "v2": {
+    "suite.cache.nasaimages.q.nothingfound.1": "{\"t\":1785264999893,\"v\":{\"collection\":{\"version\":\"1.1\",\"href\":\"http://images-api.nasa.gov/search\",\"items\":[],\"metadata\":{\"total_hits\":0},\"links\":[]}}}",
+    "suite.cache.nasaimages.q.artemis.1": "{\"t\":1785264999893,\"v\":{\"collection\":{\"version\":\"1.1\",\"href\":\"http://images-api.nasa.gov/search\",\"items\":[{\"href\":\"https://images-assets.nasa.gov/imag…(1666 chars)",
+    "suite.hub.recents": "[{\"id\":\"nasaimages\",\"t\":1785437799664}]",
+    "suite.cache.nasaimages.asset.GPN-2000-001137": "{\"t\":1785264999893,\"v\":{\"collection\":{\"version\":\"1.1\",\"href\":\"http://images-api.nasa.gov/asset/GPN-2000-001137\",\"items\":[{\"href\":\"http://images-assets…(289 chars)",
+    "suite.cache.nasaimages.asset.http-thumb-record": "{\"t\":1785264999894,\"v\":{\"collection\":{\"version\":\"1.1\",\"href\":\"http://images-api.nasa.gov/asset/http-thumb-record\",\"items\":[{\"href\":\"http://images-asse…(220 chars)",
+    "suite.cache.nasaimages.q.apollo-11.2": "{\"t\":1785264999894,\"v\":{\"collection\":{\"version\":\"1.1\",\"href\":\"http://images-api.nasa.gov/search\",\"items\":[{\"href\":\"https://images-assets.nasa.gov/imag…(619 chars)",
+    "suite.cache.nasaimages.q.newest-fast.1": "{\"t\":1785264999894,\"v\":{\"collection\":{\"version\":\"1.1\",\"href\":\"http://images-api.nasa.gov/search\",\"items\":[{\"href\":\"https://images-assets.nasa.gov/imag…(568 chars)",
+    "suite.cache.nasaimages.q.older-delayed.1": "{\"t\":1785264999894,\"v\":{\"collection\":{\"version\":\"1.1\",\"href\":\"http://images-api.nasa.gov/search\",\"items\":[{\"href\":\"https://images-assets.nasa.gov/imag…(580 chars)",
+    "suite.cache.nasaimages.asset.as11-40-5874": "{\"t\":1785264999894,\"v\":{\"collection\":{\"version\":\"1.1\",\"href\":\"http://images-api.nasa.gov/asset/as11-40-5874\",\"items\":[{\"href\":\"http://images-assets.na…(527 chars)",
+    "suite.theme": "dark",
+    "suite.cache.nasaimages.q.apollo-11.1": "{\"t\":1785264999894,\"v\":{\"collection\":{\"version\":\"1.1\",\"href\":\"http://images-api.nasa.gov/search\",\"items\":[{\"href\":\"https://images-assets.nasa.gov/imag…(1666 chars)"
+  }
+}

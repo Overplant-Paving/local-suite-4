@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calendar Event &amp; ICS Maker · Local Suite</title>
+<link rel="stylesheet" href="../core/suite.css" data-suite-inline>
+<style>
+  body { padding: 1.4rem 1.25rem 4rem; }
+  .wrap { max-width: 1000px; margin: 0 auto; }
+  .topbar { display: flex; align-items: center; gap: 1rem; }
+  .topbar .theme-btn, .topbar .fav-btn { float: none; }
+  .topbar .theme-btn { margin-left: auto; }
+  header { margin: 1rem 0 1.2rem; }
+  h1 { font-size: 1.8rem; letter-spacing: -.02em; }
+  .tag { color: var(--muted); margin-top: .35rem; max-width: 48rem; }
+  h2 { font-size: 1.05rem; margin: 0 0 .2rem; }
+  h2.later { margin-top: .9rem; }
+
+  .grid { display: grid; grid-template-columns: minmax(0,1fr); gap: 1rem; align-items: start; }
+  @media (min-width: 860px) { .grid { grid-template-columns: minmax(0,1fr) minmax(0,1fr); } }
+  .side { display: grid; gap: 1rem; min-width: 0; }
+  .grid > .card, .side > .card { min-width: 0; } /* let the preview scroll instead of widening the page */
+
+  /* core .card is a flex column with a small gap — keep that, tighten field spacing */
+  .card { padding: 1.1rem 1.15rem 1rem; gap: .15rem; }
+  label { display: block; font-size: .8rem; color: var(--muted); margin: .55rem 0 .25rem; }
+  input, select, textarea {
+    width: 100%; padding: .5rem .65rem; font-size: .93rem; color: var(--ink);
+    border: 1px solid var(--line); border-radius: 10px; background: var(--bg);
+    outline: none; font-family: inherit;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+  textarea { resize: vertical; min-height: 3.4rem; }
+  .inline { display: flex; gap: .6rem; }
+  .inline > div { flex: 1; min-width: 0; }
+  .check { display: flex; align-items: center; gap: .5rem; margin-top: .7rem; }
+  .check input { width: auto; margin: 0; accent-color: var(--accent); }
+  .check label { display: inline; margin: 0; color: var(--ink); font-size: .9rem; }
+  .hint { color: var(--muted); font-size: .8rem; margin-top: .35rem; }
+
+  fieldset { border: 1px solid var(--line); border-radius: 10px; padding: .5rem .7rem .6rem; margin-top: .6rem; }
+  legend { font-size: .8rem; color: var(--muted); padding: 0 .3rem; }
+  .days { display: flex; flex-wrap: wrap; gap: .35rem .9rem; }
+  .days .check { margin-top: 0; }
+
+  .btnrow { display: flex; gap: .6rem; flex-wrap: wrap; margin-top: .7rem; }
+  .btn {
+    border: 1px solid var(--accent); background: var(--accent); color: var(--bg);
+    border-radius: 10px; padding: .55rem .95rem; cursor: pointer; font-size: .9rem;
+    text-decoration: none; display: inline-block; text-align: center;
+  }
+  .btn.ghost { background: var(--card); color: var(--accent); }
+  .btn:hover { filter: brightness(1.05); }
+  a.btn.disabled { opacity: .45; cursor: not-allowed; filter: none; }
+
+  #summary { font-size: .95rem; overflow-wrap: anywhere; }
+  .err {
+    border: 1px solid #b0524a; background: rgba(176, 82, 74, .09);
+    border-radius: 10px; padding: .55rem .7rem; font-size: .88rem; margin-top: .5rem;
+  }
+  pre#preview {
+    font-family: ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
+    font-size: .76rem; line-height: 1.5; background: var(--chip);
+    border: 1px solid var(--line); border-radius: 10px; padding: .7rem .8rem;
+    overflow: auto; max-height: 26rem; white-space: pre; margin-top: .2rem;
+  }
+  pre#preview:empty::after { content: "— fix the form to generate the file —"; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="index.html">← suite</a>
+    <button class="theme-btn" id="themeBtn" title="Toggle light/dark">◐ theme</button>
+  </div>
+  <header>
+    <h1>Calendar Event &amp; ICS Maker</h1>
+    <p class="tag">Build a one-off or recurring event and download a standards-correct .ics file
+      that Apple Calendar, Google Calendar, Outlook, and everything else can import.</p>
+  </header>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Event</h2>
+      <label for="fTitle">Title (required)</label>
+      <input id="fTitle" maxlength="300" placeholder="e.g. Team sync" autocomplete="off">
+      <label for="fLoc">Location</label>
+      <input id="fLoc" maxlength="300" placeholder="e.g. Room 4; West wing" autocomplete="off">
+      <label for="fDesc">Description</label>
+      <textarea id="fDesc" rows="3" placeholder="Notes, agenda, dial-in…"></textarea>
+      <label for="fUrl">URL</label>
+      <input id="fUrl" type="url" placeholder="https://…" autocomplete="off">
+
+      <div class="check">
+        <input type="checkbox" id="fAllDay">
+        <label for="fAllDay">All-day event</label>
+      </div>
+
+      <div class="inline">
+        <div><label for="fStartDate">Start date</label><input type="date" id="fStartDate"></div>
+        <div id="startTimeCol"><label for="fStartTime">Start time</label><input type="time" id="fStartTime"></div>
+      </div>
+      <div class="inline">
+        <div><label for="fEndDate">End date</label><input type="date" id="fEndDate"></div>
+        <div id="endTimeCol"><label for="fEndTime">End time</label><input type="time" id="fEndTime"></div>
+      </div>
+      <p class="hint" id="allDayHint" hidden>For all-day events the end date is the <b>last day</b> of
+        the event; the file uses the calendar standard's exclusive end (the day after) for you.</p>
+
+      <label for="fAlarm">Reminder</label>
+      <select id="fAlarm">
+        <option value="">None</option>
+        <option value="5">5 minutes before</option>
+        <option value="15">15 minutes before</option>
+        <option value="30">30 minutes before</option>
+        <option value="60">1 hour before</option>
+      </select>
+
+      <h2 class="later">Repeat</h2>
+      <label for="fFreq">Frequency</label>
+      <select id="fFreq">
+        <option value="none">Does not repeat</option>
+        <option value="daily">Daily</option>
+        <option value="weekly">Weekly</option>
+        <option value="monthly">Monthly (same day of month)</option>
+        <option value="yearly">Yearly</option>
+      </select>
+
+      <fieldset id="bydayRow" hidden>
+        <legend>Repeat on</legend>
+        <div class="days">
+          <span class="check"><input type="checkbox" id="bdMO" data-day="MO"><label for="bdMO">Mon</label></span>
+          <span class="check"><input type="checkbox" id="bdTU" data-day="TU"><label for="bdTU">Tue</label></span>
+          <span class="check"><input type="checkbox" id="bdWE" data-day="WE"><label for="bdWE">Wed</label></span>
+          <span class="check"><input type="checkbox" id="bdTH" data-day="TH"><label for="bdTH">Thu</label></span>
+          <span class="check"><input type="checkbox" id="bdFR" data-day="FR"><label for="bdFR">Fri</label></span>
+          <span class="check"><input type="checkbox" id="bdSA" data-day="SA"><label for="bdSA">Sat</label></span>
+          <span class="check"><input type="checkbox" id="bdSU" data-day="SU"><label for="bdSU">Sun</label></span>
+        </div>
+      </fieldset>
+
+      <div class="inline" id="endsRow" hidden>
+        <div><label for="fEnds">Ends</label>
+          <select id="fEnds">
+            <option value="never">Never</option>
+            <option value="count">After # times</option>
+            <option value="until">On date</option>
+          </select>
+        </div>
+        <div id="countCol" hidden><label for="fCount">Number of times</label>
+          <input type="number" id="fCount" min="1" max="999" step="1" value="10"></div>
+        <div id="untilCol" hidden><label for="fUntil">Last date</label>
+          <input type="date" id="fUntil"></div>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="card">
+        <h2>Summary</h2>
+        <p id="summary"></p>
+        <div class="err" id="err" hidden></div>
+        <div class="btnrow">
+          <a id="download" class="btn" download="event.ics">Download .ics</a>
+          <button id="clearDraft" class="btn ghost">Clear draft</button>
+        </div>
+        <p class="hint" id="quotaNote" hidden>Draft could not be saved — browser storage is full.
+          The event itself still generates and downloads fine.</p>
+        <p class="hint">Your draft is saved locally as you type and restored next visit.</p>
+      </div>
+      <div class="card">
+        <h2>.ics preview</h2>
+        <pre id="preview" aria-label="Generated iCalendar text"></pre>
+      </div>
+    </div>
+  </div>
+
+  <footer>No network — the .ics file (RFC 5545 iCalendar) is generated entirely in your browser
+    and never leaves your machine. The draft lives in local storage only.</footer>
+</div>
+
+<script src="../core/suite.js" data-suite-inline></script>
+<script>
+"use strict";
+Suite.theme.init();
+
+/* =========================================================================
+   iCalendar serialization — RFC 5545.
+   Times are written as FLOATING LOCAL date-times (no TZID, no trailing Z).
+   Why: correct TZID handling requires shipping a VTIMEZONE with full IANA
+   transition rules, and converting to UTC would pin the wrong wall-clock
+   time across DST changes or travel. Floating local means "9:00 wherever
+   this calendar lives", which is what people mean by personal events, and
+   it is the only honest choice for a zero-dependency offline tool.
+   ========================================================================= */
+const DRAFT_KEY = "suite.ics.draft";
+const $ = id => document.getElementById(id);
+const enc = new TextEncoder();
+
+/* TEXT value escaping, RFC 5545 §3.3.11 — backslash FIRST, then ; , and
+   newlines as literal \n. Raw control characters are not legal in content
+   lines, so they are stripped (except the newlines we encode). */
+function escText(s) {
+  return String(s)
+    .replace(/\\/g, "\\\\")
+    .replace(/;/g, "\\;")
+    .replace(/,/g, "\\,")
+    .replace(/\r\n|[\r\n]/g, "\\n")
+    .replace(/[\u0000-\u001F\u007F]/g, "");
+}
+/* URI values (§3.3.13) are not TEXT-escaped; just strip control chars. */
+function cleanURI(s) { return String(s).replace(/[\u0000-\u001F\u007F\s]/g, ""); }
+
+/* Line folding, RFC 5545 §3.1: physical lines are at most 75 OCTETS
+   (UTF-8 bytes, not characters); continuation lines start with one space
+   that counts toward their own 75. Iterating by code point guarantees a
+   multi-byte UTF-8 sequence is never split. */
+function fold(line) {
+  if (enc.encode(line).length <= 75) return [line];
+  const out = [];
+  let cur = "", len = 0;
+  for (const ch of line) {
+    const b = enc.encode(ch).length;
+    if (len + b > 75) { out.push(cur); cur = " "; len = 1; }
+    cur += ch; len += b;
+  }
+  out.push(cur);
+  return out;
+}
+
+/* "2027-03-01" -> "20270301"; ("2027-03-01","09:00") -> "20270301T090000" */
+function basicDate(ymd) { return ymd.replace(/-/g, ""); }
+function basicDT(ymd, hm) { return basicDate(ymd) + "T" + hm.replace(":", "") + "00"; }
+/* DTSTAMP must be UTC in basic format (§3.8.7.2) */
+function utcStamp() {
+  const d = new Date(), p = n => String(n).padStart(2, "0");
+  return d.getUTCFullYear() + p(d.getUTCMonth() + 1) + p(d.getUTCDate()) + "T" +
+         p(d.getUTCHours()) + p(d.getUTCMinutes()) + p(d.getUTCSeconds()) + "Z";
+}
+/* one UID per page session: re-downloads of the same draft update, not duplicate */
+const sessionUID = crypto.randomUUID() + "@local-suite";
+
+/* "2027-03-01" -> UTC ms (date-only math, DST-safe) */
+function ymdToUTC(ymd) {
+  const [y, m, d] = ymd.split("-").map(Number);
+  return Date.UTC(y, m - 1, d);
+}
+function utcToYMD(ms) {
+  const d = new Date(ms);
+  return d.getUTCFullYear() + "-" + String(d.getUTCMonth() + 1).padStart(2, "0") +
+         "-" + String(d.getUTCDate()).padStart(2, "0");
+}
+function fmtDate(ymd) {
+  return new Date(ymdToUTC(ymd)).toLocaleDateString(undefined,
+    { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+}
+function fmtTime(hm) {
+  const [h, m] = hm.split(":").map(Number);
+  const ampm = h < 12 ? "AM" : "PM";
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return h12 + ":" + String(m).padStart(2, "0") + " " + ampm;
+}
+
+/* ---------------- form access ---------------- */
+const F = {
+  title: $("fTitle"), loc: $("fLoc"), desc: $("fDesc"), url: $("fUrl"),
+  allDay: $("fAllDay"),
+  startDate: $("fStartDate"), startTime: $("fStartTime"),
+  endDate: $("fEndDate"), endTime: $("fEndTime"),
+  alarm: $("fAlarm"), freq: $("fFreq"),
+  ends: $("fEnds"), count: $("fCount"), until: $("fUntil")
+};
+const DAY_CODES = ["MO", "TU", "WE", "TH", "FR", "SA", "SU"];
+const DAY_NAMES = { MO: "Mon", TU: "Tue", WE: "Wed", TH: "Thu", FR: "Fri", SA: "Sat", SU: "Sun" };
+const dayBoxes = DAY_CODES.map(c => $("bd" + c));
+
+function readForm() {
+  return {
+    title: F.title.value.trim(),
+    loc: F.loc.value.trim(),
+    desc: F.desc.value,
+    url: cleanURI(F.url.value),
+    allDay: F.allDay.checked,
+    startDate: F.startDate.value, startTime: F.startTime.value,
+    endDate: F.endDate.value, endTime: F.endTime.value,
+    alarm: F.alarm.value,
+    freq: F.freq.value,
+    byday: dayBoxes.filter(b => b.checked).map(b => b.dataset.day),
+    ends: F.ends.value,
+    count: F.count.value,
+    until: F.until.value
+  };
+}
+
+/* ---------------- validation ---------------- */
+function validate(v) {
+  if (!v.title) return { neutral: "Add a title to generate the event." };
+  if (!v.startDate) return { error: "Pick a start date." };
+  if (!v.endDate) return { error: "Pick an end date." };
+  if (v.allDay) {
+    if (ymdToUTC(v.endDate) < ymdToUTC(v.startDate))
+      return { error: "The end date is before the start date." };
+  } else {
+    if (!v.startTime || !v.endTime) return { error: "Pick start and end times (or make it all-day)." };
+    if (basicDT(v.endDate, v.endTime) < basicDT(v.startDate, v.startTime))
+      return { error: "The event ends before it starts." };
+  }
+  if (v.url) {
+    let protocol = "";
+    try { protocol = new URL(v.url).protocol; } catch (e) {}
+    if (protocol !== "http:" && protocol !== "https:")
+      return { error: "The URL must be a full http:// or https:// link." };
+  }
+  if (v.freq !== "none") {
+    if (v.ends === "count") {
+      const n = parseInt(v.count, 10);
+      if (!(n >= 1)) return { error: "“After # times” needs a number of at least 1." };
+    }
+    if (v.ends === "until") {
+      if (!v.until) return { error: "Pick the last date of the repeat." };
+      if (ymdToUTC(v.until) < ymdToUTC(v.startDate))
+        return { error: "The repeat's last date is before the event starts." };
+    }
+  }
+  return null;
+}
+
+/* ---------------- RRULE (§3.3.10, §3.8.5.3) ---------------- */
+function buildRRule(v) {
+  if (v.freq === "none") return null;
+  const parts = ["FREQ=" + v.freq.toUpperCase()];
+  /* WEEKLY without BYDAY legally recurs on DTSTART's weekday */
+  if (v.freq === "weekly" && v.byday.length) parts.push("BYDAY=" + v.byday.join(","));
+  if (v.ends === "count") parts.push("COUNT=" + parseInt(v.count, 10));
+  else if (v.ends === "until")
+    /* UNTIL must match DTSTART's value type: DATE for all-day, floating
+       local DATE-TIME otherwise (end of that day so the last day counts). */
+    parts.push("UNTIL=" + (v.allDay ? basicDate(v.until) : basicDate(v.until) + "T235959"));
+  return parts.join(";");
+}
+
+/* ---------------- VCALENDAR ---------------- */
+function buildICS(v) {
+  const L = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//Local Suite//ICS Maker 1.0//EN",
+    "CALSCALE:GREGORIAN",
+    "BEGIN:VEVENT",
+    "UID:" + sessionUID,
+    "DTSTAMP:" + utcStamp()
+  ];
+  if (v.allDay) {
+    /* DTEND for DATE values is EXCLUSIVE (§3.6.1): day after the last day. */
+    L.push("DTSTART;VALUE=DATE:" + basicDate(v.startDate));
+    L.push("DTEND;VALUE=DATE:" + basicDate(utcToYMD(ymdToUTC(v.endDate) + 86400000)));
+  } else {
+    L.push("DTSTART:" + basicDT(v.startDate, v.startTime));
+    const s = basicDT(v.startDate, v.startTime), e = basicDT(v.endDate, v.endTime);
+    /* DTEND must be strictly later than DTSTART; a zero-length event simply
+       omits DTEND (§3.6.1: it then takes up no time). */
+    if (e > s) L.push("DTEND:" + e);
+  }
+  L.push("SUMMARY:" + escText(v.title));
+  if (v.loc) L.push("LOCATION:" + escText(v.loc));
+  if (v.desc) L.push("DESCRIPTION:" + escText(v.desc));
+  if (v.url) L.push("URL:" + v.url);
+  const rrule = buildRRule(v);
+  if (rrule) L.push("RRULE:" + rrule);
+  if (v.alarm) {
+    L.push("BEGIN:VALARM",
+      "ACTION:DISPLAY",
+      "DESCRIPTION:" + escText(v.title),
+      "TRIGGER:-PT" + parseInt(v.alarm, 10) + "M",
+      "END:VALARM");
+  }
+  L.push("END:VEVENT", "END:VCALENDAR");
+  return L.flatMap(fold).join("\r\n") + "\r\n";
+}
+
+/* ---------------- human summary ---------------- */
+function summarize(v) {
+  const bits = [];
+  if (v.freq === "none") {
+    if (v.allDay) {
+      bits.push(v.startDate === v.endDate
+        ? "All day on " + fmtDate(v.startDate)
+        : "All day, " + fmtDate(v.startDate) + " – " + fmtDate(v.endDate));
+    } else {
+      bits.push(v.startDate === v.endDate
+        ? fmtDate(v.startDate) + ", " + fmtTime(v.startTime) + " – " + fmtTime(v.endTime)
+        : fmtDate(v.startDate) + ", " + fmtTime(v.startTime) + " – " +
+          fmtDate(v.endDate) + ", " + fmtTime(v.endTime));
+    }
+  } else {
+    let r = { daily: "Daily", weekly: "Weekly", monthly: "Monthly", yearly: "Yearly" }[v.freq];
+    if (v.freq === "weekly")
+      r += " on " + (v.byday.length ? v.byday.map(c => DAY_NAMES[c]).join(", ")
+                                    : DAY_NAMES[DAY_CODES[(new Date(ymdToUTC(v.startDate)).getUTCDay() + 6) % 7]]);
+    if (v.freq === "monthly") {
+      const dom = new Date(ymdToUTC(v.startDate)).getUTCDate();
+      r += " on day " + dom + (dom >= 29 ? " (months without day " + dom + " are skipped)" : "");
+    }
+    if (v.freq === "yearly")
+      r += " on " + new Date(ymdToUTC(v.startDate)).toLocaleDateString(undefined,
+        { month: "short", day: "numeric", timeZone: "UTC" });
+    if (v.ends === "count") r += ", " + parseInt(v.count, 10) + " times";
+    else if (v.ends === "until") r += " until " + fmtDate(v.until);
+    r += ", starting " + fmtDate(v.startDate) + (v.allDay ? "" : ", " + fmtTime(v.startTime));
+    bits.push(r);
+  }
+  if (v.alarm) bits.push("reminder " + parseInt(v.alarm, 10) + " min before");
+  return bits.join(" · ");
+}
+
+/* ---------------- render ---------------- */
+const summaryEl = Suite.liveRegion($("summary"));
+const errEl = Suite.liveRegion($("err"));
+const previewEl = $("preview");
+const dlA = $("download");
+let dlUrl = null;
+
+function setConditionals(v) {
+  $("startTimeCol").hidden = v.allDay;
+  $("endTimeCol").hidden = v.allDay;
+  $("allDayHint").hidden = !v.allDay;
+  $("bydayRow").hidden = v.freq !== "weekly";
+  $("endsRow").hidden = v.freq === "none";
+  $("countCol").hidden = v.ends !== "count";
+  $("untilCol").hidden = v.ends !== "until";
+}
+
+function slug(t) {
+  const s = t.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60);
+  return (s || "event") + ".ics";
+}
+
+function render() {
+  const v = readForm();
+  setConditionals(v);
+  const problem = validate(v);
+  if (problem) {
+    summaryEl.textContent = problem.neutral || "—";
+    errEl.hidden = !problem.error;
+    errEl.textContent = problem.error || "";
+    previewEl.textContent = "";
+    if (dlUrl) { URL.revokeObjectURL(dlUrl); dlUrl = null; }
+    dlA.removeAttribute("href");
+    dlA.classList.add("disabled");
+    dlA.setAttribute("aria-disabled", "true");
+    return;
+  }
+  errEl.hidden = true; errEl.textContent = "";
+  summaryEl.textContent = summarize(v);
+  const ics = buildICS(v);
+  previewEl.textContent = ics;
+  if (dlUrl) URL.revokeObjectURL(dlUrl);
+  dlUrl = URL.createObjectURL(new Blob([ics], { type: "text/calendar;charset=utf-8" }));
+  dlA.href = dlUrl;
+  dlA.download = slug(v.title);
+  dlA.classList.remove("disabled");
+  dlA.removeAttribute("aria-disabled");
+}
+dlA.addEventListener("click", e => { if (!dlA.getAttribute("href")) e.preventDefault(); });
+
+/* ---------------- draft persistence (suite.ics.draft) ---------------- */
+const quotaNote = $("quotaNote");
+function saveDraft() {
+  const v = readForm();
+  v.desc = F.desc.value;         /* keep untrimmed text */
+  v.title = F.title.value; v.loc = F.loc.value; v.url = F.url.value;
+  quotaNote.hidden = Suite.store.set(DRAFT_KEY, v);
+}
+function restoreDraft() {
+  const d = Suite.store.get(DRAFT_KEY);
+  if (!d || typeof d !== "object") return false;
+  F.title.value = d.title ?? ""; F.loc.value = d.loc ?? "";
+  F.desc.value = d.desc ?? ""; F.url.value = d.url ?? "";
+  F.allDay.checked = !!d.allDay;
+  F.startDate.value = d.startDate ?? ""; F.startTime.value = d.startTime ?? "";
+  F.endDate.value = d.endDate ?? ""; F.endTime.value = d.endTime ?? "";
+  F.alarm.value = d.alarm ?? ""; F.freq.value = d.freq ?? "none";
+  dayBoxes.forEach(b => { b.checked = Array.isArray(d.byday) && d.byday.includes(b.dataset.day); });
+  F.ends.value = d.ends ?? "never"; F.count.value = d.count ?? "10"; F.until.value = d.until ?? "";
+  return true;
+}
+function defaults() {
+  const n = new Date();
+  const today = n.getFullYear() + "-" + String(n.getMonth() + 1).padStart(2, "0") +
+                "-" + String(n.getDate()).padStart(2, "0");
+  F.startDate.value = today; F.endDate.value = today;
+  F.startTime.value = "09:00"; F.endTime.value = "10:00";
+}
+$("clearDraft").addEventListener("click", () => {
+  Suite.store.remove(DRAFT_KEY);
+  document.querySelectorAll("input, textarea").forEach(el => {
+    if (el.type === "checkbox") el.checked = false; else el.value = "";
+  });
+  F.alarm.value = ""; F.freq.value = "none"; F.ends.value = "never"; F.count.value = "10";
+  defaults();
+  render();
+});
+
+/* ---------------- wire up ---------------- */
+["input", "change"].forEach(ev =>
+  document.querySelector(".grid").addEventListener(ev, e => {
+    if (!e.target.matches("input, select, textarea")) return;
+    render(); saveDraft();
+  }));
+
+if (!restoreDraft()) defaults();
+render();
+</script>
+</body>
+</html>

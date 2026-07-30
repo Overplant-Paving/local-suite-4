@@ -1,0 +1,18 @@
+initial: running=false bpm=120 beatsPerBar=4 dots=4
+bpm binding: slider->num 180 ok, num->slider 96 ok, 999 clamped to 250
+scheduling: running=true, beatCount 2 -> 4 at 120 BPM, lit dots=1
+accents 3/4: 6 scheduled beats, sequence 0* 1 2 0* 1 2 (accent * only on beat 0)
+accents 6/8: 9 beats, levels 200100200 (2=strong beat 1, 1=secondary beat 4)
+Space toggle: stop from body ok, ignored inside #bpmNum, restart from body ok
+tap tempo: 4 taps at 500ms intervals -> 120 BPM; status: Tap tempo: 120 BPM from 4 taps
+tap tempo outlier: extra tap after 1500ms ignored -> still 120 BPM; status: Tap tempo: 120 BPM from 5 taps (1 outlier ignored)
+tones: A4 start (440 Hz) then E4 (329.63 Hz); starts=2 stops=1, exactly one aria-pressed
+tones: toggle-off ok, stop-all ok (starts=3 stops=3)
+octave up: center label now 'A5 = 880.0 Hz'
+octave down x2: center label 'A3 = 220.0 Hz'
+stored suite.metronome.v1: {"bpm":144,"meter":"3/4","volume":40}
+persistence round-trip: reload restored bpm=144, meter=3/4, volume=40
+mobile 390px: scrollWidth 390 <= clientWidth 390, screenshot mobile.png
+final state: running=true bpm=144 beatsPerBar=3 beatCount=2
+theme toggle: light -> dark, aria-pressed=true
+console: clean (no errors)

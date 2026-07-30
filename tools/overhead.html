@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aircraft Overhead · Local Suite</title>
+<link rel="stylesheet" href="../core/suite.css" data-suite-inline>
+<style>
+  /* tool accents, theme-split for WCAG AA in both themes:
+     --radar plot backdrop, --stale the amber offline stamp, --emg emergency badge,
+     --errsoft inline setup errors (same convention as quakes.html). */
+  :root{ --radar:#e9ede8; --stale:#986424; --emg:#b42318; --errsoft:#b65b37; }
+  @media (prefers-color-scheme:dark){ :root{ --radar:#10161c; --stale:#c07f2d; --emg:#b42318; --errsoft:#c6704e; } }
+  :root[data-theme="light"]{ --radar:#e9ede8; --stale:#986424; --emg:#b42318; --errsoft:#b65b37; }
+  :root[data-theme="dark"]{ --radar:#10161c; --stale:#c07f2d; --emg:#b42318; --errsoft:#c6704e; }
+
+  body { padding: 1.4rem 1.25rem 4rem; }
+  .wrap { max-width: 960px; margin: 0 auto; }
+  .topbar { display: flex; align-items: center; gap: 1rem; }
+  .topbar .theme-btn, .topbar .fav-btn { float: none; }
+  .topbar .theme-btn { margin-left: auto; }
+  header { margin: 1rem 0 1.2rem; }
+  h1 { font-size: 1.8rem; letter-spacing: -.02em; }
+  .tag { color: var(--muted); margin-top: .35rem; max-width: 48rem; }
+
+  .locbar{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;margin:1rem 0 .6rem;
+    font-size:.9rem;color:var(--muted)}
+  .locbar b{color:var(--ink);font-weight:600}
+  .linkbtn{background:none;border:none;color:var(--accent);cursor:pointer;font-size:.85rem;
+    padding:0;text-decoration:underline}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+    padding:1rem 1.05rem;box-shadow:var(--shadow)}
+  /* core .card is a flex column — controls must lay out as a wrapping row */
+  .controls{display:flex;flex-direction:row;gap:1rem;flex-wrap:wrap;align-items:flex-end}
+  .ctl{display:flex;flex-direction:column;gap:.3rem}
+  .ctl label{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+  select{padding:.45rem .6rem;border:1px solid var(--line);border-radius:9px;
+    background:var(--card);color:var(--ink);font-size:.9rem}
+  input[type=text]{padding:.45rem .6rem;border:1px solid var(--line);border-radius:9px;
+    background:var(--card);color:var(--ink);font-size:.95rem}
+  .btn{border:none;border-radius:9px;padding:.55rem .95rem;cursor:pointer;font-size:.9rem;font-weight:600}
+  .btn.primary{background:var(--accent);color:var(--bg)}
+  .btn.ghost{background:var(--card);border:1px solid var(--line);color:var(--ink)}
+  .btn:disabled{opacity:.55;cursor:not-allowed}
+  .autonote{font-size:.8rem;color:var(--stale);min-height:1.1rem;align-self:center}
+  .ratenote{font-size:.78rem;color:var(--muted);margin:.5rem .1rem 0}
+  .countline{display:flex;gap:.5rem;flex-wrap:wrap;align-items:baseline;margin:1rem 0 .6rem;
+    font-size:.92rem;color:var(--muted)}
+  .countline b{font-size:1.35rem;color:var(--accent);line-height:1}
+  .plotcard{padding:.6rem;max-width:560px}
+  .plotcard[hidden]{display:none}
+  svg.plot{display:block;width:100%;height:auto;background:var(--radar);border-radius:10px}
+  .ring{fill:none;stroke:var(--line);stroke-width:1}
+  .ringlbl{fill:var(--muted);font-size:11px}
+  .northlbl{fill:var(--muted);font-size:11px;font-weight:600}
+  .me{stroke:var(--accent);stroke-width:1.6;fill:none}
+  .mark{cursor:pointer}
+  .mark path{stroke:var(--bg);stroke-width:.7}
+  .mark .halo{display:none;fill:none;stroke:var(--accent);stroke-width:2}
+  .mark.sel .halo{display:block}
+  .mlbl{fill:var(--ink);font-size:10px;pointer-events:none}
+  .stamp{font-size:.8rem;color:var(--muted);margin:.2rem .1rem .8rem}
+  .stamp.stale{color:var(--stale);font-weight:600}
+  .stamp.err{color:var(--errsoft)}
+  .list{display:flex;flex-direction:column;gap:.5rem}
+  button.ac{display:grid;grid-template-columns:auto 1fr auto;gap:.85rem;align-items:center;
+    width:100%;text-align:left;font:inherit;cursor:pointer;
+    background:var(--card);border:1px solid var(--line);border-radius:12px;
+    padding:.65rem .85rem;box-shadow:var(--shadow);color:var(--ink)}
+  button.ac[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+  .ac svg.hdg{width:1.65rem;height:1.65rem;flex:none}
+  .ac .ident{font-weight:700;font-size:.98rem}
+  .ac .reg{color:var(--muted);font-weight:500;font-size:.82rem;margin-left:.3rem}
+  .ac .meta{font-size:.78rem;color:var(--muted);margin-top:.15rem;overflow-wrap:anywhere}
+  .bdg{display:inline-block;font-size:.6rem;font-weight:700;letter-spacing:.05em;
+    border-radius:6px;padding:.08rem .35rem;margin-left:.4rem;vertical-align:2px}
+  .bdg.mil{background:var(--chip);color:var(--ink);border:1px solid var(--line)}
+  .bdg.emg{background:var(--emg);color:#fff}
+  .ac .right{text-align:right;font-size:.78rem;color:var(--muted);white-space:nowrap}
+  .ac .right b{display:block;color:var(--ink);font-size:.92rem;font-weight:700}
+  .msg{padding:2.2rem 1rem;text-align:center;color:var(--muted)}
+  .msg .big{font-size:1.1rem;color:var(--ink);margin-bottom:.4rem;font-weight:600}
+  .listnote{font-size:.78rem;color:var(--muted);text-align:center;margin-top:.4rem}
+  footer{margin-top:2.4rem;font-size:.8rem;color:var(--muted);padding-top:1rem;
+    border-top:1px solid var(--line)}
+  /* first-run location card */
+  .setup{max-width:440px;margin:2rem auto}
+  .setup h2{font-size:1.2rem;margin-bottom:.3rem}
+  .setup p{color:var(--muted);font-size:.9rem;margin-bottom:1rem}
+  .setup .row{display:flex;gap:.5rem;margin-bottom:.7rem}
+  .setup input{flex:1;min-width:0}
+  .err-inline{color:var(--errsoft);font-size:.82rem;min-height:1.1rem}
+  @media(max-width:480px){
+    .ac{grid-template-columns:auto 1fr}
+    .ac .right{grid-column:1/-1;text-align:left;white-space:normal}
+    .ac .right b{display:inline;margin-right:.5rem}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="index.html">← suite</a>
+    <button class="theme-btn" id="themeBtn" title="Toggle light/dark">◐ theme</button>
+  </div>
+  <header>
+    <h1>✈️ Aircraft Overhead</h1>
+    <p class="tag">Live ADS-B aircraft near you, sorted by distance, with altitude, heading, and what plane that actually is.</p>
+  </header>
+
+  <div id="app"></div>
+
+  <footer>
+    Data: <a href="https://airplanes.live" target="_blank" rel="noopener">airplanes.live</a> —
+    a community network of volunteer-run ADS-B receivers. Coverage depends on receivers near you and
+    is not an official radar feed; never use this page for navigation or safety decisions.
+    One request per refresh, cached locally for a minute.
+  </footer>
+</div>
+
+<script src="../core/suite.js" data-suite-inline></script>
+<script>
+"use strict";
+Suite.theme.init();
+
+const esc = Suite.esc;
+const SVGNS = "http://www.w3.org/2000/svg";
+const API = "https://api.airplanes.live/v2/point";   /* /{lat}/{lon}/{radiusNm} */
+const TTL = 60 * 1000;                               /* manifest cacheTtlMin: 1 */
+const NM_MI = 1.15078;                               /* 1 nautical mile = 1.15078 statute miles */
+const KT_MPH = 1.15078;                              /* 1 knot = 1.15078 mph */
+const RADII = [10, 25, 50, 100];
+const LIST_MAX = 80, PLOT_MAX = 60, LABEL_MAX = 18;
+const COLORS = ["#c8503c","#3d7dbd","#3f8f5f","#af7c1f","#8a63c0","#2b968b","#bf5f92","#7a8b3a"];
+const COMPASS = ["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"];
+
+function getLoc(){ return Suite.location.get(); }
+
+/* Great-circle distance in statute miles (haversine, R = 3958.7613 mi). */
+function haversineMi(la1,lo1,la2,lo2){
+  const R=3958.7613, r=Math.PI/180;
+  const dLa=(la2-la1)*r, dLo=(lo2-lo1)*r;
+  const s=Math.sin(dLa/2)**2+Math.cos(la1*r)*Math.cos(la2*r)*Math.sin(dLo/2)**2;
+  return 2*R*Math.asin(Math.sqrt(s));
+}
+/* Initial bearing FROM (la1,lo1) TO (la2,lo2), 0–360° clockwise from true north:
+   θ = atan2( sin Δλ · cos φ2 , cos φ1 · sin φ2 − sin φ1 · cos φ2 · cos Δλ ) */
+function bearingDeg(la1,lo1,la2,lo2){
+  const r=Math.PI/180, dLo=(lo2-lo1)*r;
+  const y=Math.sin(dLo)*Math.cos(la2*r);
+  const x=Math.cos(la1*r)*Math.sin(la2*r)-Math.sin(la1*r)*Math.cos(la2*r)*Math.cos(dLo);
+  return (Math.atan2(y,x)*180/Math.PI+360)%360;
+}
+const compass16 = d => COMPASS[Math.round(d/22.5)%16];
+
+const state = {
+  radius: 25,           /* nm; deliberately not persisted (no manifest key for it) */
+  data: null,           /* normalized, distance-sorted aircraft */
+  noPos: 0,
+  stamp: null, stale: false, error: null,
+  sel: null
+};
+let seq = 0, autoTimer = null, missedTick = false;
+const appEl = document.getElementById("app");
+
+/* ---------- shape: airplanes.live /v2/point (live-probed 2026-07-30) ----------
+   {ac:[{hex, flight (8-char padded callsign), r (registration), t (type code),
+     desc, ownOp, alt_baro (ft, or the string "ground"), alt_geom, gs (kt),
+     track (deg), lat, lon, squawk, emergency ("none"|…), dbFlags (bit 1 = military),
+     seen, dst (nm), dir}, …], msg, now, total, ctime, ptime} */
+function normalize(v, loc){
+  const raw = Array.isArray(v && v.ac) ? v.ac : [];
+  const out = []; let noPos = 0;
+  for(const a of raw){
+    if(!a || !isFinite(a.lat) || !isFinite(a.lon)){ noPos++; continue; }
+    const callsign = String(a.flight||"").trim();
+    const reg = String(a.r||"").trim();
+    const hex = String(a.hex||"").trim().toLowerCase();
+    const ground = a.alt_baro === "ground";
+    out.push({
+      hex, callsign, reg,
+      ident: callsign || reg || hex.toUpperCase(),
+      type: String(a.t||"").trim(),
+      desc: String(a.desc||"").trim(),
+      op: String(a.ownOp||"").trim(),
+      ground,
+      alt: Number.isFinite(+a.alt_baro) ? Math.round(+a.alt_baro)
+         : (Number.isFinite(+a.alt_geom) ? Math.round(+a.alt_geom) : null),
+      mph: Number.isFinite(+a.gs) ? Math.round(+a.gs*KT_MPH) : null,
+      track: Number.isFinite(+a.track) ? ((Math.round(+a.track)%360)+360)%360 : null,
+      lat: +a.lat, lon: +a.lon,
+      dist: haversineMi(loc.lat, loc.lon, +a.lat, +a.lon),
+      brg: bearingDeg(loc.lat, loc.lon, +a.lat, +a.lon),
+      mil: ((+a.dbFlags||0) & 1) === 1,
+      emerg: (!!a.emergency && a.emergency !== "none") ||
+             ["7500","7600","7700"].includes(String(a.squawk||""))
+    });
+  }
+  out.sort((a,b)=>a.dist-b.dist);
+  out.forEach((a,i)=>{ a.color = COLORS[i % COLORS.length]; });
+  return { list: out, noPos };
+}
+
+/* ---------- first-run location setup ---------- */
+function renderSetup(){
+  stopAutoTimer();
+  appEl.innerHTML = `
+    <div class="card setup">
+      <h2>Set your location</h2>
+      <p>Aircraft are searched around your spot. Enter a US ZIP, or use your device location.
+         This is saved for the whole suite.</p>
+      <div class="row">
+        <input type="text" id="zip" inputmode="numeric" placeholder="US ZIP e.g. 90012" maxlength="5" aria-label="US ZIP code">
+        <button class="btn primary" id="zipBtn">Set</button>
+      </div>
+      <div class="row">
+        <button class="btn ghost" id="geoBtn" style="flex:1">Use my location</button>
+      </div>
+      <div class="err-inline" id="setupErr"></div>
+    </div>`;
+  const zip = document.getElementById("zip");
+  const err = Suite.liveRegion(document.getElementById("setupErr"));
+  document.getElementById("zipBtn").addEventListener("click", async () => {
+    const z = zip.value.trim(); err.textContent = "";
+    if(!/^\d{5}$/.test(z)){ err.textContent = "Enter a 5-digit ZIP."; return; }
+    try{
+      const d = (await Suite.fetchJSON(`https://api.zippopotam.us/us/${z}`)).v;
+      const p = d.places[0];
+      Suite.location.set({ lat: parseFloat(p.latitude), lon: parseFloat(p.longitude),
+        label: `${p["place name"]}, ${p["state abbreviation"]}` });
+      boot();
+    }catch(e){ err.textContent = "Couldn't find that ZIP. Try another."; }
+  });
+  zip.addEventListener("keydown", e => { if(e.key === "Enter") document.getElementById("zipBtn").click(); });
+  document.getElementById("geoBtn").addEventListener("click", () => {
+    if(!navigator.geolocation){ err.textContent = "Geolocation isn't available here."; return; }
+    err.textContent = "Locating…";
+    navigator.geolocation.getCurrentPosition(
+      pos => { Suite.location.set({ lat:+pos.coords.latitude.toFixed(4),
+        lon:+pos.coords.longitude.toFixed(4), label:"My location" }); boot(); },
+      () => { err.textContent = "Location denied. Try a ZIP instead."; }
+    );
+  });
+}
+
+/* ---------- dashboard shell ---------- */
+function renderShell(){
+  const loc = getLoc();
+  appEl.innerHTML = `
+    <div class="locbar">
+      <span>Sky above <b id="locLabel"></b></span>
+      <button class="linkbtn" id="changeLoc">change</button>
+    </div>
+    <div class="card controls">
+      <div class="ctl">
+        <label for="radiusSel">Search radius</label>
+        <select id="radiusSel">${RADII.map(r =>
+          `<option value="${esc(r)}"${esc(r===state.radius?" selected":"")}>${esc(r)} nm</option>`).join("")}</select>
+      </div>
+      <button class="btn primary" id="refreshBtn">Refresh</button>
+      <div class="ctl">
+        <label for="autoSel">Auto-refresh</label>
+        <select id="autoSel">
+          <option value="0" selected>Off</option>
+          <option value="30000">Every 30s</option>
+          <option value="60000">Every 60s</option>
+        </select>
+      </div>
+      <span class="autonote" id="autoNote"></span>
+    </div>
+    <p class="ratenote" id="rateNote">Airplanes.live asks for ≤1 request/second — this tool makes one per refresh.</p>
+    <div class="countline" id="countLine"></div>
+    <div class="card plotcard" id="plotCard"></div>
+    <div id="stamp" class="stamp"></div>
+    <div class="list" id="list" aria-label="Aircraft sorted by distance"></div>`;
+  document.getElementById("locLabel").textContent = loc ? loc.label || `${loc.lat}, ${loc.lon}` : "—";
+  document.getElementById("changeLoc").addEventListener("click", renderSetup);
+  Suite.liveRegion(document.getElementById("countLine"));
+  Suite.liveRegion(document.getElementById("stamp"));
+  const radiusSel = document.getElementById("radiusSel");
+  radiusSel.addEventListener("change", () => {
+    state.radius = parseInt(radiusSel.value, 10) || 25;
+    state.sel = null;
+    load(false);
+  });
+  document.getElementById("refreshBtn").addEventListener("click", () => load(true));
+  document.getElementById("autoSel").addEventListener("change", scheduleAuto);
+}
+
+/* ---------- auto-refresh: off by default, pauses when hidden, stops on error ---------- */
+function stopAutoTimer(){ clearInterval(autoTimer); autoTimer = null; missedTick = false; }
+function autoNote(msg){
+  const el = document.getElementById("autoNote");
+  if(el) el.textContent = msg || "";
+}
+function scheduleAuto(){
+  stopAutoTimer(); autoNote("");
+  const sel = document.getElementById("autoSel");
+  const ms = sel ? +sel.value : 0;
+  if(ms > 0) autoTimer = setInterval(autoTick, ms);
+}
+function autoTick(){
+  if(document.hidden){ missedTick = true; autoNote("Auto-refresh paused — tab hidden"); return; }
+  load(true);
+}
+function stopAutoOnError(reason){
+  const sel = document.getElementById("autoSel");
+  if(sel && +sel.value > 0){
+    sel.value = "0";
+    stopAutoTimer();
+    autoNote("Auto-refresh stopped — " + reason);
+  }
+}
+document.addEventListener("visibilitychange", () => {
+  if(!autoTimer) return;
+  if(document.hidden){ autoNote("Auto-refresh paused — tab hidden"); }
+  else {
+    autoNote("");
+    if(missedTick){ missedTick = false; load(true); }
+  }
+});
+
+/* ---------- data load ---------- */
+async function load(force){
+  const loc = getLoc();
+  if(!loc) return;
+  const s = ++seq, radius = state.radius;
+  /* cache identity: coords rounded to 2 decimals + radius */
+  const cacheKey = `overhead.${loc.lat.toFixed(2)}x${loc.lon.toFixed(2)}.${radius}`;
+  const btn = document.getElementById("refreshBtn");
+  if(btn) btn.disabled = true;
+  const st = document.getElementById("stamp");
+  if(st && !state.data){ st.className = "stamp"; st.textContent = "Checking the sky…"; }
+  try{
+    const r = await Suite.fetchJSON(`${API}/${loc.lat}/${loc.lon}/${radius}`,
+      { cacheKey, ttl: force ? 0 : TTL, timeout: 12000, tries: 1 });
+    if(s !== seq || radius !== state.radius) return;
+    const n = normalize(r.v, loc);
+    state.data = n.list; state.noPos = n.noPos;
+    state.stamp = r.t; state.stale = !!r.stale; state.error = null;
+    if(!state.data.some(a => a.hex === state.sel)) state.sel = null;
+    if(r.stale) stopAutoOnError("network problem; showing cached data");
+    render();
+  }catch(e){
+    if(s !== seq) return;
+    state.error = (e && e.message) ? e.message : String(e);
+    stopAutoOnError("request failed");
+    render();
+  }finally{
+    if(s === seq && btn) btn.disabled = false;
+  }
+}
+
+/* ---------- render ---------- */
+function render(){
+  const listEl = document.getElementById("list");
+  if(!listEl) return;
+  renderStamp();
+  renderCount();
+  const plotCard = document.getElementById("plotCard");
+  if(state.error && !state.data){
+    plotCard.textContent = "";
+    plotCard.hidden = true;
+    listEl.innerHTML = `<div class="card msg"><div class="big">Couldn't reach Airplanes.live</div>
+      ${esc(state.error)} — and nothing is cached for this spot and radius yet.
+      Check your connection, then refresh.</div>`;
+    return;
+  }
+  plotCard.hidden = false;
+  const list = state.data || [];
+  drawPlot(list);
+  renderList(list, listEl);
+}
+
+function renderCount(){
+  const el = document.getElementById("countLine");
+  if(!el) return;
+  if(state.error && !state.data){ el.innerHTML = ""; return; }
+  const n = state.data ? state.data.length : 0;
+  const maxMi = Math.round(state.radius * NM_MI);
+  el.innerHTML = `<b>${esc(n)}</b>
+    <span>aircraft within ${esc(state.radius)} nm (~${esc(maxMi)} mi)</span>
+    ${state.noPos ? `<span>· ${esc(state.noPos)} more reported without a position</span>` : ""}`;
+}
+
+function renderStamp(){
+  const el = document.getElementById("stamp");
+  if(!el) return;
+  const time = state.stamp ?
+    new Date(state.stamp).toLocaleTimeString([], {hour:"numeric",minute:"2-digit",second:"2-digit"}) : "";
+  if(state.stale){
+    el.className = "stamp stale";
+    el.textContent = `Offline — cached from ${time} · live refresh failed`;
+  } else if(state.error && state.data){
+    el.className = "stamp err";
+    el.textContent = `Couldn't refresh (${state.error}) · showing data from ${time}`;
+  } else if(state.stamp){
+    el.className = "stamp";
+    el.textContent = `Updated ${time}`;
+  } else {
+    el.className = "stamp"; el.textContent = "";
+  }
+}
+
+/* ---------- radar-style plot ---------- */
+function svgEl(name, attrs){
+  const e = document.createElementNS(SVGNS, name);
+  for(const k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+}
+const PLANE_PATH = "M0 -7 L2.2 -1.2 L7.6 1 L7.6 3.2 L2.2 2.2 L1.1 7.4 L-1.1 7.4 L-2.2 2.2 L-7.6 3.2 L-7.6 1 L-2.2 -1.2 Z";
+
+function drawPlot(list){
+  const card = document.getElementById("plotCard");
+  if(!card) return;
+  card.textContent = "";
+  const S = 460, C = S/2, R = C - 28;
+  const maxMi = state.radius * NM_MI;
+  const svg = svgEl("svg", { class: "plot", viewBox: `0 0 ${S} ${S}`,
+    role: "img", "aria-label": "Radar-style plot: you at the center, nearby aircraft by distance and bearing" });
+  /* range rings labeled in miles */
+  for(const f of [0.25, 0.5, 0.75, 1]){
+    svg.append(svgEl("circle", { class: "ring", cx: C, cy: C, r: R*f }));
+    const t = svgEl("text", { class: "ringlbl", x: C + 4, y: C - R*f - 5 });
+    t.textContent = f === 1 ? `${Math.round(maxMi)} mi` : `${Math.round(maxMi*f)}`;
+    svg.append(t);
+  }
+  const north = svgEl("text", { class: "northlbl", x: C - 4, y: 14 });
+  north.textContent = "N";
+  svg.append(north);
+  /* you, at the center */
+  const me = svgEl("g", {});
+  me.append(svgEl("line", { class:"me", x1:C-7, y1:C, x2:C+7, y2:C }));
+  me.append(svgEl("line", { class:"me", x1:C, y1:C-7, x2:C, y2:C+7 }));
+  me.append(svgEl("circle", { class:"me", cx:C, cy:C, r:8 }));
+  const meTitle = document.createElementNS(SVGNS, "title");
+  meTitle.textContent = "You";
+  me.append(meTitle);
+  svg.append(me);
+  /* aircraft markers, matching list order and colors */
+  list.slice(0, PLOT_MAX).forEach((a, i) => {
+    const rr = Math.min(a.dist, maxMi) / maxMi * R;
+    const rad = a.brg * Math.PI/180;
+    const x = C + rr * Math.sin(rad), y = C - rr * Math.cos(rad);
+    const g = svgEl("g", { class: "mark" + (state.sel === a.hex ? " sel" : ""),
+      transform: `translate(${x.toFixed(1)} ${y.toFixed(1)})` });
+    g.dataset.hex = a.hex;
+    g.append(svgEl("circle", { class: "halo", r: 11 }));
+    g.append(svgEl("path", { d: PLANE_PATH, fill: a.color,
+      transform: `rotate(${a.track == null ? 0 : a.track})` }));
+    if(i < LABEL_MAX){
+      const lbl = svgEl("text", { class: "mlbl", x: 10, y: 4 });
+      lbl.textContent = a.ident;
+      g.append(lbl);
+    }
+    const title = document.createElementNS(SVGNS, "title");
+    title.textContent = `${a.ident} · ${a.dist.toFixed(1)} mi ${compass16(a.brg)} · ` +
+      (a.ground ? "on ground" : (a.alt != null ? a.alt.toLocaleString() + " ft" : "altitude unknown"));
+    g.append(title);
+    g.addEventListener("click", () => select(a.hex, true));
+    svg.append(g);
+  });
+  card.append(svg);
+}
+
+/* ---------- list ---------- */
+/* Heading arrow rotated with an SVG transform (not a CSS text transform).
+   Named *_esc because every interpolation it emits is Suite.esc-wrapped. */
+function arrow_esc(a){
+  if(a.track == null)
+    return `<svg class="hdg" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="3.5" fill="${esc(a.color)}"/></svg>`;
+  return `<svg class="hdg" viewBox="0 0 26 26" aria-hidden="true"><g transform="rotate(${esc(a.track)} 13 13)"><path d="M13 3.5 L18 19.5 L13 15.6 L8 19.5 Z" fill="${esc(a.color)}"/></g></svg>`;
+}
+function renderList(list, listEl){
+  if(!list.length){
+    listEl.innerHTML = `<div class="card msg"><div class="big">No ADS-B aircraft reported within ${esc(state.radius)} nm right now.</div>
+      Community receiver coverage varies by area and altitude — try a wider radius, or refresh in a moment.</div>`;
+    return;
+  }
+  listEl.innerHTML = list.slice(0, LIST_MAX).map(a => {
+    const craft = [a.type, a.desc, a.op].filter(Boolean).join(" · ") || "Aircraft type not reported";
+    const altTxt = a.ground ? "on ground" : (a.alt != null ? a.alt.toLocaleString() + " ft" : "altitude —");
+    return `<button type="button" class="ac" data-hex="${esc(a.hex)}" aria-pressed="${esc(state.sel===a.hex)}">
+      ${arrow_esc(a)}
+      <span>
+        <span class="ident">${esc(a.ident)}</span>${a.reg && a.reg !== a.ident ? `<span class="reg">${esc(a.reg)}</span>` : ""}${a.mil ? `<span class="bdg mil">${esc("MILITARY")}</span>` : ""}${a.emerg ? `<span class="bdg emg">${esc("EMERGENCY")}</span>` : ""}
+        <span class="meta">${esc(craft)}</span>
+      </span>
+      <span class="right"><b>${esc(a.dist.toFixed(1))} mi ${esc(compass16(a.brg))}</b><span>${esc(altTxt)}${a.mph != null ? ` · ${esc(a.mph.toLocaleString())} mph` : ""}</span></span>
+    </button>`;
+  }).join("") + (list.length > LIST_MAX
+    ? `<div class="listnote">Showing the nearest ${esc(LIST_MAX)} of ${esc(list.length)} aircraft.</div>` : "");
+  listEl.querySelectorAll("button.ac").forEach(b =>
+    b.addEventListener("click", () => select(b.dataset.hex, false)));
+}
+
+/* row click highlights the plot marker; marker click highlights the row */
+function select(hex, fromPlot){
+  state.sel = state.sel === hex ? null : hex;
+  document.querySelectorAll("button.ac").forEach(b =>
+    b.setAttribute("aria-pressed", String(b.dataset.hex === state.sel)));
+  document.querySelectorAll(".mark").forEach(m =>
+    m.classList.toggle("sel", m.dataset.hex === state.sel));
+  if(fromPlot && state.sel){
+    const row = document.querySelector(`button.ac[data-hex="${CSS.escape(state.sel)}"]`);
+    if(row) row.scrollIntoView({ block: "nearest" });
+  }
+}
+
+/* ---------- boot ---------- */
+function boot(){
+  stopAutoTimer();
+  if(!getLoc()){ renderSetup(); return; }
+  renderShell();
+  load(false);
+}
+boot();
+
+/* First run: ask the browser once for a location and reload into the normal view.
+   Inert when a location exists or detection is off/denied (core: Suite.location). */
+Suite.location.autoBoot();
+</script>
+</body>
+</html>

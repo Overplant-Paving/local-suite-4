@@ -1,0 +1,27 @@
+starter state: designed card visible, suggested chips [Apollo 11, Hubble deep field, Artemis], grid empty, zero network at boot
+search "Apollo 11" (Enter submits) -> 3 tiles; status: "page 1 of 40 · 956 results" (ceil(956/24)=40 pages)
+thumbnails decoded: "Aldrin on the Moon" (naturalWidth=1), "Earthrise" (naturalWidth=1)
+unsafe-URL filter: http:// thumbnail record rendered as designed "No preview" tile, 0 http:// img src on page
+center chip "JSC" on tile 1; cache key suite.cache.nasaimages.q.apollo-11.1 written (TTL 24 h)
+next -> "page 2 of 40 · 956 results"; request URL: https://images-api.nasa.gov/search?q=Apollo%2011&media_type=image&page_size=24&page=2
+prev -> page 1 of 40 served from cache (search fetches: 1 for the round-trip); prev disabled on page 1
+overlap guard: delayed "older delayed" completed last; UI stayed on "newest fast": {"title":"Newest fast search result","tiles":1,"status":"page 1 of 1 · 1 results"}
+detail "as11-40-5874": image https://images-assets.nasa.gov/image/as11-40-5874/as11-40-5874~medium.jpg (manifest served http://, upgraded), credit "Credit: Neil Armstrong", date 1969-07-20
+  external link https://images.nasa.gov/details/as11-40-5874 target=_blank rel=noopener; role=dialog aria-modal=true, focus on close button
+Esc closed the overlay and focus returned to the opening tile ("Open details: Aldrin on the Moon"); asset cache key written
+detail "GPN-2000-001137": ~orig.jpg fallback (https://images-assets.nasa.gov/image/GPN-2000-001137/GPN-2000-001137~orig.jpg), credit "Credit: NASA/Bill Anders" (secondary_creator); close button returns focus
+detail with no photographer/secondary_creator -> honest default "Credit: NASA"
+empty results -> designed card "No images found for “nothingfound”" with guidance; status "0 results"
+suggested chip "Artemis" -> search box filled, 3 tiles rendered, cache key suite.cache.nasaimages.q.artemis.1
+HTTP 500 -> designed error card "Couldn’t reach NASA’s image library" (Tried at Jul 30, 1:56 PM)
+HTTP 429 -> distinct rate-limit card "NASA’s image API is rate-limiting requests"
+  sibling-page console during 500/429 provocation: expected resource-load errors only (2 lines)
+offline + expired cache -> results still render with stamp: "page 1 of 40 · 956 results Offline — cached from Jul 28, 1:56 PM"
+  stale detail: "Offline — image list cached from Jul 28, 1:56 PM" (asset manifest from cache, image still shown)
+storage keys: suite.cache.nasaimages.asset.GPN-2000-001137, suite.cache.nasaimages.asset.as11-40-5874, suite.cache.nasaimages.asset.http-thumb-record, suite.cache.nasaimages.q.apollo-11.1, suite.cache.nasaimages.q.apollo-11.2, suite.cache.nasaimages.q.artemis.1, suite.cache.nasaimages.q.newest-fast.1, suite.cache.nasaimages.q.nothingfound.1, suite.cache.nasaimages.q.older-delayed.1, suite.hub.recents, suite.theme — tool-owned keys all under suite.cache.nasaimages.*
+a11y: search aria-label, year <label for>, live regions (status+detail note polite), pager/close aria-labels, tiles are labeled <button>s
+mobile 390x844: scrollWidth 390 <= clientWidth 390, no horizontal overflow
+theme toggle: light -> dark, aria-pressed=true
+CONSOLE ISSUES:
+  console.error: Failed to load resource: net::ERR_FAILED
+  console.error: Failed to load resource: net::ERR_FAILED

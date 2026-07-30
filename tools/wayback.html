@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wayback Machine Lookup · Local Suite</title>
+<link rel="stylesheet" href="../core/suite.css" data-suite-inline>
+<style>
+  /* tool accents: verdict palette (3-layer, same pattern as core) */
+  :root { --good: #3a7d44; --warn: #b0752a; --bad: #c0503f; }
+  @media (prefers-color-scheme: dark) {
+    :root { --good: #7dc487; --warn: #d0a24d; --bad: #e0766a; }
+  }
+  :root[data-theme="light"] { --good: #3a7d44; --warn: #b0752a; --bad: #c0503f; }
+  :root[data-theme="dark"] { --good: #7dc487; --warn: #d0a24d; --bad: #e0766a; }
+
+  body { padding: 1.4rem 1.25rem 4rem; }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  .topbar { display: flex; align-items: center; gap: 1rem; }
+  .topbar .theme-btn, .topbar .fav-btn { float: none; }
+  .topbar .theme-btn { margin-left: auto; }
+  header { margin: 1rem 0 1.2rem; }
+  h1 { font-size: 1.8rem; letter-spacing: -.02em; }
+  .tag { color: var(--muted); margin-top: .35rem; max-width: 48rem; }
+
+  form.lookup { display: block; padding: 1rem 1.05rem; }
+  .fields { display: flex; gap: .7rem; flex-wrap: wrap; align-items: flex-end; }
+  .f { display: flex; flex-direction: column; gap: .3rem; }
+  .f.grow { flex: 1 1 16rem; }
+  .lbl { font-size: .78rem; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 600; }
+  input#onDate {
+    padding: .6rem .7rem; border: 1px solid var(--line); border-radius: 12px;
+    background: var(--card); color: var(--ink); font-size: .98rem; box-shadow: var(--shadow);
+  }
+  input#onDate:focus { border-color: var(--accent); outline: none; }
+  button.go {
+    padding: .66rem 1.25rem; border-radius: 12px; border: 1px solid var(--accent);
+    background: var(--accent); color: var(--bg); font-size: 1rem; font-weight: 600; cursor: pointer;
+  }
+  button.go:hover { filter: brightness(1.06); }
+  .ferr { color: var(--bad); margin-top: .6rem; font-size: .92rem; }
+  .pnote { color: var(--muted); margin-top: .6rem; font-size: .85rem; }
+
+  .hist { margin-top: 1.15rem; }
+  .hist-head { display: flex; align-items: baseline; gap: .8rem; margin-bottom: .5rem; }
+  .hist h2 { font-size: .78rem; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); font-weight: 600; }
+  .hclear {
+    border: none; background: none; color: var(--muted); font-size: .78rem;
+    cursor: pointer; text-decoration: underline; padding: 0;
+  }
+  .hclear:hover { color: var(--accent); }
+  .hchips { display: flex; flex-wrap: wrap; gap: .45rem; }
+  .hchip {
+    border: 1px solid var(--line); background: var(--chip); color: var(--ink);
+    border-radius: 999px; padding: .3rem .75rem; font-size: .85rem; cursor: pointer;
+    max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .hchip:hover { border-color: var(--accent); color: var(--accent); }
+
+  #result { margin-top: 1.5rem; }
+  .qtitle { font-weight: 600; font-size: 1.02rem; word-break: break-all; margin-bottom: .8rem; }
+  .callout {
+    border: 1px solid var(--line); border-left: 4px solid var(--muted);
+    background: var(--card); border-radius: 10px; padding: .7rem .9rem; font-size: .93rem;
+    box-shadow: var(--shadow); color: var(--muted);
+  }
+  .rescard { display: block; padding: 1.05rem 1.1rem; }
+  .verdict { display: flex; align-items: center; gap: .8rem; }
+  .verdict .dot { width: .85rem; height: .85rem; border-radius: 50%; flex: none; background: var(--muted); }
+  .rescard.ok .verdict .dot { background: var(--good); box-shadow: 0 0 0 4px color-mix(in srgb, var(--good) 22%, transparent); }
+  .rescard.none .verdict .dot { background: var(--warn); box-shadow: 0 0 0 4px color-mix(in srgb, var(--warn) 22%, transparent); }
+  .verdict b { font-size: 1.08rem; }
+  .verdict .sub { display: block; color: var(--muted); font-size: .9rem; }
+  .when { margin-top: .8rem; font-size: 1.35rem; font-weight: 600; letter-spacing: -.01em; }
+  .chips { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .55rem; }
+  .dist { margin-top: .55rem; color: var(--muted); font-size: .93rem; }
+  .ext {
+    display: inline-block; margin-top: .8rem; font-weight: 600; word-break: break-all;
+  }
+  .leave { display: block; margin-top: .25rem; color: var(--muted); font-size: .82rem; }
+  .none-body { margin-top: .7rem; font-size: .95rem; }
+  .stale {
+    margin-top: .8rem; font-size: .87rem; color: var(--ink); border-radius: 8px; padding: .45rem .65rem;
+    background: color-mix(in srgb, var(--warn) 16%, var(--card));
+    border: 1px solid color-mix(in srgb, var(--warn) 40%, transparent);
+  }
+  .errcard {
+    border-radius: 10px; padding: .8rem .95rem; font-size: .93rem;
+    border: 1px solid color-mix(in srgb, var(--bad) 45%, transparent);
+    background: color-mix(in srgb, var(--bad) 10%, var(--card));
+  }
+  .errcard b { display: block; margin-bottom: .15rem; }
+  footer { font-size: .82rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="index.html">← suite</a>
+    <button class="theme-btn" id="themeBtn" title="Toggle light/dark">◐ theme</button>
+  </div>
+  <header>
+    <h1>Wayback Machine Lookup</h1>
+    <p class="tag">Ask the Internet Archive whether a page has been saved, find the capture closest
+      to a date you care about, and jump straight to it.</p>
+  </header>
+
+  <form id="lookupForm" class="card lookup">
+    <div class="fields">
+      <label class="f grow">
+        <span class="lbl">Page address</span>
+        <input id="pageUrl" name="pageUrl" type="text" class="search" placeholder="example.com/some/page"
+          autocomplete="off" autocapitalize="off" spellcheck="false" inputmode="url">
+      </label>
+      <label class="f">
+        <span class="lbl">Closest to date (optional)</span>
+        <input id="onDate" name="onDate" type="date">
+      </label>
+      <button type="submit" class="go" id="goBtn">Check archive</button>
+    </div>
+    <p class="ferr" id="formErr" hidden></p>
+    <p class="pnote" id="histNote" hidden>Couldn't save this lookup to your history — browser storage looks full.</p>
+  </form>
+
+  <section class="hist" id="histWrap" hidden>
+    <div class="hist-head">
+      <h2>Recent lookups</h2>
+      <button type="button" class="hclear" id="clearHist">clear history</button>
+    </div>
+    <div class="hchips" id="histList"></div>
+  </section>
+
+  <div id="result" data-state="empty">
+    <div class="callout">Enter a web address above — whether the Wayback Machine has it, and the
+      capture closest to your date, appears here.</div>
+  </div>
+
+  <footer>
+    Data: Internet Archive
+    <a href="https://archive.org/help/wayback_api.php" target="_blank" rel="noopener">Wayback Availability API</a>
+    (archive.org/wayback/available) · answers cached 24&nbsp;h. Lookups go only to archive.org;
+    opening or saving a capture takes you to web.archive.org in a new tab.
+  </footer>
+</div>
+
+<script src="../core/suite.js" data-suite-inline></script>
+<script>
+"use strict";
+
+Suite.theme.init();
+
+const $ = s => document.querySelector(s);
+const TTL = 1440 * 60000;                  // manifest cacheTtlMin: 1440 (24 h)
+const API = "https://archive.org/wayback/available";
+const HIST_KEY = "suite.wayback.history";
+const HIST_MAX = 10;
+const MONTHS = ["January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"];
+
+/* async result container + the inline form error announce their updates */
+Suite.liveRegion($("#result"));
+Suite.liveRegion($("#formErr"));
+
+function stampTime(t) {
+  const d = new Date(t);
+  const sameDay = d.toDateString() === new Date().toDateString();
+  return d.toLocaleString([], sameDay
+    ? { hour: "numeric", minute: "2-digit" }
+    : { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+}
+
+/* ---------- input: trim, add https:// when schemeless, validate with the URL parser ---------- */
+function parseInput(raw) {
+  const typed = String(raw || "").trim();
+  if (!typed) return { err: "Type a web address to check." };
+  const withScheme = /^[a-z][a-z0-9+.-]*:/i.test(typed) ? typed : "https://" + typed;
+  let u;
+  try { u = new URL(withScheme); }
+  catch (e) { return { err: "That doesn't look like a web address — try something like example.com/page." }; }
+  if (u.protocol !== "http:" && u.protocol !== "https:")
+    return { err: "Only http(s) pages can be looked up — “" + u.protocol.slice(0, -1) + "” addresses aren't archived." };
+  if (!u.hostname || !u.hostname.includes("."))
+    return { err: "That needs a full hostname, like example.com." };
+  return { url: u.href };
+}
+
+/* ---------- cache key: one entry per (url, date) under suite.cache.wayback.* ----------
+   The slug keeps keys readable; the FNV-1a suffix keeps truncated slugs collision-safe. */
+function fnv1a(s) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+  return h.toString(36);
+}
+function cacheKeyFor(url, ts) {
+  const slug = url.toLowerCase().replace(/^https?:\/\//, "")
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40).replace(/-+$/, "") || "page";
+  return "wayback." + slug + (ts ? "-" + ts : "") + "-" + fnv1a(url + "|" + (ts || ""));
+}
+
+/* ---------- Wayback timestamps are UTC, formatted YYYYMMDDhhmmss (Availability API docs) ---------- */
+function parseTs(ts) {
+  const m = /^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})$/.exec(String(ts || ""));
+  if (!m) return null;
+  const y = +m[1], mo = +m[2], d = +m[3];
+  if (mo < 1 || mo > 12 || d < 1 || d > 31) return null;
+  return { y, mo, d, human: MONTHS[mo - 1] + " " + d + ", " + y + " · " + m[4] + ":" + m[5] + " UTC" };
+}
+
+/* distance between the capture day and the requested day, both at UTC midnight */
+function spanWords(n) {
+  if (n < 60) return n + (n === 1 ? " day" : " days");
+  if (n < 730) return "about " + Math.round(n / 30.44) + " months"; // 30.44 = mean Gregorian month length
+  return "about " + Math.round(n / 365.25 * 10) / 10 + " years";    // 365.25 covers leap years closely enough for "about"
+}
+function distanceLine(snap, dateStr) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateStr || ""));
+  if (!m || !snap) return "";
+  const reqHuman = MONTHS[+m[2] - 1] + " " + (+m[3]) + ", " + m[1];
+  const diff = Math.round((Date.UTC(snap.y, snap.mo - 1, snap.d) - Date.UTC(+m[1], +m[2] - 1, +m[3])) / 86400000);
+  if (diff === 0) return "Captured on your requested day (" + reqHuman + ").";
+  return "Captured " + spanWords(Math.abs(diff)) + (diff > 0 ? " after" : " before") +
+    " your requested date (" + reqHuman + ").";
+}
+
+/* ---------- history: suite.wayback.history, last 10, deduped by (url, date) ---------- */
+function readHistory() {
+  const v = Suite.store.get(HIST_KEY);
+  if (!Array.isArray(v)) return [];
+  return v.filter(x => x && typeof x === "object" && typeof x.u === "string" && x.u &&
+    (x.d === "" || /^\d{4}-\d{2}-\d{2}$/.test(x.d))).slice(0, HIST_MAX);
+}
+function pushHistory(u, d) {
+  const next = [{ u, d }]
+    .concat(readHistory().filter(x => !(x.u === u && x.d === d)))
+    .slice(0, HIST_MAX);
+  const ok = Suite.store.set(HIST_KEY, next);
+  $("#histNote").hidden = ok; /* quota: degrade politely, never crash */
+  renderHistory();
+}
+function renderHistory() {
+  const list = readHistory();
+  $("#histWrap").hidden = !list.length;
+  const el = $("#histList");
+  el.textContent = "";
+  for (const h of list) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "hchip";
+    b.dataset.u = h.u;
+    b.dataset.d = h.d;
+    b.textContent = h.u.replace(/^https?:\/\//, "").replace(/\/$/, "") + (h.d ? " · " + h.d : "");
+    b.title = "Look this up again";
+    b.addEventListener("click", () => {
+      $("#pageUrl").value = h.u;
+      $("#onDate").value = h.d;
+      submitLookup();
+    });
+    el.append(b);
+  }
+}
+$("#clearHist").addEventListener("click", () => {
+  Suite.store.remove(HIST_KEY);
+  renderHistory();
+});
+
+/* ---------- rendering (all remote/user data lands via textContent — nothing to escape) ---------- */
+function titleNode(url, dateStr) {
+  const t = document.createElement("div");
+  t.className = "qtitle mono";
+  t.textContent = url + (dateStr ? " · closest to " + dateStr : "");
+  return t;
+}
+function extLink(href, text) {
+  const a = document.createElement("a");
+  a.className = "ext";
+  a.href = href;
+  a.target = "_blank";
+  a.rel = "noopener";
+  a.textContent = text;
+  return a;
+}
+function chipNode(text) {
+  const c = document.createElement("span");
+  c.className = "chip";
+  c.textContent = text;
+  return c;
+}
+function staleNode(t) {
+  const s = document.createElement("div");
+  s.className = "stale";
+  s.textContent = "Offline — cached from " + stampTime(t) + ". The archive may have newer captures.";
+  return s;
+}
+
+function renderLoading(url, dateStr) {
+  const res = $("#result");
+  res.dataset.state = "loading";
+  res.textContent = "";
+  const c = document.createElement("div");
+  c.className = "callout";
+  c.textContent = "Checking the Wayback Machine…";
+  res.append(titleNode(url, dateStr), c);
+}
+
+function renderResult(url, dateStr, env) {
+  const snaps = env.v && typeof env.v === "object" ? env.v.archived_snapshots : null;
+  const closest = snaps && snaps.closest && snaps.closest.available ? snaps.closest : null;
+  /* Only ever link to a sane http(s) snapshot, and force https on it. */
+  let snapUrl = null;
+  if (closest && typeof closest.url === "string") {
+    try {
+      const u = new URL(closest.url);
+      if (u.protocol === "http:" || u.protocol === "https:") { u.protocol = "https:"; snapUrl = u.href; }
+    } catch (e) { /* unusable capture link -> fall through to the not-archived state */ }
+  }
+  if (!closest || !snapUrl) { renderNone(url, dateStr, env); return; }
+
+  const res = $("#result");
+  res.dataset.state = "ok";
+  res.textContent = "";
+  res.append(titleNode(url, dateStr));
+
+  const card = document.createElement("section");
+  card.className = "card rescard ok";
+
+  const verdict = document.createElement("div");
+  verdict.className = "verdict";
+  const dot = document.createElement("span"); dot.className = "dot";
+  const vt = document.createElement("div");
+  const b = document.createElement("b"); b.textContent = "Archived ✓";
+  const sub = document.createElement("span"); sub.className = "sub";
+  sub.textContent = "The Wayback Machine has a capture of this page.";
+  vt.append(b, sub);
+  verdict.append(dot, vt);
+  card.append(verdict);
+
+  const snap = parseTs(closest.timestamp);
+  const when = document.createElement("div");
+  when.className = "when";
+  when.textContent = snap ? snap.human : "Capture date unknown";
+  card.append(when);
+
+  const chips = document.createElement("div");
+  chips.className = "chips";
+  chips.append(chipNode(closest.status ? "HTTP " + closest.status + " at capture" : "capture status unknown"));
+  if (env.fromCache && !env.stale) chips.append(chipNode("answer cached " + stampTime(env.t)));
+  card.append(chips);
+
+  const distText = distanceLine(snap, dateStr);
+  if (distText) {
+    const dist = document.createElement("p");
+    dist.className = "dist";
+    dist.textContent = distText;
+    card.append(dist);
+  }
+
+  card.append(extLink(snapUrl, "Open this capture on web.archive.org ↗"));
+  const leave = document.createElement("span");
+  leave.className = "leave";
+  leave.textContent = "Opens the archived copy on the Internet Archive, in a new tab.";
+  card.append(leave);
+
+  if (env.stale) card.append(staleNode(env.t));
+  res.append(card);
+}
+
+function renderNone(url, dateStr, env) {
+  const res = $("#result");
+  res.dataset.state = "none";
+  res.textContent = "";
+  res.append(titleNode(url, dateStr));
+
+  const card = document.createElement("section");
+  card.className = "card rescard none";
+
+  const verdict = document.createElement("div");
+  verdict.className = "verdict";
+  const dot = document.createElement("span"); dot.className = "dot";
+  const vt = document.createElement("div");
+  const b = document.createElement("b"); b.textContent = "Not archived";
+  const sub = document.createElement("span"); sub.className = "sub";
+  sub.textContent = "The Wayback Machine returned no usable capture for this address.";
+  vt.append(b, sub);
+  verdict.append(dot, vt);
+  card.append(verdict);
+
+  const body = document.createElement("p");
+  body.className = "none-body";
+  body.textContent = "Either nobody has ever saved this exact address, or the site asks the " +
+    "archive not to keep it. A different spelling of the URL (with or without www, or the " +
+    "http:// form) is sometimes archived separately.";
+  card.append(body);
+
+  card.append(extLink("https://web.archive.org/save/" + url, "Save this page to the archive now ↗"));
+  const leave = document.createElement("span");
+  leave.className = "leave";
+  leave.textContent = "Leaves this tool — opens the Wayback Machine's save form on web.archive.org.";
+  card.append(leave);
+
+  if (env.stale) card.append(staleNode(env.t));
+  res.append(card);
+}
+
+function renderError(url, dateStr, err) {
+  const res = $("#result");
+  res.dataset.state = "error";
+  res.textContent = "";
+  res.append(titleNode(url, dateStr));
+  const card = document.createElement("div");
+  card.className = "errcard";
+  const b = document.createElement("b");
+  const p = document.createElement("span");
+  const msg = (err && err.message) || "network error";
+  if (msg.includes("HTTP 429")) {
+    b.textContent = "The archive is rate-limiting lookups";
+    p.textContent = "archive.org answered HTTP 429 (too many requests). Wait a minute and try again.";
+  } else {
+    b.textContent = "Lookup failed";
+    p.textContent = "archive.org didn't answer (" + msg + ") and there's no cached copy of this " +
+      "lookup yet. Check your connection and try again in a moment.";
+  }
+  card.append(b, p);
+  res.append(card);
+}
+
+/* ---------- the lookup itself ---------- */
+let seq = 0;
+async function runLookup(url, dateStr) {
+  const my = ++seq;
+  renderLoading(url, dateStr);
+  pushHistory(url, dateStr);
+  const ts = /^\d{4}-\d{2}-\d{2}$/.test(dateStr) ? dateStr.replace(/-/g, "") : "";
+  const q = API + "?url=" + encodeURIComponent(url) + (ts ? "&timestamp=" + ts : "");
+  let env = null, err = null;
+  try {
+    env = await Suite.fetchJSON(q, { cacheKey: cacheKeyFor(url, ts), ttl: TTL, timeout: 12000 });
+  } catch (e) { err = e; }
+  if (my !== seq) return; /* a newer lookup superseded this one */
+  if (err) renderError(url, dateStr, err);
+  else renderResult(url, dateStr, env);
+  $("#result").dataset.seq = String(my);
+}
+
+function submitLookup() {
+  const parsed = parseInput($("#pageUrl").value);
+  const errEl = $("#formErr");
+  if (parsed.err) {
+    errEl.textContent = parsed.err;
+    errEl.hidden = false;
+    return;
+  }
+  errEl.textContent = "";
+  errEl.hidden = true;
+  runLookup(parsed.url, $("#onDate").value || "");
+}
+
+$("#lookupForm").addEventListener("submit", e => { e.preventDefault(); submitLookup(); });
+
+renderHistory();
+</script>
+</body>
+</html>

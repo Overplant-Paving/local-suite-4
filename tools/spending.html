@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Federal Spending Explorer · Local Suite</title>
+<link rel="stylesheet" href="../core/suite.css" data-suite-inline>
+<style>
+  /* tool accents (3-layer, same pattern as core) */
+  :root { --warn: #b0752a; }
+  @media (prefers-color-scheme: dark) { :root { --warn: #d9a05a; } }
+  :root[data-theme="light"] { --warn: #b0752a; }
+  :root[data-theme="dark"] { --warn: #d9a05a; }
+
+  body { padding: 1.4rem 1.25rem 4rem; }
+  .wrap { max-width: 960px; margin: 0 auto; }
+  .topbar { display: flex; align-items: center; gap: 1rem; }
+  .topbar .theme-btn, .topbar .fav-btn { float: none; }
+  .topbar .theme-btn { margin-left: auto; }
+  header { margin: 1rem 0 1.2rem; }
+  h1 { font-size: 1.8rem; letter-spacing: -.02em; }
+  .tag { color: var(--muted); margin-top: .35rem; max-width: 48rem; }
+
+  section { margin-top: 2rem; }
+  section h2 { font-size: 1.2rem; }
+  section .note { color: var(--muted); font-size: .87rem; margin: .3rem 0 .9rem; max-width: 46rem; }
+  section .note b { color: var(--ink); font-weight: 600; }
+
+  .table-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); }
+  table { border-collapse: collapse; width: 100%; background: var(--card); font-size: .9rem; }
+  th, td { text-align: left; padding: .55rem .85rem; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tr:last-child td { border-bottom: none; }
+  td .abbr { color: var(--muted); font-size: .8em; margin-left: .4rem; }
+  td.rank { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .sharecell .pct { font-variant-numeric: tabular-nums; display: inline-block; min-width: 3.4rem; text-align: right; }
+  .sharecell .bar {
+    display: inline-block; width: 110px; height: 8px; background: var(--chip);
+    border-radius: 99px; vertical-align: middle; margin-left: .55rem; overflow: hidden;
+  }
+  .sharecell .bar i { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
+
+  .locrow { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; margin: .2rem 0 .9rem; font-size: .88rem; color: var(--muted); }
+  select {
+    font: inherit; font-size: .9rem; color: var(--ink); background: var(--card);
+    border: 1px solid var(--line); border-radius: 10px; padding: .42rem .6rem; max-width: 100%;
+  }
+
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: .7rem; }
+  .stat { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: .9rem 1rem; box-shadow: var(--shadow); min-width: 0; }
+  .stat .v { font-size: 1.45rem; font-weight: 700; letter-spacing: -.01em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  .stat .v.small { font-size: 1.02rem; line-height: 1.3; padding-top: .3rem; }
+  .stat .v.na { font-size: .95rem; font-weight: 600; color: var(--muted); padding-top: .35rem; }
+  .stat .k { font-size: .7rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-top: .3rem; }
+  .subnote { color: var(--muted); font-size: .82rem; margin-top: .8rem; max-width: 46rem; }
+  .stlink { margin-top: .55rem; font-size: .88rem; }
+  .stlink a { color: var(--accent); }
+  .stlink .leaves { color: var(--muted); font-size: .82em; }
+
+  .card-msg {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 1rem 1.1rem; box-shadow: var(--shadow); color: var(--muted); font-size: .9rem;
+  }
+  .errcard { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 1.1rem 1.2rem; box-shadow: var(--shadow); color: var(--muted); font-size: .9rem; }
+  .errcard b { color: var(--ink); }
+  .errcard.rl { border-color: var(--warn); }
+  .errcard.rl b { color: var(--warn); }
+  .stamp { font-size: .78rem; color: var(--muted); margin-top: .5rem; }
+  .skel { background: linear-gradient(90deg, var(--chip) 0%, var(--accent-soft) 50%, var(--chip) 100%); background-size: 200% 100%; animation: sh 1.3s infinite; border-radius: 8px; }
+  @keyframes sh { to { background-position: -200% 0; } }
+  @media (prefers-reduced-motion: reduce) { .skel { animation: none; } }
+
+  footer { padding-top: 1.4rem; font-size: .82rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="index.html">← suite</a>
+    <button class="theme-btn" id="themeBtn" title="Toggle light/dark">◐ theme</button>
+  </div>
+  <header>
+    <h1>Federal Spending Explorer</h1>
+    <p class="tag">Where federal money goes: the agencies with the most to spend this fiscal year, and the
+      award dollars flowing into your state — straight from USAspending.gov, no key required.</p>
+  </header>
+
+  <section>
+    <h2>Top agencies</h2>
+    <p class="note"><b>Budgetary resources</b> are what an agency has available to spend this fiscal year —
+      new appropriations plus fees and unspent carry-over — <b>not</b> what it has actually spent.
+      <span id="agFY"></span></p>
+    <div id="agBox">
+      <div class="table-scroll"><table><tbody><tr><td class="skel" style="height:10rem">&nbsp;</td></tr></tbody></table></div>
+    </div>
+    <div class="stamp" id="agStamp"></div>
+  </section>
+
+  <section>
+    <h2>Award spending in your state</h2>
+    <p class="note">Prime federal awards — contracts, grants, loans, and direct payments — going to
+      recipients in your state, as recorded by USAspending.</p>
+    <div class="locrow">
+      <label for="stateSel">Your state</label>
+      <select id="stateSel"></select>
+    </div>
+    <div id="stBox"></div>
+    <div class="stamp" id="stStamp"></div>
+  </section>
+
+  <footer>Data: USAspending.gov (api.usaspending.gov) — the official open record of federal spending,
+    published by the U.S. Treasury. Cached locally and refreshed about once a day. No key, no account,
+    nothing leaves this page except the two USAspending requests.</footer>
+</div>
+
+<script src="../core/suite.js" data-suite-inline></script>
+<script>
+"use strict";
+Suite.theme.init();
+
+/* ---------- constants ---------- */
+const BASE = "https://api.usaspending.gov";
+const DAY_MS = 86400000;
+const TTL = DAY_MS;               /* manifest cacheTtlMin: 1440 — refresh about once a day */
+const esc = Suite.esc;
+
+/* [code, name, FIPS] — ANSI FIPS 5-2 state codes (the 50 states + DC), the same codes
+   USAspending's own state profile URLs use. */
+const STATES = [
+  ["AL","Alabama","01"],["AK","Alaska","02"],["AZ","Arizona","04"],["AR","Arkansas","05"],
+  ["CA","California","06"],["CO","Colorado","08"],["CT","Connecticut","09"],["DE","Delaware","10"],
+  ["DC","District of Columbia","11"],["FL","Florida","12"],["GA","Georgia","13"],["HI","Hawaii","15"],
+  ["ID","Idaho","16"],["IL","Illinois","17"],["IN","Indiana","18"],["IA","Iowa","19"],
+  ["KS","Kansas","20"],["KY","Kentucky","21"],["LA","Louisiana","22"],["ME","Maine","23"],
+  ["MD","Maryland","24"],["MA","Massachusetts","25"],["MI","Michigan","26"],["MN","Minnesota","27"],
+  ["MS","Mississippi","28"],["MO","Missouri","29"],["MT","Montana","30"],["NE","Nebraska","31"],
+  ["NV","Nevada","32"],["NH","New Hampshire","33"],["NJ","New Jersey","34"],["NM","New Mexico","35"],
+  ["NY","New York","36"],["NC","North Carolina","37"],["ND","North Dakota","38"],["OH","Ohio","39"],
+  ["OK","Oklahoma","40"],["OR","Oregon","41"],["PA","Pennsylvania","42"],["RI","Rhode Island","44"],
+  ["SC","South Carolina","45"],["SD","South Dakota","46"],["TN","Tennessee","47"],["TX","Texas","48"],
+  ["UT","Utah","49"],["VT","Vermont","50"],["VA","Virginia","51"],["WA","Washington","53"],
+  ["WV","West Virginia","54"],["WI","Wisconsin","55"],["WY","Wyoming","56"]
+];
+const stRow = code => STATES.find(s => s[0] === code) || null;
+
+/* ---------- helpers ---------- */
+const num = x => { const n = typeof x === "string" ? parseFloat(x) : x; return Number.isFinite(n) ? n : null; };
+function fmtMoney(n) {              /* $T / $B / $M abbreviations */
+  if (!Number.isFinite(n)) return "not reported";
+  const a = Math.abs(n);
+  if (a >= 1e12) return "$" + (n / 1e12).toFixed(2) + "T";
+  if (a >= 1e9)  return "$" + (n / 1e9).toFixed(2) + "B";
+  if (a >= 1e6)  return "$" + (n / 1e6).toFixed(1) + "M";
+  return "$" + Math.round(n).toLocaleString("en-US");
+}
+function stampText(t, stale) {
+  const d = new Date(t).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+  return stale ? "Offline — cached from " + d : "Fetched " + d + " · cached for about a day";
+}
+function errCard(title, e) {
+  const rl = e && /HTTP 429/.test(e.message || "");
+  const msg = rl
+    ? "USAspending is rate-limiting requests right now (HTTP 429). Wait a minute and try again — nothing is broken on your end."
+    : esc((e && (e.message || String(e))) || "no response") +
+      ". Check your connection — cached data appears here automatically once a load has succeeded.";
+  return `<div class="errcard${rl ? " rl" : ""}"><b>${esc(title)}</b><br>${msg}</div>`;
+}
+
+/* async result containers announce updates */
+const agBox = Suite.liveRegion(document.getElementById("agBox"));
+const stBox = Suite.liveRegion(document.getElementById("stBox"));
+const agStamp = document.getElementById("agStamp");
+const stStamp = document.getElementById("stStamp");
+const agFY = document.getElementById("agFY");
+
+/* ---------- panel 1: top agencies by budgetary resources ---------- */
+async function loadAgencies() {
+  try {
+    const r = await Suite.fetchJSON(BASE + "/api/v2/references/toptier_agencies/",
+      { cacheKey: "spending.agencies", ttl: TTL, timeout: 15000 });
+    renderAgencies(r.v, r.t, r.stale);
+  } catch (e) {
+    agFY.textContent = "";
+    agStamp.textContent = "";
+    agBox.innerHTML = errCard("Couldn't load agency figures from USAspending.", e);
+  }
+}
+function renderAgencies(v, t, stale) {
+  /* Response shape (probed live 2026-07-30): results[] of {agency_name, abbreviation,
+     budget_authority_amount, current_total_budget_authority_amount, active_fy, active_fq,
+     percentage_of_total_budget_authority, ...}. budget_authority_amount is the figure
+     USAspending's agency profiles label "budgetary resources". Note the share field is a
+     0–1 FRACTION despite its "percentage" name (probe: Access Board 13,505,357 /
+     15,823,226,897,069 total = 8.5e-7, returned verbatim) — so the share is computed
+     from the two amounts instead of trusting the misnamed field. */
+  const rows = (v && Array.isArray(v.results) ? v.results : [])
+    .map(r => ({
+      name: r.agency_name, abbr: r.abbreviation,
+      amt: num(r.budget_authority_amount),
+      grand: num(r.current_total_budget_authority_amount),
+      fy: r.active_fy, fq: r.active_fq
+    }))
+    .filter(r => r.name);
+  if (!rows.length) {
+    agBox.innerHTML = errCard("No agency data in the USAspending response.", null);
+    agStamp.textContent = "";
+    return;
+  }
+  rows.sort((a, b) => (b.amt ?? -1) - (a.amt ?? -1));
+  const top = rows.slice(0, 15);
+  const grand = top.map(r => r.grand).find(Number.isFinite) ?? null;
+  const maxAmt = Number.isFinite(top[0].amt) ? top[0].amt : null;
+
+  agBox.innerHTML = `<div class="table-scroll"><table id="agTable">
+    <thead><tr><th class="rank">#</th><th>Agency</th><th class="num">Budgetary resources</th><th>Share of total</th></tr></thead>
+    <tbody>${top.map((r, i) => {
+      const share = (Number.isFinite(r.amt) && Number.isFinite(grand) && grand > 0) ? r.amt / grand : null;
+      const pctTxt = share == null ? "not reported" : (share * 100).toFixed(1) + "%";
+      const w = (share == null || !maxAmt) ? 0 : Math.max(0, Math.min(100, (r.amt / maxAmt) * 100));
+      return `<tr>
+        <td class="rank">${esc(i + 1)}</td>
+        <td>${esc(r.name)}${r.abbr ? `<span class="abbr">${esc(r.abbr)}</span>` : ""}</td>
+        <td class="num">${esc(fmtMoney(r.amt))}</td>
+        <td class="sharecell"><span class="pct">${esc(pctTxt)}</span><span class="bar" aria-hidden="true"><i style="width:${esc(w.toFixed(1))}%"></i></span></td>
+      </tr>`;
+    }).join("")}</tbody></table></div>`;
+
+  const f = top[0];
+  agFY.textContent = f.fy
+    ? `USAspending is currently reporting fiscal year ${f.fy}${f.fq ? " (through quarter " + f.fq + ")" : ""} figures.`
+    : "";
+  agStamp.textContent = stampText(t, stale);
+}
+
+/* ---------- panel 2: award spending in your state ---------- */
+/* Honor an existing shared suite.state the way recalls.html does (bare two-letter code). */
+let curState = (() => {
+  const s = Suite.store.get("suite.state");
+  return (typeof s === "string" && stRow(s)) ? s : "";
+})();
+
+const stateSel = document.getElementById("stateSel");
+(function initState() {
+  const ph = document.createElement("option");
+  ph.value = ""; ph.textContent = "— choose —";
+  stateSel.append(ph);
+  STATES.forEach(s => {
+    const o = document.createElement("option");
+    o.value = s[0]; o.textContent = s[1];
+    stateSel.append(o);
+  });
+  stateSel.value = curState;
+  stateSel.addEventListener("change", () => {
+    curState = stateSel.value;
+    if (curState) Suite.store.set("suite.state", curState);  /* returns false on quota — the
+      selection still works for this visit, it just won't be remembered; never fatal */
+    loadState();
+  });
+})();
+
+let stSeq = 0;
+async function loadState() {
+  const seq = ++stSeq;
+  stStamp.textContent = "";
+  if (!curState) {
+    stBox.innerHTML = `<div class="card-msg">Choose your state above to see the federal award dollars flowing there.</div>`;
+    return;
+  }
+  const [, name, fips] = stRow(curState);
+  stBox.innerHTML = `<div class="card-msg">Loading award totals for ${esc(name)}…</div>`;
+  try {
+    /* ?year=latest (the API default, made explicit): totals for the trailing 12 months.
+       Per the Recipient State Overview docs, `year` accepts a fiscal year, "all", or
+       "latest"; the response carries no year field, so the UI labels the window rather
+       than inventing a fiscal year. */
+    const r = await Suite.fetchJSON(`${BASE}/api/v2/recipient/state/${fips}/?year=latest`,
+      { cacheKey: "spending.state." + fips, ttl: TTL, timeout: 15000 });
+    if (seq !== stSeq) return;   /* a newer selection superseded this request */
+    renderState(r.v, r.t, r.stale, name, fips);
+  } catch (e) {
+    if (seq !== stSeq) return;
+    stBox.innerHTML = errCard("Couldn't load award data for " + name + ".", e);
+  }
+}
+function renderState(v, t, stale, name, fips) {
+  /* Response shape (probed live 2026-07-30): {name, code, fips, population, pop_year,
+     pop_source, total_prime_amount, total_prime_awards, award_amount_per_capita, ...}.
+     Absent/null figures render "not reported" — never invented. */
+  const total = num(v && v.total_prime_amount);
+  const count = num(v && v.total_prime_awards);
+  const percap = num(v && v.award_amount_per_capita);
+  const pop = num(v && v.population);
+  const shown = (v && v.name) ? v.name : name;
+
+  const statV = (txt, na, small) =>
+    `<div class="v${na ? " na" : (small ? " small" : "")}">${esc(txt)}</div>`;
+  stBox.innerHTML = `
+    <div class="cards">
+      <div class="stat">${statV(fmtMoney(total), total == null)}<div class="k">prime award dollars</div></div>
+      <div class="stat">${statV(count == null ? "not reported" : count.toLocaleString("en-US"), count == null)}<div class="k">prime awards</div></div>
+      <div class="stat">${statV(percap == null ? "not reported" : "$" + Math.round(percap).toLocaleString("en-US"), percap == null)}<div class="k">per person</div></div>
+      <div class="stat">${statV("Latest 12 months", false, true)}<div class="k">period covered</div></div>
+    </div>
+    <p class="subnote">${pop != null
+      ? `Per-person figure is USAspending's, using a ${shown ? esc(shown) : "state"} population of ${esc(pop.toLocaleString("en-US"))}${v.pop_source ? " (" + esc(v.pop_source) + ")" : ""}.`
+      : "Population for this state: not reported by the API."}</p>
+    <p class="stlink"><a href="https://www.usaspending.gov/state/${esc(fips)}/latest" target="_blank" rel="noopener">Full ${esc(shown)} profile on USAspending.gov ↗</a>
+      <span class="leaves">(leaves this page)</span></p>`;
+  stStamp.textContent = stampText(t, stale);
+}
+
+/* ---------- boot ---------- */
+loadAgencies();
+loadState();
+</script>
+</body>
+</html>

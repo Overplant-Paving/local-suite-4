@@ -1,6 +1,7 @@
 // Phase 3 served-mode verification (PWA.md, ROADMAP Phase 3 gates).
 //   node pwa-verify.mjs install   — registration, precache, installability, hint, offline matrix
-//   node pwa-verify.mjs update    — after a rebuild: new content within one reload, old caches gone
+//   node pwa-verify.mjs update    — after a rebuild: new content within one reload, old v4 caches gone
+//   node pwa-verify.mjs coexist   — v4 activation preserves v3 caches on the shared origin
 // Serves ../dist on 127.0.0.1:8031 for the duration of the run. Logs are evidence:
 // redirect into tests/evidence/phase3/.
 import { chromium } from "playwright";
@@ -17,6 +18,11 @@ const MIME = { ".html": "text/html", ".js": "text/javascript", ".png": "image/pn
 
 const server = http.createServer((req, res) => {
   const rel = req.url.split("?")[0].replace(/^\/+/, "") || "index.html";
+  if (rel === "__cache-seed.html") {
+    res.writeHead(200, { "content-type": "text/html", "cache-control": "no-store" });
+    res.end("<!doctype html><title>cache seed</title>");
+    return;
+  }
   const p = join(DIST, rel);
   if (!existsSync(p)) { res.writeHead(404); res.end(); return; }
   res.writeHead(200, { "content-type": MIME[extname(p)] || "application/octet-stream" });
@@ -34,6 +40,18 @@ const ctx = await browser.newContext();
 const page = await ctx.newPage();
 page.on("pageerror", (e) => die("pageerror: " + e.message));
 
+const coexistV3Cache = "suite-v3-coexistence-fixture";
+const obsoleteV4Cache = "suite-v4-obsolete-fixture";
+if (MODE === "coexist") {
+  await page.goto(`http://127.0.0.1:${PORT}/__cache-seed.html`);
+  await page.evaluate(async ({ v3, v4 }) => {
+    const foreign = await caches.open(v3);
+    await foreign.put("v3-offline.html", new Response("v3 offline shell"));
+    const obsolete = await caches.open(v4);
+    await obsolete.put("v4-old.html", new Response("obsolete v4 shell"));
+  }, { v3: coexistV3Cache, v4: obsoleteV4Cache });
+}
+
 await page.goto(`http://127.0.0.1:${PORT}/index.html`);
 await page.evaluate(() => navigator.serviceWorker.ready);
 // wait for the freshly-activated SW to finish precaching
@@ -45,6 +63,26 @@ await page.waitForFunction(async (exp) => {
 
 const cacheKeys = await page.evaluate(() => caches.keys());
 log(`sw ready; caches: ${JSON.stringify(cacheKeys)} (expected ${expectedCache})`);
+if (MODE === "coexist") {
+  const state = await page.evaluate(async ({ current, v3, v4 }) => {
+    const keys = await caches.keys();
+    const foreign = await caches.open(v3);
+    return {
+      keys,
+      currentEntries: (await (await caches.open(current)).keys()).length,
+      v3Body: await (await foreign.match("v3-offline.html")).text(),
+      obsoleteV4Present: keys.includes(v4),
+    };
+  }, { current: expectedCache, v3: coexistV3Cache, v4: obsoleteV4Cache });
+  log(`coexistence state after v4 activation: ${JSON.stringify(state)}`);
+  if (!state.keys.includes(expectedCache) || !state.keys.includes(coexistV3Cache))
+    die("coexistence: current v4 or seeded v3 cache missing");
+  if (state.obsoleteV4Present) die("coexistence: obsolete v4 cache was not deleted");
+  if (state.v3Body !== "v3 offline shell") die("coexistence: seeded v3 cache entry was changed");
+  if (state.currentEntries !== expectedCount) die("coexistence: current v4 precache incomplete");
+  log("V3/V4 CACHE COEXISTENCE OK");
+  await browser.close(); server.close(); process.exit(0);
+}
 if (MODE === "update") {
   // ROADMAP Phase 3 gate: build -> reload -> new content within one reload.
   // The orchestrator appends PWA-UPDATE-CANARY to tools/convert.html BEFORE this run

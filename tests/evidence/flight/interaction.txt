@@ -1,14 +1,23 @@
 initial no-key card visible=true, status="Add an Aviationstack key in Settings to begin."
 invalid flight rejected before fetch: calls=0, status="Enter an airline code and flight number, such as AA100."
-no-match path: "No matching ZZ999 flight was found for 2026-07-16. Check the airline code, number, and service date."
-wrong-date provider row rejected rather than misidentified: "No matching AA100 flight was found for 2026-07-16. Check the airline code, number, and service date."
+no-match path: "No matching ZZ999 flight was found for 2026-07-30. Check the airline code, number, and service date."
+wrong-date provider row rejected rather than misidentified: "No matching AA100 flight was found for 2026-07-30. Check the airline code, number, and service date."
 provider key rejection is specific: "The Aviationstack key was rejected. Replace it in Settings and try again."
 429 path is specific: "The provider's request limit was reached. Automatic refresh was turned off; wait for the allowance to reset."
-scheduled/no-position state is explicit: {"mapHidden":true,"status":"AA100, JFK to LAX, Estimated arrival · Terminal 4 · Gate 45A Jul 16, 10:28 PM PDT. Updated 7/16/2026, 9:58:53 PM · This flight currently has no live position report.","altitude":"Not reported"}
+scheduled/no-position state is explicit: {"mapHidden":true,"status":"AA100, JFK to LAX, Estimated arrival · Terminal 4 · Gate 45A Jul 30, 2:26 PM PDT. Updated 7/30/2026, 1:56:35 PM · This flight currently has no live position report.","altitude":"Not reported"}
 keyed flight identity resolved through ADS-B fallback: {"mapHidden":false,"position":"Airplanes.live ADS-B · Position updated less than a minute ago","coords":"41.250°, -92.500° · heading 265°","altitude":"35,000 ft"}
-active flight rendered without exposing key: {"title":"AA100","airline":"American Airlines","state":"active","route":["JFK","LAX"],"arrival":"Jul 16, 10:28 PM PDT","metrics":["2h 30m TIME TO ARRIVAL","35,000 ft ALTITUDE","541 mph GROUND SPEED","N123AA AIRCRAFT"],"mapHidden":false,"planeMarkers":1,"coords":"41.250°, -92.500° · heading 265°","cacheKeys":["suite.cache.flight.aa100.2026-07-16","suite.cache.flight.zz999.2026-07-16"],"bodyContainsKey":false,"usage":{"month":"2026-07","count":7},"controls":{"height":99.03125,"display":"flex","align":"end","justify":"normal","gap":"10.4px","children":[{"tag":"BUTTON","top":35,"height":47},{"tag":"LABEL","top":18,"height":63},{"tag":"SPAN","top":42,"height":40}]}}
-offline stale fallback: "AA100, JFK to LAX, Estimated arrival · Terminal 4 · Gate 45A Jul 16, 10:28 PM PDT. Showing cached data from 7/16/2026, 9:58:54 PM"
-total deterministic provider requests: aviationstack=7, airplanes.live=1
+active flight rendered without exposing key: {"title":"AA100","airline":"American Airlines","state":"active","route":["JFK","LAX"],"arrival":"Jul 30, 2:26 PM PDT","metrics":["2h 30m TIME TO ARRIVAL","35,000 ft ALTITUDE","535 mph GROUND SPEED","N123AA AIRCRAFT"],"mapHidden":false,"planeMarkers":1,"coords":"39.125°, -103.550° · heading 252°","cacheKeys":["suite.cache.flight.zz999.2026-07-30","suite.cache.flight.aa100.2026-07-30","suite.cache.flight.wx.grid.41x-93","suite.cache.flight.wx.outlook.klax","suite.cache.flight.wx.station.klax","suite.cache.flight.wx.sigmets","suite.cache.flight.wx.metar.kjfk","suite.cache.flight.wx.metar.klax"],"bodyContainsKey":false,"usage":{"month":"2026-07","count":7},"controls":{"height":99.03125,"display":"flex","align":"end","justify":"normal","gap":"10.4px","children":[{"tag":"BUTTON","top":35,"height":47},{"tag":"LABEL","top":18,"height":63},{"tag":"SPAN","top":42,"height":40}]}}
+weather map: 7 precip cells, 1 SIGMET (order-corrected), NWS 22.2 m/s → 50 mph and 37 m/s gust → 83 mph: "Weather layer 1:56 PM · Open-Meteo + NWS SIGMETs"
+world view toggle: {"pressed":"true","legendHidden":true,"landPaths":9}
+deterministic weather requests: {"grid":2,"metar":2,"sigmet":1,"outlook":1,"station":1}
+weather stale→fresh refresh resets cache label: "Weather layer cached 12:56 PM · Open-Meteo + NWS SIGMETs" → "Weather layer 1:56 PM · Open-Meteo + NWS SIGMETs"
+offline stale fallback: "AA100, JFK to LAX, Estimated arrival · Terminal 4 · Gate 45A Jul 30, 2:26 PM PDT. Showing cached data from 7/30/2026, 1:56:35 PM"
+total deterministic provider requests: aviationstack=9, airplanes.live=1
 mobile layout has no horizontal overflow: {"width":390,"scrollWidth":390,"routeColumns":"139.953px 20.1094px 139.969px"}
 theme toggle: light -> dark, aria-pressed=true
-console: clean (no errors)
+CONSOLE ISSUES:
+  console.error: Failed to load resource: net::ERR_FAILED
+  console.error: Failed to load resource: net::ERR_FAILED
+  console.error: Failed to load resource: net::ERR_FAILED
+  console.error: Failed to load resource: net::ERR_FAILED
+  console.error: Failed to load resource: net::ERR_FAILED

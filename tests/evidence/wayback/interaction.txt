@@ -1,0 +1,26 @@
+a11y: inputs labeled=true/true, aria-live #result=polite #formErr=polite, theme aria-pressed=false, clear button text="clear history"
+invalid URL "not a url" -> inline error "That needs a full hostname, like example.com.", requests made: 0 (expect 0)
+non-http scheme "javascript:alert(1)" -> inline error "Only http(s) pages can be looked up — “javascript” addresses aren't archived.", requests: 0 (expect 0)
+schemeless "example.com" -> request https://archive.org/wayback/available?url=https%3A%2F%2Fexample.com%2F (url param normalized to https://example.com/, no timestamp param)
+archived card: "Archived ✓" · when="March 4, 2019 · 14:22 UTC" · chip="HTTP 200 at capture"
+capture link: text="Open this capture on web.archive.org ↗" href=https://web.archive.org/web/20190304142200/https://example.com/ target=_blank rel=noopener (http:// from the API forced to https)
+cache key (recomputed independently): suite.cache.wayback.example-com-1vtv1lk -> envelope {t: number, v.…closest.timestamp: "20190304142200"}
+re-run same lookup: requests still 1 (served from cache, chip "answer cached 1:21 PM"), history deduped to 1 entry
+date 2019-03-01 chosen -> request carries timestamp=20190301; distance line: "Captured 3 days after your requested date (March 1, 2019)."
+dated lookup cached separately under suite.cache.wayback.example-com-20190301-1hk029i
+not archived -> "Not archived": "Either nobody has ever saved this exact address, or the site asks the …"
+  save link: text="Save this page to the archive now ↗" href=https://web.archive.org/save/https://notarchived.example.com/ target=_blank rel=noopener; note: "Leaves this tool — opens the Wayback Machine's save form on web.archive.org."
+HTTP 500 -> error card "Lookup failed": "archive.org didn't answer (HTTP 500) and there's no cached copy of this lookup yet. Check …"
+HTTP 429 -> distinct card "The archive is rate-limiting lookups": "archive.org answered HTTP 429 (too many requests). Wait a minute and try again."
+hostile capture status (markup) -> inert: __xss=null, injected els=0, rendered as text: "HTTP <img src=x onerror="window.__xss=9"> at captu…"
+hostile javascript: snapshot URL -> refused, designed "none" state, javascript: hrefs on page=0
+history after 11 distinct lookups: 10 entries (bound 10), newest=https://h3.example.com/, oldest undated example.com evicted, dated entry retained
+10 history chips rendered; dated chip click re-ran the lookup (inputs restored, served from cache, distance line back: "Captured 3 days after your requested date (March 1, 2019).")
+offline + 25 h-old cache -> archived card renders with stale stamp: "Offline — cached from Jul 29, 12:21 PM. The archive may have newer captures."
+clear history -> suite.wayback.history removed (null), section hidden=true
+localStorage keys now: suite.cache.wayback.example-com-1vtv1lk, suite.cache.wayback.example-com-20190301-1hk029i, suite.cache.wayback.h0-example-com-1cetu1y, suite.cache.wayback.h1-example-com-qhjhf9, suite.cache.wayback.h2-example-com-qmo6as, suite.cache.wayback.h3-example-com-14dpldv, suite.cache.wayback.hostile-link-example-com-4yt48z, suite.cache.wayback.hostile-status-example-com-1f9v6qt, suite.cache.wayback.notarchived-example-com-1xg5vht, suite.hub.recents, suite.theme (tool keys all under suite.cache.wayback.*; history re-added below)
+mobile 390px with a long-URL archived card + history chip: scrollWidth 390 <= clientWidth 390 (no horizontal overflow)
+final view restored: "https://example.com/ · closest to 2019-03-01" state=ok, total archive.org requests this run: 14 (all route-fulfilled fixtures)
+theme toggle: light -> dark, aria-pressed=true
+CONSOLE ISSUES:
+  console.error: Failed to load resource: net::ERR_FAILED

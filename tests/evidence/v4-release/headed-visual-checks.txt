@@ -1,0 +1,32 @@
+Local Suite v4 headed visual verification — 2026-07-30T18:09:43.024Z
+Chromium was launched with headless:false.
+PASS hub favorite cards visible
+PASS hub recent chips visible
+PASS hub desktop/mobile no horizontal overflow
+PASS hub desktop/mobile no console/page errors
+PASS hub desktop/mobile no CSP violations
+PASS flight weather map visible
+PASS flight METAR panels visible
+PASS flight desktop/mobile no horizontal overflow
+PASS flight desktop/mobile no console/page errors
+PASS flight desktop/mobile no CSP violations
+PASS parks resource-specific facts visible
+PASS parks GeoJSON visible and textual
+PASS parks desktop/mobile no horizontal overflow
+PASS parks desktop/mobile no console/page errors
+PASS parks desktop/mobile no CSP violations
+PASS arcade five cards and decoded art
+PASS arcade desktop/mobile no horizontal overflow
+PASS arcade desktop/mobile no console/page errors
+PASS arcade desktop/mobile no CSP violations
+PASS typing active feedback visible
+PASS typing desktop/mobile no horizontal overflow
+PASS typing desktop/mobile no console/page errors
+PASS typing desktop/mobile no CSP violations
+PASS budget populated summary visible
+PASS budget desktop/mobile no horizontal overflow
+PASS budget desktop/mobile no console/page errors
+PASS budget desktop/mobile no CSP violations
+
+screenshots: /home/intelligence-zero/Development/local-suite-4/tests/evidence/v4-release/visual
+result: PASS
