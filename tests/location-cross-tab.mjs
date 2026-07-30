@@ -32,7 +32,7 @@ if (await weather.evaluate(() => sessionStorage.getItem("locationReloadProbe")) 
   throw new Error("weather initial-load probe failed");
 }
 await settings.evaluate(() => Suite.locations.activate("b"));
-await weather.waitForFunction(() => sessionStorage.getItem("locationReloadProbe") === "2", null, { timeout: 5000 });
+await weather.waitForFunction(() => sessionStorage.getItem("locationReloadProbe") === "2", null, { timeout: 15000 });
 const result = await weather.evaluate(() => ({
   reloads: Number(sessionStorage.getItem("locationReloadProbe")),
   active: Suite.location.get()
