@@ -1,14 +1,26 @@
 # Local Suite 4
 
-This is **Local Suite v4**, built on the verified v2/v3 single-file architecture. V4 grows the
-suite to **100 manifest tools**: 26 new tools (offline calculators and trackers plus keyless
+This is **Local Suite v4**, built on the verified v2/v3 single-file architecture. The released
+v4.0.0 grew the suite to **100 manifest tools** (the v4.1 candidate below makes it 101): 26 new tools (offline calculators and trackers plus keyless
 CORS-open data explorers), The Arcade (five playable browser games with locally inlined card
 art), suite-wide favorites and recently-used quick access, a live flight weather map combining
 aircraft position with precipitation, SIGMETs, and airport METARs, and a re-audited National
 Parks Explorer whose 29-resource coverage was re-verified against the official specification.
 
 Current release: **v4.0.0** (2026-07-30). Release evidence is archived under
-`tests/evidence/v4-release/`. The v3.0.0 evidence remains under `tests/evidence/v3-release/`.
+`tests/evidence/v4-release/`; v3.0.0 evidence remains under `tests/evidence/v3-release/`.
+
+**v4.1 is an implemented release candidate, not a shipped release.** It adds **Flood Risk &
+Conditions** (`flood.html`), taking the manifest to **101 tools** (102 generated pages): it screens
+one exact, explicitly confirmed U.S. point against FEMA's National Flood Hazard Layer, active NWS
+flood alerts, and nearby NOAA forecast gauges — informational screening only, never a parcel or
+legal determination. The candidate is green on its deterministic gate and on the strict live
+acceptance gate `tests/flood-live-accept.mjs`: the final live run returned the recorded New Orleans
+zone X / `SFHA_TF=F` classification and a valid footprint with zero CSP or console errors.
+One recovery run still rendered supplementary FIRM-panel and LOMR failures independently; the final
+rerun loaded those enrichments too. Earlier outage and recovery evidence:
+`tests/evidence/flood/fema-outage-2026-07-31.md`.
+Feature evidence: `tests/evidence/flood/` and `tests/evidence/flood-feasibility/`.
 
 **To use the suite: open [`dist/index.html`](dist/index.html).** Everything in `dist/` is
 built and self-contained — double-click any file there. The `tools/` folder holds the
@@ -16,7 +28,7 @@ built and self-contained — double-click any file there. The `tools/` folder ho
 
 ## What Local Suite is
 
-A family of 100 **single-file HTML tools** — weather station, earthquake monitor, flight tracker,
+A family of 101 **single-file HTML tools** (100 released plus the v4.1 flood candidate) — weather station, earthquake monitor, flight tracker,
 calculator workbench, recipe box, periodic table, DNS lookup, arcade — plus a hub page that maps
 them all, with favorites and recently-used quick access. The philosophy (unchanged in v4):
 

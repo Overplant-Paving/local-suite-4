@@ -41,7 +41,7 @@ VIEWPORT_RE = re.compile(r'<meta name="viewport"[^>]*>')
 CSP_META_RE = re.compile(r'<meta http-equiv="Content-Security-Policy" content="([^"]*)">')
 
 NETWORK_CLASSES = ("offline", "cors-open", "keyed", "blocked")
-RELEASE_TOOL_COUNT = 100
+RELEASE_TOOL_COUNT = 101
 
 def read(p):
     return p.read_text(encoding="utf-8")
@@ -69,8 +69,9 @@ def sha256_b64(text):
 def build_csp(html, endpoints, script_endpoints=()):
     """Per-file CSP meta tag: sha256 hashes of every inline script + manifest hosts (ADR D6).
     script_endpoints: rare per-tool script-src host additions for JSONP sources (currently
-    only geo.html's Census geocoder, which is JSONP-only by the provider's design — a host
-    source is far narrower than the documented unsafe-inline fallback)."""
+    geo.html and flood.html, both for the Census geocoder, which is JSONP-only by the
+    provider's design — a host source is far narrower than the documented unsafe-inline
+    fallback)."""
     hashes = " ".join(f"'sha256-{sha256_b64(body)}'"
                       for body in SCRIPT_BODY_RE.findall(html))
     script_src = hashes + "".join(f" {host_of(e)}" for e in script_endpoints)
@@ -279,19 +280,20 @@ def gate_manifest_files_sync(tools, tool_file_names):
     return problems
 
 def gate_release_tool_count(tools):
-    """V4's product contract is exactly 100 distinct tool identities."""
+    """The current release contract is exactly RELEASE_TOOL_COUNT distinct tool identities."""
     count = len(tools)
     ids = [t.get("id") for t in tools]
     distinct = len(set(ids))
     problems = []
     if count != RELEASE_TOOL_COUNT:
         problems.append(
-            f"manifest must contain exactly {RELEASE_TOOL_COUNT} tools for v4; found {count}"
+            f"manifest must contain exactly {RELEASE_TOOL_COUNT} tools for this release; "
+            f"found {count}"
         )
     if distinct != RELEASE_TOOL_COUNT:
         problems.append(
-            f"manifest must contain exactly {RELEASE_TOOL_COUNT} distinct tool ids for v4; "
-            f"found {distinct}"
+            f"manifest must contain exactly {RELEASE_TOOL_COUNT} distinct tool ids for this "
+            f"release; found {distinct}"
         )
     return problems
 

@@ -139,6 +139,49 @@ Recent notable bird sightings around you (eBird) or all-taxa observations (iNatu
 - **Key:** none (iNat) / free key (eBird) · **Local:** file:// ✅ · **Complexity:** S
 - **Suggested file:** `wildlife.html`
 
+### 2.8 Flood Risk & Conditions — *release candidate* 🔶 (v4.1; live acceptance green)
+FEMA flood-zone screening for one exact U.S. point, plus active NWS flood alerts and nearby NOAA
+forecast gauges. Deliberately **not** a risk score, parcel survey, or legal determination — it
+classifies the coordinate you confirm and links to the official FEMA map for verification.
+- **Data:** FEMA National Flood Hazard Layer ArcGIS service
+  `https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer` (keyless, CORS ✓ — echoes
+  `Origin: null` and the GitHub Pages origin with `Vary: Origin`; verified live from a `file://`
+  Chromium page 2026-07-31, evidence `tests/evidence/flood-feasibility/live-probe.md`). Layers used:
+  28 flood-hazard zones (limited `outFields`, simplified point GeoJSON via `geometryPrecision=5` +
+  `maxAllowableOffset=0.00005` — 19 KB vs 1.37 MB unsimplified; gotcha, observed live 2026-07-31
+  afternoon and re-probed that evening: during a query-backend degradation the service answers
+  HTTP 200 with embedded ArcGIS 400 error bodies — `f=geojson` draws a misleading "output spatial
+  reference is not supported" validation error even with `outSR` omitted, while `f=json` draws
+  "Failed to execute query". A bounded shape-by-shape probe
+  (`tests/evidence/flood/fema-outage-2026-07-31.md`) established there is **no request-shape
+  workaround**: attributes-only, count-only and ids-only queries fail identically at multiple
+  points, and layers 3 and 1 fail with them, while layer 0 and the service metadata stay healthy —
+  the layers' data source is down, not the request. The tool therefore treats error-in-200 bodies
+  and unreadable-but-200 bodies as failures and shows the unavailable state; it still falls back
+  exactly once from the GeoJSON dialect to the identical simplified Esri JSON query (normalized
+  client-side), which recovers a genuine geojson-only rejection for one bounded request),
+  3 FIRM panels, 1 LOMRs (both only
+  after a zone record exists), 0 availability count (only when the zone answer is empty). NWS active
+  alerts `https://api.weather.gov/alerts/active?point={lat},{lon}` (keyless, CORS ✓), filtered
+  client-side to flood/hydrologic/storm-surge events. NOAA National Water Prediction Service
+  `https://api.water.noaa.gov/nwps/v1/gauges` (keyless, CORS ✓) — **always bounded** with
+  `bbox.*` + `srid=EPSG_4326&catfim=false` (an unbounded request times out); per-gauge
+  metadata/stageflow (61–392 KB live) is never fetched automatically. Address matching only via the
+  US Census geocoder `https://geocoding.geo.census.gov` (JSONP 🔶, same channel as geo.html), with a
+  mandatory explicit point-confirmation step before any hazard request.
+- **TTLs:** geocode + FEMA zone/panel/availability 7 d · LOMR 24 h · alerts 5 min · gauges 15 min;
+  caches are coordinate-keyed, bounded (10 coordinate targets, 20 geocode queries), independent per
+  source. Manifest `cacheTtlMin: 5` records the fastest automatic source.
+- **Limitations:** the sources classify a coordinate, not a structure or parcel; Census matches can
+  be interpolated street points; an empty zone answer is never rendered as "no flood risk", and
+  neither is a service failure or a malformed HTTP 200 payload. Each FEMA sub-result (zone, panel,
+  LOMR, availability) carries its own freshness: one whose refresh failed, or that is past its own
+  TTL, is labelled "not re-verified in this check" rather than shown as current. "Refresh current
+  conditions" always attempts the network regardless of TTL and falls back to the cached copy,
+  which then stamps itself offline.
+- **Key:** none · **Local:** file:// ✅ · **Complexity:** L
+- **File:** `flood.html`
+
 ---
 
 ## 3 · Space & Flight
@@ -679,6 +722,8 @@ The short version of everything above. **CORS ✓** = documented/community-confi
 | Open-Meteo (weather/air/marine/geocoding/archive) | `*.open-meteo.com` (in use: `api.`, `marine-api.`, `air-quality-api.`, `geocoding-api.`, `archive-api.open-meteo.com` — v2, Jul 2026) | none (10k/day) | ✓ |
 | USGS earthquakes | `earthquake.usgs.gov` | none | ✓ |
 | USGS water (new) | `api.waterdata.usgs.gov` | optional | ✓ (OGC API; verified Jul 2026) |
+| FEMA NFHL flood hazard | `hazards.fema.gov/arcgis/rest/services/public/NFHL` | none | ✓ (echoes Origin incl. null, Vary: Origin; live file:// fetch 2026-07-31) |
+| NOAA NWPS gauges | `api.water.noaa.gov/nwps/v1` | none | ✓ (ACAO:*, verified 2026-07-31; bbox required — unbounded /gauges times out) |
 | USGS elevation (EPQS) | `epqs.nationalmap.gov` | none | ✓ (v2 live browser fetch, Jul 2026) |
 | USGS volcanoes (HANS) | `volcanoes.usgs.gov/hans-public` | none | ✓ (verified Jul 2026) |
 | NIFC/WFIGS wildfires | `services3.arcgis.com/T4QMspbfLg3qTGWY` | none | ✓ (ArcGIS) |

@@ -1,0 +1,33 @@
+curl endpoint probes (Origin: null), 2026-07-31 evening — FEMA query backend still degraded; NWS/NWPS healthy.
+
+URL: https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer?f=json…
+HTTP 200 · 9520 B · 0.117001s
+access-control-allow-origin: null
+{"currentVersion":11.1,"cimVersion":"3.1.0","serviceDescription":"","mapName":"NFHL","description":"","copyrightText":"","supportsDynamicLayers":true,"layers":[
+
+URL: https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28/query?geometry=-90.071500,29.951100&geometryType=…
+HTTP 200 · 161 B · 0.126069s
+access-control-allow-origin: null
+{"error":{"code":400,"message":"Invalid or missing input parameters.","details":["The provided output spatial reference is not supported with geoJSON format."]}
+
+URL: https://api.weather.gov/alerts/active?point=29.9511,-90.0715…
+HTTP 200 · 8424 B · 0.317525s
+access-control-allow-origin: *
+{
+    "@context": [
+        "https://geojson.org/geojson-ld/geojson-context.jsonld",
+        {
+            "@version": "1.1",
+            "wx": "https://api.wea
+
+URL: https://api.water.noaa.gov/nwps/v1/gauges?bbox.xmin=-90.2446&bbox.ymin=29.8011&bbox.xmax=-89.8984&bbox.ymax=30.1011&srid…
+HTTP 200 · 28174 B · 0.451640s
+access-control-allow-origin: *
+{
+  "gauges": [
+    {
+      "lid": "ALAL1",
+      "name": "Mississippi River at Algiers Lock",
+      "rfc": {
+        "abbreviation": "LMRFC",
+        "name": "

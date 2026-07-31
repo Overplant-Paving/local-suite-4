@@ -1,0 +1,24 @@
+suite shortcut candidate: "Los Angeles, CA (34.0522, -118.2437) — suite location, may be approximate"
+results hidden before any check: true
+button text for coordinates: "Check this point"
+target bar: "Checked point: 29.951100, -90.071500 29.951100, -90.071500 Source: entered coordinates · checked Jul 31, 5:19 PM · this exact coordinate is "
+glance FEMA: "Inside a mapped SFHA — zone AE"
+glance alerts: "3 active flood alerts — Flood Warning"
+glance gauges: "Forecast major flooding — Big River at Town"
+FEMA stamp: "FEMA NFHL · fetched Jul 31, 5:19 PM"
+footprint aria-label: "Map: simplified footprint of FEMA flood zone AE containing the checked point 29.95110, -90.07150. The view spans about 4.4 km top to bottom. Approximate distanc"
+map text equivalent: "Text equivalent: the checked point sits inside the simplified FEMA polygon for zone AE. Approximate distance to this mapped zone edge: 482 m. Geometry is simpli"
+flood alerts rendered (severity-sorted, unrelated filtered): ["Flood Warning","Flood Advisory","Hydrologic Outlook"]
+gauge cards (flood-category-first): ["Big River at Town","Close Creek at Testville","Broken Gauge Bayou"]
+after save: suite.location = {"lat":29.9511,"lon":-90.0715,"label":"29.951100, -90.071500"}
+independent flood cache envelopes: ["suite.cache.flood.alerts.29.9511_-90.0715","suite.cache.flood.fema.29.95110_-90.07150","suite.cache.flood.gauges.29.951_-90.072"]
+suite.flood.target = {"lat":29.9511,"lon":-90.0715,"label":"29.951100, -90.071500","source":"coordinates","accuracy":null,"checkedAt":1785536342137}
+offline stale FEMA stamp: "FEMA NFHL · offline — cached from Jul 23, 5:19 PM"
+offline stale alerts stamp: "NWS alerts · offline — cached from Jul 23, 5:19 PM"
+offline stale gauges stamp: "NOAA NWPS · offline — cached from Jul 23, 5:19 PM"
+theme toggle: light -> dark, aria-pressed=true
+CONSOLE ISSUES:
+  console.error: Failed to load resource: net::ERR_FAILED
+  console.error: Failed to load resource: net::ERR_FAILED
+  console.error: Failed to load resource: net::ERR_FAILED
+  console.error: Failed to load resource: net::ERR_FAILED

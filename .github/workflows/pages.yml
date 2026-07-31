@@ -34,6 +34,7 @@ jobs:
       - run: node tests/flight-built.mjs
       - run: node tests/parks-built.mjs
       - run: node tests/arcade-built.mjs
+      - run: node tests/flood-built.mjs
       - run: node tests/smoke.mjs
       - run: node tests/pwa-verify.mjs coexist
   deploy:

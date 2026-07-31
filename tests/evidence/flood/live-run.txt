@@ -1,0 +1,18 @@
+live check of public coordinate 29.9511, -90.0715 (New Orleans city point) from built file://flood.html
+all three glance tiles resolved 575 ms after Check
+glance FEMA: FEMA unavailable
+glance alerts: No active flood alert
+glance gauges: No gauge at flood stage nearby
+FEMA stamp: 
+FEMA card (truncated): The FEMA NFHL service could not be reached (FEMA service error 400). No flood-zone conclusion can be drawn — this is not "no flood zone".
+map text: (no footprint)
+
+requests (url, status, bytes, ms):
+  200    89801 B      1 ms  file:///home/intelligence-zero/work/local-suite-4/dist/flood.html
+  200      161 B    139 ms  https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28/query?…
+  200       72 B     41 ms  https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28/query?…
+  200    28173 B    353 ms  https://api.water.noaa.gov/nwps/v1/gauges?…
+  200     8424 B    445 ms  https://api.weather.gov/alerts/active?…
+total automatic bytes: 126631
+CSP violations: []
+console errors: []

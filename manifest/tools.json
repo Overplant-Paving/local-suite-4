@@ -671,6 +671,36 @@
       "flags": []
     },
     {
+      "id": "flood",
+      "file": "flood.html",
+      "name": "Flood Risk & Conditions",
+      "cat": "earth",
+      "cx": "L",
+      "desc": "FEMA flood-zone screening for one exact U.S. point, with active flood alerts and nearby forecast gauges.",
+      "network": "cors-open",
+      "key": null,
+      "endpoints": [
+        "https://hazards.fema.gov",
+        "https://api.weather.gov",
+        "https://api.water.noaa.gov",
+        "https://geocoding.geo.census.gov"
+      ],
+      "scriptEndpoints": [
+        "https://geocoding.geo.census.gov"
+      ],
+      "storage": [
+        "suite.theme",
+        "suite.location",
+        "suite.location.auto",
+        "suite.location.autoDenied",
+        "suite.flood.target",
+        "suite.cache.flood.*"
+      ],
+      "cacheTtlMin": 5,
+      "since": "v4.1",
+      "flags": []
+    },
+    {
       "id": "wildfire",
       "file": "wildfire.html",
       "name": "Wildfire Watchboard",

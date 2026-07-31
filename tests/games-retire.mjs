@@ -5,10 +5,12 @@
    v4 note: the games category deliberately reopened with The Arcade, so this script no
    longer asserts the word "Games" is absent — only the retired prototype's remnants. */
 import { chromium } from "playwright";
-import { writeFileSync } from "fs";
+import { readFileSync, writeFileSync } from "fs";
 import { resolve } from "node:path";
 
 const REPO = resolve(import.meta.dirname, "..");
+const MANIFEST_COUNT = JSON.parse(
+  readFileSync(REPO + "/manifest/tools.json", "utf-8")).tools.length;
 const OUT = REPO + "/tests/evidence/games-retire";
 const lines = [];
 const say = s => { lines.push(s); console.log(s); };
@@ -45,7 +47,7 @@ cats.forEach(c => say("  " + c));
 const body = await page.evaluate(() => document.body.innerText);
 const total = cats.reduce((n, c) => n + (+(c.match(/(\d+) tools?/) || [0, 0])[1]), 0);
 say("");
-say("sum of per-category counts: " + total + "  (manifest: 100 tools + hub)");
+say("sum of per-category counts: " + total + "  (manifest: " + MANIFEST_COUNT + " tools + hub)");
 for (const needle of ["Meteor Patrol", "work in progress", "in the workshop"]) {
   say(`absent from built hub — ${JSON.stringify(needle)}: ${!body.includes(needle) ? "YES" : "NO ***"}`);
 }

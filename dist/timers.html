@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-JoBoC84BEz9qmIIiZEq7BkIZMo6+Egnc+/3jZAspRu0=' 'sha256-JNYGZwFCBWE0PKs4SN2PUeaqyHLq8GGnnDmN198YGKE='; style-src 'unsafe-inline'; img-src 'self' data:; media-src 'none'; connect-src 'none'; worker-src 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-ER0jb6McdcgMWjoDU8JUsprSZE/JtKaHJaaLMA+bQzI=' 'sha256-JNYGZwFCBWE0PKs4SN2PUeaqyHLq8GGnnDmN198YGKE='; style-src 'unsafe-inline'; img-src 'self' data:; media-src 'none'; connect-src 'none'; worker-src 'self'; manifest-src 'self'">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png" sizes="192x192">
 <title>Stopwatch &amp; Timers · Local Suite</title>
@@ -402,7 +402,13 @@ async function fetchJSON(url, opts = {}) {
   }
   if (fallbackToCache && cached) {
     if (JSON.stringify(store.get("suite.location")) !== locationAtStart) {
-      throw new Error("active location changed during request");
+      /* Same rejection as the successful-response path above, and it must carry the same
+         marker: callers distinguish "your location context moved, ask again" from a real
+         source failure, and without the flag a stale-cache rejection was indistinguishable
+         from "no cached data exists". */
+      const changed = new Error("active location changed during request");
+      changed.locationChanged = true;
+      throw changed;
     }
     return { v: cached.v, t: cached.t, stale: true, fromCache: true };
   }

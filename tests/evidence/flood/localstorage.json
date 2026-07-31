@@ -1,0 +1,12 @@
+{
+  "note": "new-in-v2 tool — no v1 original; parity N/A",
+  "v2": {
+    "suite.hub.recents": "[{\"id\":\"flood\",\"t\":1785536342276}]",
+    "suite.location": "{\"lat\":34.0522,\"lon\":-118.2437,\"label\":\"Los Angeles, CA\"}",
+    "suite.cache.flood.fema.29.95110_-90.07150": "{\"zone\":{\"t\":1784845142168,\"v\":{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"properties\":{\"DFIRM_ID\":\"22071C\",\"FLD_ZONE\":\"AE\",\"ZONE_SUBTY…(1081 chars)",
+    "suite.cache.flood.alerts.29.9511_-90.0715": "{\"t\":1784845142169,\"v\":{\"features\":[{\"properties\":{\"event\":\"Heat Advisory\",\"severity\":\"Moderate\",\"urgency\":\"Expected\",\"areaDesc\":\"Orleans Parish\",\"hea…(1407 chars)",
+    "suite.cache.flood.gauges.29.951_-90.072": "{\"t\":1784845142170,\"v\":{\"gauges\":[{\"lid\":\"NEAR1\",\"name\":\"Close Creek at Testville\",\"latitude\":29.961100000000002,\"longitude\":-90.0715,\"status\":{\"obser…(1076 chars)",
+    "suite.flood.target": "{\"lat\":29.9511,\"lon\":-90.0715,\"label\":\"29.951100, -90.071500\",\"source\":\"coordinates\",\"accuracy\":null,\"checkedAt\":1785536342137}",
+    "suite.theme": "dark"
+  }
+}

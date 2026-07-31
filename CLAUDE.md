@@ -1,8 +1,8 @@
 # Local Suite 4 — development instructions
 
-Local Suite 4 is the released continuation of the verified v2/v3 single-file suite. It contains
-100 manifest tools plus a generated hub. The source is in `tools/`; committed, self-contained
-output is in `dist/`.
+Local Suite 4 is the continuation of the verified v2/v3 single-file suite. It contains
+101 manifest tools plus a generated hub (102 generated pages). The source is in `tools/`;
+committed, self-contained output is in `dist/`.
 
 ## Read first
 
@@ -30,10 +30,27 @@ checkout; do not claim otherwise. Existing migration evidence remains under `tes
 - API keys are user-owned local data. Never commit, print, or place them in URLs when a provider
   supports header authentication.
 
-## Current project state (v4.0.0, 2026-07-30)
+## Current project state (v4.1 release candidate, 2026-07-31)
 
-- 71 v1 tools are preserved on the v2 architecture; Settings, Flight Tracker, The Arcade, and 26
-  further v4 tools bring the manifest to 100 tools, plus the hub (101 generated HTML pages).
+- **v4.1 is implemented but NOT released.** The last shipped release is v4.0.0. The strict live
+  acceptance gate `tests/flood-live-accept.mjs` is green: the final run returned the recorded New
+  Orleans zone X / `SFHA_TF=F` classification and a valid footprint with zero CSP/console errors.
+  One recovery run still rendered supplementary FIRM-panel and LOMR failures independently; the
+  final rerun loaded those enrichments too.
+  Do not describe v4.1 as shipped until the remaining release steps are completed, and do not treat
+  the non-asserting `tests/flood-live-run.mjs` outage capture as acceptance.
+
+- 71 v1 tools are preserved on the v2 architecture; Settings, Flight Tracker, The Arcade, 26
+  further v4 tools, and the v4.1 Flood Risk & Conditions page bring the manifest to 101 tools,
+  plus the hub (102 generated HTML pages).
+- V4.1 adds `flood.html`: FEMA NFHL point classification (with a two-step Census address
+  confirmation, tool-local `suite.flood.target`, an inline containing-zone SVG footprint, NWS
+  flood alerts, and bounded NWPS gauges). Plan and evidence: `FLOOD-TOOL-PLAN.md`,
+  `tests/evidence/flood-feasibility/`, `tests/evidence/flood/`; focused gate
+  `tests/flood-built.mjs` runs in the Pages workflow; the live acceptance gate is deliberately not
+  wired into CI, because a third-party outage must not block deploying the other 100 tools. The
+  v4.0.0 statements below and the archived v4 release evidence keep their historical 100-tool
+  counts.
 - V4 adds suite-wide favorites and recently-used quick access (core chrome + hub sections), a
   live flight weather map (Open-Meteo precipitation grid, NWS SIGMETs and METARs), a re-audited
   29-resource National Parks Explorer with a drawn boundary map, The Arcade (five playable games,
@@ -43,7 +60,7 @@ checkout; do not claim otherwise. Existing migration evidence remains under `tes
 - Release evidence and the final checklist live under `tests/evidence/v4-release/`.
 - The headed Chromium gate verifies a real `beforeinstallprompt` event, zero manifest and
   installability errors, service-worker control, same-origin manifest icons under CSP, and the
-  `suite-v4-` precache. Full build, PWA, update, and 101-page smoke gates remain mandatory for
+  `suite-v4-` precache. Full build, PWA, update, and 102-page smoke gates remain mandatory for
   future releases.
 
 ## Distribution model

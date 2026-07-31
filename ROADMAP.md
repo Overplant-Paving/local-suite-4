@@ -240,6 +240,29 @@ release checklist executed · tag pushed.
 
 ## V4 work
 
+- [ ] **Local Suite v4.1 — Flood Risk & Conditions (release candidate, 2026-07-31).** Implemented,
+  built and green on both its deterministic gate and the strict live acceptance gate
+  `tests/flood-live-accept.mjs`, which returned the recorded New Orleans result (zone X,
+  `SFHA_TF=F`, a drawn footprint, zero CSP/console errors). The candidate awaits the remaining
+  release checklist/commit/deployment steps. New `flood.html` (101st manifest
+  tool; 102 generated pages; `RELEASE_TOOL_COUNT` raised with the count gate reworded generically).
+  One exact, explicitly confirmed U.S. point is screened against FEMA NFHL layer 28 (limited
+  fields, simplified containing polygon + inline SVG footprint with a text equivalent and
+  approximate edge distance), FIRM panels/LOMRs (only after zone data exists, panels matched by
+  `DFIRM_ID`), the layer 0 availability fallback (only on an empty zone answer), NWS point flood
+  alerts, and a bbox-bounded NWPS gauge list ranked flood-category-first. Two-step
+  Census-match-then-confirm address flow; tool-local `suite.flood.target` (never the shared suite
+  location); generation-token race handling with a single retry after an unrelated cross-tab
+  suite-location abort; independent bounded per-source caches; no risk score, no "safe" wording,
+  no export/neighborhood/unbounded/history requests by construction. Plan: `FLOOD-TOOL-PLAN.md`.
+  Upstream evidence: layers 28/3/1 returned HTTP 200 with ArcGIS 400 bodies during an earlier
+  bounded shape-by-shape probe (`tests/evidence/flood/fema-outage-2026-07-31.md`). Layer 28 recovered
+  during final acceptance and produced the expected classification/geometry. One recovery run
+  rendered panel/LOMR failures independently; the final rerun loaded those enrichments too.
+  Evidence: `tests/evidence/flood-feasibility/live-probe.md` + `tests/evidence/flood/`. Gates:
+  `node tests/flood-built.mjs` + `node tests/verify-tool.mjs flood` (both wired into the Pages
+  workflow), plus the release-blocking `node tests/flood-live-accept.mjs`. Live outage capture is
+  the separate, non-asserting `node tests/flood-live-run.mjs`.
 - [x] **Local Suite v4.0.0 — 100 tools, 2026-07-30.** Release checklist:
   `tests/evidence/v4-release/release-checklist.md`.
 - [x] Suite-wide favorites + recently used — `suite.hub.favorites` / `suite.hub.recents`, chrome

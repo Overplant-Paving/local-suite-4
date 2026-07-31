@@ -158,8 +158,9 @@ Adding a tool = one manifest entry; the hub, service worker, and CSP all update 
 
 ### 4.4 `--check` gates
 
-0. **Exact v4 release identities**: the manifest contains exactly 100 distinct tool IDs, every ID
-   matches its file stem; 99, 101, duplicate-ID, and ID/file-mismatch fixtures all fail dedicated
+0. **Exact release identities**: the manifest contains exactly the release's declared tool count
+   (`RELEASE_TOOL_COUNT`, currently 101 as of v4.1) of distinct tool IDs, every ID matches its file
+   stem; under-count, over-count, duplicate-ID, and ID/file-mismatch fixtures all fail dedicated
    negative tests.
 0a. **Source text integrity**: NUL and non-whitespace control bytes are rejected before rendering;
     browsers replace them during HTML parsing, which would otherwise invalidate an apparently
@@ -303,8 +304,9 @@ Phase 2; the per-file `unsafe-inline` fallback remains documented but was not ne
 documented fallback: geo.html's Census geocoder is JSONP-only by the provider's design (no ACAO
 header — re-verified via curl and a live fetch probe). The manifest entry may declare
 `scriptEndpoints`: hosts appended to that file's `script-src` alongside the hashes. Scripts still
-cannot be injected from anywhere else, and no file uses `unsafe-inline`. Sole user: geo.html →
-`https://geocoding.geo.census.gov`.
+cannot be injected from anywhere else, and no file uses `unsafe-inline`. Users: geo.html and
+flood.html (v4.1) → `https://geocoding.geo.census.gov`, both for the same JSONP-only Census
+geocoder.
 
 ## 9. Risks & mitigations
 

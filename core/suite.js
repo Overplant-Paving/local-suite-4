@@ -155,7 +155,13 @@ async function fetchJSON(url, opts = {}) {
   }
   if (fallbackToCache && cached) {
     if (JSON.stringify(store.get("suite.location")) !== locationAtStart) {
-      throw new Error("active location changed during request");
+      /* Same rejection as the successful-response path above, and it must carry the same
+         marker: callers distinguish "your location context moved, ask again" from a real
+         source failure, and without the flag a stale-cache rejection was indistinguishable
+         from "no cached data exists". */
+      const changed = new Error("active location changed during request");
+      changed.locationChanged = true;
+      throw changed;
     }
     return { v: cached.v, t: cached.t, stale: true, fromCache: true };
   }

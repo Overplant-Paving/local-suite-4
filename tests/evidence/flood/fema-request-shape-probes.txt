@@ -1,0 +1,60 @@
+--- 1. layer 28 · attributes only, no geometry (f=json)
+HTTP 200 · 72 B · 0.118740s
+access-control-allow-origin: null
+{"error":{"code":400,"message":"Failed to execute query.","details":[]}}
+
+--- 2. layer 28 · simplified GeoJSON WITH outSR=4326 (the tool's primary shape)
+HTTP 200 · 161 B · 0.125782s
+access-control-allow-origin: null
+{"error":{"code":400,"message":"Invalid or missing input parameters.","details":["The provided output spatial reference is not supported with geoJSON format."]}}
+
+--- 3. layer 28 · simplified GeoJSON WITHOUT outSR
+HTTP 200 · 161 B · 0.123267s
+access-control-allow-origin: null
+{"error":{"code":400,"message":"Invalid or missing input parameters.","details":["The provided output spatial reference is not supported with geoJSON format."]}}
+
+--- 4. layer 28 · simplified Esri JSON WITH outSR=4326 (the tool's fallback shape)
+HTTP 200 · 72 B · 0.117384s
+access-control-allow-origin: null
+{"error":{"code":400,"message":"Failed to execute query.","details":[]}}
+
+--- 5. layer 28 · simplified Esri JSON WITHOUT outSR
+HTTP 200 · 72 B · 0.126084s
+access-control-allow-origin: null
+{"error":{"code":400,"message":"Failed to execute query.","details":[]}}
+
+--- 6. layer 28 · returnCountOnly (cheapest possible point query)
+HTTP 200 · 72 B · 0.133427s
+access-control-allow-origin: null
+{"error":{"code":400,"message":"Failed to execute query.","details":[]}}
+
+--- 7. layer 28 · returnIdsOnly
+HTTP 200 · 72 B · 0.129692s
+access-control-allow-origin: null
+{"error":{"code":400,"message":"Failed to execute query.","details":[]}}
+
+--- 8. layer 28 · same attributes-only shape at a second public point (Miami 25.7617,-80.1918)
+HTTP 200 · 72 B · 0.124053s
+access-control-allow-origin: null
+{"error":{"code":400,"message":"Failed to execute query.","details":[]}}
+
+--- 9. layer 3 · FIRM panel attributes only
+HTTP 200 · 72 B · 0.122761s
+access-control-allow-origin: null
+{"error":{"code":400,"message":"Failed to execute query.","details":[]}}
+
+--- 10. layer 1 · LOMR attributes only
+HTTP 200 · 72 B · 0.126116s
+access-control-allow-origin: null
+{"error":{"code":400,"message":"Failed to execute query.","details":[]}}
+
+--- 11. layer 0 · NFHL availability count (the tool's coverage fallback)
+HTTP 200 · 11 B · 0.172601s
+access-control-allow-origin: null
+{"count":1}
+
+--- 12. service metadata root
+HTTP 200 · 9520 B · 0.171071s
+access-control-allow-origin: null
+{"currentVersion":11.1,"cimVersion":"3.1.0","serviceDescription":"","mapName":"NFHL","description":"","copyrightText":"","supportsDynamicLayers":true,"layers":[{"id":0,"name":"NFHL Availability","parentLayerId":-1,"defau
+

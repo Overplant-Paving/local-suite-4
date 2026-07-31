@@ -55,6 +55,8 @@ Never: paid APIs, APIs requiring OAuth, sources that demand tracking.
 | Internet Archive availability API | fair-use | wayback | 24 h per-URL cache |
 | World Bank API | fair-use, keyless | worldbank | 7 d per-indicator cache |
 | NASA Image Library | fair-use, keyless | nasaimages | 24 h per-search cache |
+| FEMA NFHL (hazards.fema.gov ArcGIS) | fair-use, keyless | flood | point queries only, limited `outFields`, simplified geometry (`geometryPrecision=5`, `maxAllowableOffset=0.00005`); zone/panel/availability 7 d, LOMR 24 h; no export images, no neighborhood envelopes; ≤6 automatic requests per confirmed point (zone, one GeoJSON→Esri dialect fallback, panel, LOMR, plus the NWS and NWPS calls) |
+| NOAA NWPS (api.water.noaa.gov) | fair-use, keyless | flood | bbox-bounded `/gauges` list only — the box is derived from the advertised radius (20 km, one-time user-triggered 50 km) as `radiusKm / 111.2` with a cosine longitude adjustment, then filtered to a true circle by haversine — 15 min TTL; per-gauge metadata/history/stageflow never fetched automatically |
 
 ## 3. Key management
 

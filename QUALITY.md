@@ -89,7 +89,7 @@ that has never been seen to fail is assumed broken.
 
 **Tier 2 — smoke suite, mandatory:** `tests/smoke.mjs` (Playwright — the one npm concession,
 isolated in `tests/`, never required for *building*, always required for *shipping*). For each of
-every generated HTML file (currently 100 tools plus the hub, 101 files):
+every generated HTML file (currently 101 tools plus the hub, 102 files):
 
 1. open via `file://`
 2. assert zero console errors
@@ -122,8 +122,13 @@ snapshot. The burn-down table links to it; no evidence, not done.
 - [ ] `python3 build.py` — clean build
 - [ ] `python3 build.py --check` — green, including negative tests
 - [ ] smoke suite green across every generated HTML file (tier 2), output archived
-- [ ] focused current-version contracts green (for v3: multiple locations, location cross-tab,
-      Flight Tracker, and Parks Explorer)
+- [ ] focused current-version contracts green (multiple locations, location cross-tab,
+      Flight Tracker, Parks Explorer, Arcade, favorites/recents, and — since v4.1 — the built
+      Flood Risk & Conditions gate `tests/flood-built.mjs`)
+- [ ] **strict live acceptance** green for any tool whose primary answer comes from one upstream
+      service: the runner must require the recorded correct live result and exit nonzero
+      otherwise. A diagnostic capture that records an outage is not acceptance. Current gate:
+      `tests/flood-live-accept.mjs` (release-blocking for v4.1)
 - [ ] zero unresolved escaping-heuristic flags (§1.2)
 - [ ] dist committed; staleness gate confirms source↔dist match
 - [ ] CATALOG.md verification dates touched for any endpoint that changed

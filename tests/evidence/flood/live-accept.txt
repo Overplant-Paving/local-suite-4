@@ -1,0 +1,21 @@
+strict live acceptance — New Orleans city coordinate (public) 29.9511, -90.0715
+built page: dist/flood.html opened over file://
+
+FEMA glance tile: "Outside the mapped SFHA — zone X"
+FEMA status announcement: "FEMA classification: zone X, outside the mapped Special Flood Hazard Area. FIRM panel and map-revision details loaded."
+FEMA card: Zone X at this exact coordinateOutside the mapped Special Flood Hazard Area at this coordinate. Flooding can still occur, and map or property determinations may differ.FEMA subtype0.2 PCT ANNUAL CHANCE FLOOD HAZARDMeaningModerate flood hazard: the 0.2% annual-chance (500-year) hazard band, shallow 1% annual-chance flooding, or an area protected by levees — outside the SFHA but not free of flood ri
+
+PASS  FEMA returned a real classification (no service-error or unreadable card)
+PASS  FEMA zone is X at this coordinate (recorded expected result)
+PASS  SFHA is the explicit outside state (SFHA_TF=F), not unknown
+PASS  glance tile states the same outside/zone-X result
+PASS  the 0.2% annual-chance subtype is surfaced
+PASS  the recorded flood-study identity 22071C is present
+PASS  the containing-zone footprint section is shown
+PASS  the footprint SVG contains at least one drawn zone path (1)
+PASS  an approximate zone-edge distance was computed from the returned geometry
+PASS  the returned rings validated as complete
+PASS  zero CSP violations ([])
+PASS  zero console/page errors ([])
+
+RESULT: PASS — live FEMA classification matches the recorded expected result

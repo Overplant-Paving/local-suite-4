@@ -4,7 +4,7 @@ theme button click → light (flips)
 
 categories rendered (11):
   ☀️ Weather & Sky 12 tools
-  🌎 Earth & Nature 7 tools
+  🌎 Earth & Nature 8 tools
   🚀 Space & Flight 10 tools
   🏛️ Civic & Government 8 tools
   💵 Money & Economy 8 tools
@@ -15,7 +15,7 @@ categories rendered (11):
   🧰 Utilities & Toys 22 tools
   🕹️ Games & Arcade 1 tool
 
-sum of per-category counts: 100  (manifest: 100 tools + hub)
+sum of per-category counts: 101  (manifest: 101 tools + hub)
 absent from built hub — "Meteor Patrol": YES
 absent from built hub — "work in progress": YES
 absent from built hub — "in the workshop": YES
