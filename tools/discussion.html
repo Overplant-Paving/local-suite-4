@@ -135,6 +135,7 @@
 <script>
 "use strict";
 Suite.theme.init();
+Suite.location.watch();
 
 const $ = s => document.querySelector(s);
 const esc = Suite.esc;
@@ -448,7 +449,6 @@ changeBtn.addEventListener("click", () => {
     $("#zip").focus();
   }
 });
-window.addEventListener("storage", e => { if (e.key === "suite.location") location.reload(); });
 
 /* ---- boot ---- */
 if (loc) load(); else showNoLocation();

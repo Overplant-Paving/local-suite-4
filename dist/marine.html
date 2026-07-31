@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-Ds0QuX1uI88hf1B1wDFNcSC+BBXhkuxAEemF8VACbAU=' 'sha256-8i5wm9f5KgmpXLlbS/hbiQdjNF3WBT9nzFAp0KNDtr4='; style-src 'unsafe-inline'; img-src 'self' data: https://marine-api.open-meteo.com https://api.open-meteo.com https://api.zippopotam.us; media-src https://marine-api.open-meteo.com https://api.open-meteo.com https://api.zippopotam.us; connect-src https://marine-api.open-meteo.com https://api.open-meteo.com https://api.zippopotam.us; worker-src 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-JoBoC84BEz9qmIIiZEq7BkIZMo6+Egnc+/3jZAspRu0=' 'sha256-+UJoubbDX/rAwwLZnzi3MNv+2Q/MOM7UfyefTdglThE='; style-src 'unsafe-inline'; img-src 'self' data: https://marine-api.open-meteo.com https://api.open-meteo.com https://api.zippopotam.us; media-src https://marine-api.open-meteo.com https://api.open-meteo.com https://api.zippopotam.us; connect-src https://marine-api.open-meteo.com https://api.open-meteo.com https://api.zippopotam.us; worker-src 'self'; manifest-src 'self'">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png" sizes="192x192">
 <title>Buoy &amp; Marine Conditions · Local Suite</title>
@@ -521,6 +521,20 @@ Object.assign(loc, {
     if (on) { store.remove(AUTO_DENIED_KEY); return store.remove(AUTO_KEY); }
     return store.set(AUTO_KEY, "off");
   },
+  /* Keep an already-open location tool responsive when Settings, the hub, or
+     another tool changes the shared location in a different tab/window. Reload
+     is the safe default because tools consume location in several shapes and
+     some snapshot it at parse time. The caller may supply a focused re-render
+     callback when it can fully rebind its own state and in-flight work. */
+  watch(callback) {
+    const refresh = typeof callback === "function"
+      ? callback : () => window.location.reload();
+    const onStorage = e => {
+      if (e.key === "suite.location") refresh(loc.get(), e);
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  },
   /* true when asking could actually get somewhere — used to stay silent rather
      than paint a "finding you…" state that can never resolve */
   autoPossible() {
@@ -819,6 +833,7 @@ if (location.protocol.startsWith("http") && "serviceWorker" in navigator) {
 "use strict";
 
 Suite.theme.init();
+Suite.location.watch();
 
 /* the chart bakes computed CSS-var colors into inline SVG, so re-render on theme flip
    (v1 did this inside its own theme-toggle handler; core owns the toggle now) */
@@ -1044,7 +1059,6 @@ $("#changeLoc").addEventListener("click", showFirstRun);
 
 /* refresh on focus (gentle) */
 document.addEventListener("visibilitychange",()=>{ if (!document.hidden && loc && lastData && Date.now()-lastData.when>10*60*1000) load(); });
-window.addEventListener("storage",e=>{ if(e.key==="suite.location") location.reload(); });
 
 /* ---------- boot ---------- */
 Suite.liveRegion($("#content"));

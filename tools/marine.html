@@ -109,6 +109,7 @@
 "use strict";
 
 Suite.theme.init();
+Suite.location.watch();
 
 /* the chart bakes computed CSS-var colors into inline SVG, so re-render on theme flip
    (v1 did this inside its own theme-toggle handler; core owns the toggle now) */
@@ -334,7 +335,6 @@ $("#changeLoc").addEventListener("click", showFirstRun);
 
 /* refresh on focus (gentle) */
 document.addEventListener("visibilitychange",()=>{ if (!document.hidden && loc && lastData && Date.now()-lastData.when>10*60*1000) load(); });
-window.addEventListener("storage",e=>{ if(e.key==="suite.location") location.reload(); });
 
 /* ---------- boot ---------- */
 Suite.liveRegion($("#content"));
