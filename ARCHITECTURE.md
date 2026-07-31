@@ -81,12 +81,16 @@ Suite.esc(str)                     // HTML-escape; mandatory for remote data in 
 Suite.liveRegion(el)               // marks an async result container aria-live="polite" (QUALITY.md)
 
 Suite.location.get() / .set({lat, lon, label})   // the shared suite.location key
-Suite.locations.init()                          // migrate the v2 active location into a named list
+Suite.location.watch(callback?)                   // cross-tab location updates; reload by default
+Suite.locations.init()                            // migrate the v2 active location into a named list
 Suite.locations.all() / .active()
 Suite.locations.add(location) / .update(id, changes) / .remove(id) / .activate(id)
   // suite.locations is the v3 collection; suite.location remains its active mirror so
   // every existing tool stays compatible. Active-place changes reset only unsafe
   // location-derived station/state/alert choices; safe scoped/global caches remain.
+  // Every manifest tool that declares suite.location calls Suite.location.watch().
+  // Its default reload safely rebinds parse-time snapshots, requests, and timers;
+  // Settings and the hub keep focused storage listeners so edits/search text survive.
 Suite.favorites.all() / .has(id) / .toggle(id)   // suite.hub.favorites; the chrome star is
                                    // injected beside the theme button by theme.init(), so no
                                    // tool carries favorite markup (v4)

@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-Ds0QuX1uI88hf1B1wDFNcSC+BBXhkuxAEemF8VACbAU=' 'sha256-omgj2AcnNoBWe7Graj5wXrWfqt+ecxwA9xoxlvVkJw8='; style-src 'unsafe-inline'; img-src 'self' data: https://api.artic.edu https://www.artic.edu https://images.metmuseum.org; media-src https://api.artic.edu https://www.artic.edu https://images.metmuseum.org; connect-src https://api.artic.edu https://www.artic.edu https://images.metmuseum.org; worker-src 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-JoBoC84BEz9qmIIiZEq7BkIZMo6+Egnc+/3jZAspRu0=' 'sha256-omgj2AcnNoBWe7Graj5wXrWfqt+ecxwA9xoxlvVkJw8='; style-src 'unsafe-inline'; img-src 'self' data: https://api.artic.edu https://www.artic.edu https://images.metmuseum.org; media-src https://api.artic.edu https://www.artic.edu https://images.metmuseum.org; connect-src https://api.artic.edu https://www.artic.edu https://images.metmuseum.org; worker-src 'self'; manifest-src 'self'">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png" sizes="192x192">
 <title>Museum Postcard · Local Suite</title>
@@ -511,6 +511,20 @@ Object.assign(loc, {
        single misclick would be unrecoverable without the storage viewer */
     if (on) { store.remove(AUTO_DENIED_KEY); return store.remove(AUTO_KEY); }
     return store.set(AUTO_KEY, "off");
+  },
+  /* Keep an already-open location tool responsive when Settings, the hub, or
+     another tool changes the shared location in a different tab/window. Reload
+     is the safe default because tools consume location in several shapes and
+     some snapshot it at parse time. The caller may supply a focused re-render
+     callback when it can fully rebind its own state and in-flight work. */
+  watch(callback) {
+    const refresh = typeof callback === "function"
+      ? callback : () => window.location.reload();
+    const onStorage = e => {
+      if (e.key === "suite.location") refresh(loc.get(), e);
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
   },
   /* true when asking could actually get somewhere — used to stay silent rather
      than paint a "finding you…" state that can never resolve */

@@ -312,6 +312,20 @@ Object.assign(loc, {
     if (on) { store.remove(AUTO_DENIED_KEY); return store.remove(AUTO_KEY); }
     return store.set(AUTO_KEY, "off");
   },
+  /* Keep an already-open location tool responsive when Settings, the hub, or
+     another tool changes the shared location in a different tab/window. Reload
+     is the safe default because tools consume location in several shapes and
+     some snapshot it at parse time. The caller may supply a focused re-render
+     callback when it can fully rebind its own state and in-flight work. */
+  watch(callback) {
+    const refresh = typeof callback === "function"
+      ? callback : () => window.location.reload();
+    const onStorage = e => {
+      if (e.key === "suite.location") refresh(loc.get(), e);
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  },
   /* true when asking could actually get somewhere — used to stay silent rather
      than paint a "finding you…" state that can never resolve */
   autoPossible() {

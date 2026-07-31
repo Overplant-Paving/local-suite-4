@@ -149,6 +149,7 @@
 "use strict";
 
 Suite.theme.init();
+Suite.location.watch();
 
 /* the chart bakes computed CSS-var colors into inline SVG, so re-render on theme flip
    (v1 did this inside its own theme-toggle handler; core owns the toggle now) */

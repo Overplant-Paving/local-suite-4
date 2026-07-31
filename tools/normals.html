@@ -134,6 +134,7 @@
 "use strict";
 
 Suite.theme.init();
+Suite.location.watch();
 /* v1 re-drew the SVG chart on theme flip (chart colors resolve from CSS variables
    at draw time). Suite.theme.init() registered its toggle listener first, so the
    theme has already flipped when this runs. */

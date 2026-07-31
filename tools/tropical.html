@@ -147,6 +147,7 @@
 <script>
 "use strict";
 Suite.theme.init();
+Suite.location.watch();
 
 const $ = s => document.querySelector(s);
 const esc = Suite.esc;
@@ -465,8 +466,6 @@ async function loadAlerts() {
 /* ---------- boot ---------- */
 loadOutlooks();
 loadAlerts();
-/* cross-tab location changes re-check the alerts panel */
-window.addEventListener("storage", e => { if (e.key === "suite.location") loadAlerts(); });
 /* genuine cold start only: ask the browser once, then reload into the located view */
 Suite.location.autoBoot();
 </script>

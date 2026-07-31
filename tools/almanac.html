@@ -151,6 +151,7 @@
 "use strict";
 
 Suite.theme.init();
+Suite.location.watch();
 /* the arc SVG and moon canvas sample CSS variables — repaint after a theme flip
    (Suite.theme.init wired the toggle above; this listener runs after it) */
 document.getElementById("themeBtn").addEventListener("click", () => redraw());
@@ -547,7 +548,6 @@ document.getElementById("todayBtn").addEventListener("click", () => {
 });
 
 /* ---------- boot ---------- */
-window.addEventListener("storage", e => { if (e.key === "suite.location") location.reload(); });
 if (loc) showApp(); else showFirstRun();
 
 /* First run: no location saved anywhere yet — ask the browser once and reload into

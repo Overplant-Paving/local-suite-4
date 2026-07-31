@@ -1,0 +1,62 @@
+multiple locations: PASS {"migration":true,"uniqueIds":["home","home-2"],"legacyWriterSync":true,"labelClear":true,"activeFallback":true,"finalClear":true,"invalidRejected":true,"unknownFieldsPreserved":true,"futureSchemaPreserved":true,"damagedDataPreserved":true,"inFlightGuard":{"rejected":true,"cached":null},"builtHub":{"toolLinks":100,"activeLabel":"Home","collection":{"schema":1,"activeId":"saved-location","items":[{"id":"saved-location","revision":1,"lat":40.7128,"lon":-74.006,"label":"Home"}]}},"wildfireScoped":true}
+location cross-tab: PASS {"reloads":2,"active":{"lat":34.0522,"lon":-118.2437,"label":"B"},"paintedLabel":"B","coveredTools":31}
+automatic first location: PASS {
+  "cold": {
+    "saved": {
+      "lat": 37.7749,
+      "lon": -122.4194,
+      "label": "My location (37.7749, -122.4194)"
+    },
+    "loads": 2,
+    "setupCardGone": true,
+    "errs": []
+  },
+  "propagated": {
+    "geoCalls": 0,
+    "loads": 1,
+    "showsLocation": true,
+    "errs": []
+  },
+  "denied": {
+    "askedOnce": true,
+    "deniedFlag": "denied",
+    "askedAgain": 0,
+    "loads": 2,
+    "stillOffersManual": true,
+    "errs": []
+  },
+  "autoDeny": {
+    "notRemembered": true,
+    "asksAgain": 1,
+    "errs": []
+  },
+  "toggledOff": {
+    "geoCalls": 0,
+    "location": null,
+    "errs": []
+  },
+  "typingWins": {
+    "loads": 1,
+    "savedAnyway": true,
+    "inputSurvived": "hello typed input",
+    "errs": []
+  },
+  "noLoop": {
+    "loads": 1,
+    "errs": []
+  },
+  "hub": {
+    "status": "My location (37.7749, -122.4194) is now active and shared with every tool.",
+    "switcherVisible": true,
+    "options": [
+      "My location (37.7749, -122.4194)"
+    ],
+    "errs": []
+  },
+  "toggle": {
+    "warnsAboutRefusal": true,
+    "offWrites": "off",
+    "onClears": true,
+    "errs": []
+  }
+}

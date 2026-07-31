@@ -121,6 +121,7 @@
 "use strict";
 
 Suite.theme.init();
+Suite.location.watch();
 
 /* ================= location (shared suite.location key, via Suite.location) ================= */
 let loc = Suite.location.get();
@@ -474,7 +475,6 @@ document.getElementById("changeLoc").addEventListener("click", () => {
 document.getElementById("themeBtn").addEventListener("click", () => { if (loc) drawChart(); });
 
 /* ================= boot ================= */
-window.addEventListener("storage", e => { if (e.key === "suite.location") location.reload(); });
 if (loc) renderAll();
 else document.getElementById("locCard").style.display = "block";
 
