@@ -123,12 +123,12 @@ snapshot. The burn-down table links to it; no evidence, not done.
 - [ ] `python3 build.py --check` — green, including negative tests
 - [ ] smoke suite green across every generated HTML file (tier 2), output archived
 - [ ] focused current-version contracts green (multiple locations, location cross-tab,
-      Flight Tracker, Parks Explorer, Arcade, favorites/recents, and — since v4.1 — the built
-      Flood Risk & Conditions gate `tests/flood-built.mjs`)
+      Flight Tracker, Parks Explorer, Arcade, favorites/recents, Flood Risk & Conditions
+      `tests/flood-built.mjs`, and — since v4.2 — Optical Transfer `tests/optical-built.mjs`)
 - [ ] **strict live acceptance** green for any tool whose primary answer comes from one upstream
       service: the runner must require the recorded correct live result and exit nonzero
       otherwise. A diagnostic capture that records an outage is not acceptance. Current gate:
-      `tests/flood-live-accept.mjs` (release-blocking for v4.1)
+      `tests/flood-live-accept.mjs` (manual release gate for releases that include Flood Risk)
 - [ ] zero unresolved escaping-heuristic flags (§1.2)
 - [ ] dist committed; staleness gate confirms source↔dist match
 - [ ] CATALOG.md verification dates touched for any endpoint that changed

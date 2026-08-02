@@ -240,17 +240,18 @@ release checklist executed · tag pushed.
 
 ## V4 work
 
-- [ ] **Optical Transfer integration (independent worktree, 2026-08-01).** Staged as the 102nd
-  manifest tool: one self-contained Send/Receive page with DCF2 containers, deterministic LT
+- [x] **Local Suite v4.2.0 — Optical Transfer, 2026-08-02.** Released as the 102nd manifest tool:
+  one self-contained Send/Receive page with DCF2 containers, deterministic LT
   fountain recovery, inlined QR encoder and ZXing-WASM worker, SHA-256-gated completion, bounded
   hostile-input handling, honest mobile HTTPS/PWA behavior, focused deterministic tests, and MIT
-  provenance. Architecture: `OPTICAL-TRANSFER.md`; evidence: `tests/evidence/optical/`.
+  provenance. Architecture: `OPTICAL-TRANSFER.md`; feature evidence: `tests/evidence/optical/`;
+  release evidence: `tests/evidence/v4.2-release/`.
 
-- [ ] **Local Suite v4.1 — Flood Risk & Conditions (release candidate, 2026-07-31).** Implemented,
+- [x] **Local Suite v4.1.0 — Flood Risk & Conditions, released 2026-07-31.** Implemented,
   built and green on both its deterministic gate and the strict live acceptance gate
   `tests/flood-live-accept.mjs`, which returned the recorded New Orleans result (zone X,
-  `SFHA_TF=F`, a drawn footprint, zero CSP/console errors). The candidate awaits the remaining
-  release checklist/commit/deployment steps. New `flood.html` (101st manifest
+  `SFHA_TF=F`, a drawn footprint, zero CSP/console errors). Deployed to GitHub Pages from commit
+  `8fa73f1`. New `flood.html` (101st manifest
   tool; 102 generated pages; `RELEASE_TOOL_COUNT` raised with the count gate reworded generically).
   One exact, explicitly confirmed U.S. point is screened against FEMA NFHL layer 28 (limited
   fields, simplified containing polygon + inline SVG footprint with a text equivalent and

@@ -1,30 +1,24 @@
 # Local Suite 4
 
-This is **Local Suite v4**, built on the verified v2/v3 single-file architecture. The released
-v4.0.0 grew the suite to **100 manifest tools** (the v4.1 candidate below makes it 101): 26 new tools (offline calculators and trackers plus keyless
-CORS-open data explorers), The Arcade (five playable browser games with locally inlined card
-art), suite-wide favorites and recently-used quick access, a live flight weather map combining
-aircraft position with precipitation, SIGMETs, and airport METARs, and a re-audited National
-Parks Explorer whose 29-resource coverage was re-verified against the official specification.
+This is **Local Suite v4**, built on the verified v2/v3 single-file architecture. **v4.2.0** contains
+**102 manifest tools** (103 generated pages). It adds **Optical Transfer**, a local-first screen-to-
+camera file and text transport using an endless fountain-coded QR stream, an inlined ZXing-WASM
+decoder, and checksum-gated recovery with no payload network path.
 
-Current release: **v4.0.0** (2026-07-30). Release evidence is archived under
-`tests/evidence/v4-release/`; v3.0.0 evidence remains under `tests/evidence/v3-release/`.
+Current release: **v4.2.0** (2026-08-02). Release evidence is archived under
+`tests/evidence/v4.2-release/`; v4.0.0 evidence remains under `tests/evidence/v4-release/` and
+v3.0.0 evidence under `tests/evidence/v3-release/`.
 
-**v4.1 is an implemented release candidate, not a shipped release.** It adds **Flood Risk &
-Conditions** (`flood.html`), taking the manifest to **101 tools** (102 generated pages): it screens
-one exact, explicitly confirmed U.S. point against FEMA's National Flood Hazard Layer, active NWS
-flood alerts, and nearby NOAA forecast gauges — informational screening only, never a parcel or
-legal determination. The candidate is green on its deterministic gate and on the strict live
-acceptance gate `tests/flood-live-accept.mjs`: the final live run returned the recorded New Orleans
-zone X / `SFHA_TF=F` classification and a valid footprint with zero CSP or console errors.
-One recovery run still rendered supplementary FIRM-panel and LOMR failures independently; the final
-rerun loaded those enrichments too. Earlier outage and recovery evidence:
-`tests/evidence/flood/fema-outage-2026-07-31.md`.
-Feature evidence: `tests/evidence/flood/` and `tests/evidence/flood-feasibility/`.
+**v4.1.0 was released and deployed on 2026-07-31.** It added **Flood Risk & Conditions**
+(`flood.html`) as the 101st tool: one exact, explicitly confirmed U.S. point is screened against
+FEMA's National Flood Hazard Layer, active NWS flood alerts, and nearby NOAA forecast gauges —
+informational screening only, never a parcel or legal determination. Its deterministic and strict
+live acceptance gates were green before deployment. Evidence: `tests/evidence/flood/` and
+`tests/evidence/flood-feasibility/`.
 
-**This integration worktree additionally stages Optical Transfer** as the 102nd manifest tool
-(103 generated pages). It is an independently verified addition, not part of the shipped v4.0.0
-or the existing v4.1 release claim. See [OPTICAL-TRANSFER.md](OPTICAL-TRANSFER.md).
+**v4.2.0 adds Optical Transfer** as the 102nd tool. Its sender works directly from `file://`; mobile
+camera receive generally requires hosted HTTPS, and the installable PWA preserves that secure origin
+for later offline use. See [OPTICAL-TRANSFER.md](OPTICAL-TRANSFER.md).
 
 **To use the suite: open [`dist/index.html`](dist/index.html).** Everything in `dist/` is
 built and self-contained — double-click any file there. The `tools/` folder holds the
@@ -32,7 +26,7 @@ built and self-contained — double-click any file there. The `tools/` folder ho
 
 ## What Local Suite is
 
-A family of 102 **single-file HTML tools** (100 released, the v4.1 flood candidate, plus the staged Optical Transfer addition) — weather station, earthquake monitor, flight tracker,
+A family of 102 **single-file HTML tools** — weather station, earthquake monitor, flight tracker,
 calculator workbench, recipe box, periodic table, DNS lookup, arcade — plus a hub page that maps
 them all, with favorites and recently-used quick access. The philosophy (unchanged in v4):
 

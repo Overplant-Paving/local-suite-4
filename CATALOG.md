@@ -139,7 +139,7 @@ Recent notable bird sightings around you (eBird) or all-taxa observations (iNatu
 - **Key:** none (iNat) / free key (eBird) · **Local:** file:// ✅ · **Complexity:** S
 - **Suggested file:** `wildlife.html`
 
-### 2.8 Flood Risk & Conditions — *release candidate* 🔶 (v4.1; live acceptance green)
+### 2.8 Flood Risk & Conditions — released in v4.1.0 ✅
 FEMA flood-zone screening for one exact U.S. point, plus active NWS flood alerts and nearby NOAA
 forecast gauges. Deliberately **not** a risk score, parcel survey, or legal determination — it
 classifies the coordinate you confirm and links to the official FEMA map for verification.

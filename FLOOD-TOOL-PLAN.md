@@ -1,13 +1,12 @@
 # Flood Risk & Conditions — implementation plan
 
-Status: **implemented as a release candidate, not yet released.** `tools/flood.html` exists, is
-built into `dist/`, and passes its deterministic gate (`tests/flood-built.mjs`). The strict live
+Status: **released in Local Suite v4.1.0 and deployed on 2026-07-31.** `tools/flood.html` is built
+into `dist/` and passes its deterministic gate (`tests/flood-built.mjs`). The strict live
 acceptance gate `tests/flood-live-accept.mjs` is also green: after an earlier NFHL query outage,
 layer 28 returned the recorded New Orleans classification and footprint with zero CSP/console
 errors. One recovery run rendered panel/LOMR failures independently; the final rerun loaded those
 enrichments too (see
-`tests/evidence/flood/fema-outage-2026-07-31.md`). Release shape: a backwards-compatible v4.x
-feature release after the remaining checklist/commit/deployment steps.
+`tests/evidence/flood/fema-outage-2026-07-31.md`).
 
 ## 1. Product decision
 
@@ -23,9 +22,9 @@ Keeping them separate preserves the existing river-monitor workflow and lets the
 an explicit address or coordinate instead of a city/ZIP centroid. The flood page should link to
 `rivers.html` for the broader gauge board.
 
-Adding a card changes the manifest from 100 to 101 tools and generated HTML from 101 to 102 pages.
-`build.py` currently enforces exactly 100 tool identities, so this is an explicit release-contract
-change, not merely a new HTML file.
+Adding this card changed the v4.0 manifest from 100 to 101 tools and generated HTML from 101 to 102
+pages. The later v4.2 Optical Transfer release raises the current contract to 102 tools and 103
+generated pages. `build.py` enforces the current exact release identity count.
 
 ## 2. Outcome and non-goals
 
