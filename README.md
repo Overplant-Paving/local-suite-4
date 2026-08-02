@@ -22,13 +22,17 @@ rerun loaded those enrichments too. Earlier outage and recovery evidence:
 `tests/evidence/flood/fema-outage-2026-07-31.md`.
 Feature evidence: `tests/evidence/flood/` and `tests/evidence/flood-feasibility/`.
 
+**This integration worktree additionally stages Optical Transfer** as the 102nd manifest tool
+(103 generated pages). It is an independently verified addition, not part of the shipped v4.0.0
+or the existing v4.1 release claim. See [OPTICAL-TRANSFER.md](OPTICAL-TRANSFER.md).
+
 **To use the suite: open [`dist/index.html`](dist/index.html).** Everything in `dist/` is
 built and self-contained — double-click any file there. The `tools/` folder holds the
 *sources*, which don't link up until `python3 build.py` runs.
 
 ## What Local Suite is
 
-A family of 101 **single-file HTML tools** (100 released plus the v4.1 flood candidate) — weather station, earthquake monitor, flight tracker,
+A family of 102 **single-file HTML tools** (100 released, the v4.1 flood candidate, plus the staged Optical Transfer addition) — weather station, earthquake monitor, flight tracker,
 calculator workbench, recipe box, periodic table, DNS lookup, arcade — plus a hub page that maps
 them all, with favorites and recently-used quick access. The philosophy (unchanged in v4):
 

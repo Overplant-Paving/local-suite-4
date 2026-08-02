@@ -35,13 +35,30 @@ HUB = "index.html"
 
 LINK_RE = re.compile(r'<link[^>]*data-suite-inline[^>]*>')
 SCRIPT_TAG_RE = re.compile(r'<script[^>]*data-suite-inline[^>]*>\s*</script>')
+VENDOR_SCRIPT_RE = re.compile(
+    r'<script[^>]*src="\.\./assets/([^"]+)"[^>]*data-suite-vendor[^>]*>\s*</script>'
+)
+OPTICAL_WORKER_MARKER_RE = re.compile(
+    r'/\* @suite:optical-worker \*/""/\* /@suite:optical-worker \*/'
+)
 HUB_MARKER_RE = re.compile(r'/\* @suite:tools \*/.*?/\* /@suite:tools \*/', re.S)
 SCRIPT_BODY_RE = re.compile(r'<script(?:\s[^>]*)?>(.*?)</script>', re.S)
 VIEWPORT_RE = re.compile(r'<meta name="viewport"[^>]*>')
 CSP_META_RE = re.compile(r'<meta http-equiv="Content-Security-Policy" content="([^"]*)">')
 
 NETWORK_CLASSES = ("offline", "cors-open", "keyed", "blocked")
-RELEASE_TOOL_COUNT = 101
+RELEASE_TOOL_COUNT = 102
+
+# Per-tool CSP additions are deliberately limited to non-network browser schemes
+# needed by self-contained local tools. Network hosts must remain visible in the
+# manifest's endpoints/scriptEndpoints fields and the catalog cross-check.
+CSP_EXTRA_ALLOW = {
+    "scriptSrc": {"'wasm-unsafe-eval'"},
+    "connectSrc": {"data:", "blob:"},
+    "imgSrc": {"blob:"},
+    "mediaSrc": {"blob:", "mediastream:"},
+    "workerSrc": {"blob:"},
+}
 
 def read(p):
     return p.read_text(encoding="utf-8")
@@ -66,26 +83,43 @@ def host_of(url):
 def sha256_b64(text):
     return base64.b64encode(hashlib.sha256(text.encode("utf-8")).digest()).decode()
 
-def build_csp(html, endpoints, script_endpoints=()):
+def build_csp(html, endpoints, script_endpoints=(), csp_extra=None):
     """Per-file CSP meta tag: sha256 hashes of every inline script + manifest hosts (ADR D6).
     script_endpoints: rare per-tool script-src host additions for JSONP sources (currently
     geo.html and flood.html, both for the Census geocoder, which is JSONP-only by the
     provider's design — a host source is far narrower than the documented unsafe-inline
     fallback)."""
-    hashes = " ".join(f"'sha256-{sha256_b64(body)}'"
-                      for body in SCRIPT_BODY_RE.findall(html))
-    script_src = hashes + "".join(f" {host_of(e)}" for e in script_endpoints)
-    hosts = " ".join(dict.fromkeys(host_of(e) for e in endpoints))  # dedupe, keep order
-    connect = hosts if hosts else "'none'"
+    extra = csp_extra or {}
+    unknown = sorted(set(extra) - set(CSP_EXTRA_ALLOW))
+    if unknown:
+        raise SystemExit(f"cspExtra has unsupported directive groups: {unknown}")
+    for group, sources in extra.items():
+        if not isinstance(sources, list) or any(not isinstance(s, str) for s in sources):
+            raise SystemExit(f"cspExtra.{group} must be a list of source strings")
+        disallowed = sorted(set(sources) - CSP_EXTRA_ALLOW[group])
+        if disallowed:
+            raise SystemExit(
+                f"cspExtra.{group} may only use {sorted(CSP_EXTRA_ALLOW[group])}; "
+                f"got {disallowed}"
+            )
+    hashes = [f"'sha256-{sha256_b64(body)}'" for body in SCRIPT_BODY_RE.findall(html)]
+    script_src = " ".join(hashes + [host_of(e) for e in script_endpoints]
+                          + extra.get("scriptSrc", []))
+    hosts = list(dict.fromkeys(host_of(e) for e in endpoints))  # dedupe, keep order
+    connect_sources = list(dict.fromkeys(hosts + extra.get("connectSrc", [])))
+    connect = " ".join(connect_sources) if connect_sources else "'none'"
     # 'self' is required for the hosted PWA's same-origin manifest icons. Without it,
     # Chromium parses the manifest but rejects every install icon under the page CSP.
-    img = f"'self' data: {hosts}".strip()
+    img = " ".join(dict.fromkeys(["'self'", "data:"] + hosts + extra.get("imgSrc", [])))
+    media_sources = list(dict.fromkeys(connect_sources + extra.get("mediaSrc", [])))
+    media = " ".join(media_sources) if media_sources else "'none'"
+    worker = " ".join(dict.fromkeys(["'self'"] + extra.get("workerSrc", [])))
     # worker-src/manifest-src 'self': lets the served (PWA) mode register sw.js and
     # fetch the webmanifest; both directives are inert from file:// (PWA.md §1).
     return ('<meta http-equiv="Content-Security-Policy" content="'
             f"default-src 'none'; script-src {script_src}; style-src 'unsafe-inline'; "
-            f'img-src {img}; media-src {connect}; connect-src {connect}; '
-            "worker-src 'self'; manifest-src 'self'\">")
+            f'img-src {img}; media-src {media}; connect-src {connect}; '
+            f"worker-src {worker}; manifest-src 'self'\">")
 
 ASSET_IMG_RE = re.compile(r'<img[^>]*\bdata-suite-asset\b[^>]*>')
 ASSET_SRC_RE = re.compile(r'src="\.\./assets/([^"]+)"')
@@ -110,6 +144,41 @@ def inline_assets(name, html):
                    .replace(" data-suite-asset", "", 1))
     return ASSET_IMG_RE.sub(repl, html)
 
+def inline_vendor_scripts(name, html):
+    """Inline explicitly marked local browser bundles into one-file output."""
+    def repl(m):
+        rel = m.group(1)
+        p = ROOT / "assets" / rel
+        if not p.exists() or p.suffix != ".js":
+            raise SystemExit(f"{name}: missing or unsupported vendor script assets/{rel}")
+        return "<script>\n" + read(p) + "\n</script>"
+    return VENDOR_SCRIPT_RE.sub(repl, html)
+
+def inline_optical_worker(name, html):
+    """Embed the pinned ZXing worker and WASM in optical.html."""
+    if not OPTICAL_WORKER_MARKER_RE.search(html):
+        return html
+    if name != "optical.html":
+        raise SystemExit(f"{name}: optical worker marker is only valid in optical.html")
+    worker_path = ROOT / "assets" / "optical" / "zxing-worker.js"
+    wasm_path = ROOT / "assets" / "optical" / "zxing_reader.wasm"
+    worker = read(worker_path)
+    wasm_url = "data:application/wasm;base64," + base64.b64encode(wasm_path.read_bytes()).decode()
+    worker, count = re.subn(
+        r'var Vr=""\+new URL\("zxing_reader-[^"]+\.wasm",self\.location\.href\)\.href;',
+        "var Vr=" + json.dumps(wasm_url, separators=(",", ":")) + ";",
+        worker,
+        count=1,
+    )
+    if count != 1:
+        raise SystemExit("optical.html: pinned ZXing worker WASM locator changed")
+    literal = json.dumps(worker, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+    return OPTICAL_WORKER_MARKER_RE.sub(
+        lambda _m: "/* @suite:optical-worker */" + literal + "/* /@suite:optical-worker */",
+        html,
+        count=1,
+    )
+
 def render_tool(name, source, core_css, core_js, manifest_tools):
     """Source tool -> self-contained dist file: inline core, header comment, hub data, CSP."""
     if not LINK_RE.search(source) or not SCRIPT_TAG_RE.search(source):
@@ -117,6 +186,8 @@ def render_tool(name, source, core_css, core_js, manifest_tools):
     html = LINK_RE.sub(lambda m: "<style>\n" + core_css + "</style>", source, count=1)
     html = SCRIPT_TAG_RE.sub(lambda m: "<script>\n" + core_js + "</script>", html, count=1)
     html = inline_assets(name, html)
+    html = inline_vendor_scripts(name, html)
+    html = inline_optical_worker(name, html)
 
     if name == HUB:
         if not HUB_MARKER_RE.search(html):
@@ -133,7 +204,8 @@ def render_tool(name, source, core_css, core_js, manifest_tools):
     entry = next((t for t in manifest_tools if t["file"] == name), None)
     endpoints = entry["endpoints"] if entry else []
     script_endpoints = entry.get("scriptEndpoints", []) if entry else []
-    csp = build_csp(html, endpoints, script_endpoints)  # hashes computed on final script contents
+    csp = build_csp(html, endpoints, script_endpoints,
+                    entry.get("cspExtra", {}) if entry else None)
     if not VIEWPORT_RE.search(html):
         raise SystemExit(f"{name}: no viewport meta to anchor the CSP tag on")
     # the manifest link is dead weight from file:// (browsers only fetch a webmanifest
@@ -535,6 +607,12 @@ def negative_tests():
     expect("no-inline-handlers", gate_no_inline_handlers(
         {"inline-handler.html": fx["inline-handler.html"]}))
     expect("csp", gate_csp({"csp-mismatch.html": fx["csp-mismatch.html"]}, []))
+    try:
+        build_csp("<script></script>", [], [], {"workerSrc": ["https://evil.example"]})
+    except SystemExit:
+        pass
+    else:
+        failures.append("negative test for cspExtra allowlist did NOT reject a network host")
     expect("escaping-heuristic", gate_escaping_heuristic(
         {"escape-miss.html": fx["escape-miss.html"]}, {}))
     expect("key-hygiene", gate_key_hygiene({"key-leak.html": fx["key-leak.html"]}))

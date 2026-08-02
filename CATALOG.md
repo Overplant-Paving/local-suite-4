@@ -527,7 +527,16 @@ Zero network requests, ever. These are the "works on an airplane" tier.
 ### 10.2 QR Code Maker
 Text/URL/wifi-credentials → QR, rendered on canvas by an embedded ~10 KB public-domain QR encoder. Print sheet of codes.
 - **Complexity:** S · **Suggested file:** `qr.html`
-- **Proposed addition — a "read" tab, spike-gated:** this tool makes codes but can't read one. A reader needs `getUserMedia` plus an embedded decoder (~15 KB), still zero-network. **Run the spike before designing anything:** confirm camera access works from `file://` in Chrome *and* Firefox. If it only works when hosted, drop the idea — a tool that fails when double-clicked breaks the suite's defining promise, and a camera prompt that leads nowhere is worse than no feature.
+- **Reader proposal resolved separately:** a portable decoder is about 1 MB, not ~15 KB, and mobile local-file camera access is unreliable. QR Code Maker stays small; Optical Transfer below owns the decoder and explains its hosted-HTTPS/PWA boundary.
+
+### 10.2a Optical Transfer
+File or UTF-8 text → an endless animated QR stream; a second device's camera reconstructs any sufficient set of LT fountain frames despite drops, duplicates, and reordering. DCF2 length checks, a bounded optional gzip path, FNV optical checksum, and SHA-256 gate every download. The generated page inlines node-qrcode plus a ZXing-C++ WASM worker and makes no payload or runtime asset request.
+- **Data:** none; payload and camera frames remain in the two browsers. The camera is never uploaded.
+- **Permission:** camera on Receive only. Sender works from `file://`; mobile Receive generally needs hosted HTTPS. Suite PWA caching supports later offline use on that HTTPS origin.
+- **Limits/defaults:** 16 MB files, 1 MB text; 1,465 bytes/frame at 24 FPS; one decoder worker. Denser/faster settings are optional and device-dependent.
+- **Security:** visible screens are not confidential; any camera with a view can receive. No account, pairing, key, tracking, app, upload, network path between devices, or relay.
+- **Provenance:** Decimen Optical Transfer snapshot `ed4cbcf558b80913fcba2e91193f71801f8e919c` (MIT); full architecture and third-party notices in `OPTICAL-TRANSFER.md` and `assets/optical/PROVENANCE.md`.
+- **Complexity:** L · **File:** `optical.html` · **Local:** sender `file://` ✅; mobile receiver hosted HTTPS/PWA offline ✅
 
 ### 10.3 Text Toolbox
 Word/char count, case conversion, sort/dedupe lines, diff two texts, SHA-256 hash (WebCrypto), URL/Base64 encode-decode.

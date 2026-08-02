@@ -2124,6 +2124,28 @@
       "cacheTtlMin": 1440,
       "since": "v4",
       "flags": []
+    },
+    {
+      "id": "optical",
+      "file": "optical.html",
+      "name": "Optical Transfer",
+      "cat": "util",
+      "cx": "L",
+      "desc": "Send files or text screen-to-camera as an endless fountain-coded QR stream, with verified recovery and no network path.",
+      "network": "offline",
+      "key": null,
+      "endpoints": [],
+      "storage": ["suite.theme"],
+      "cacheTtlMin": null,
+      "since": "v4.2",
+      "flags": ["camera-secure-context", "large-inline-asset"],
+      "cspExtra": {
+        "scriptSrc": ["'wasm-unsafe-eval'"],
+        "connectSrc": ["data:"],
+        "imgSrc": ["blob:"],
+        "mediaSrc": ["blob:", "mediastream:"],
+        "workerSrc": ["blob:"]
+      }
     }
   ]
 }

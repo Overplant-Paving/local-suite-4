@@ -1,7 +1,7 @@
 # Local Suite 4 — development instructions
 
 Local Suite 4 is the continuation of the verified v2/v3 single-file suite. It contains
-101 manifest tools plus a generated hub (102 generated pages). The source is in `tools/`;
+102 manifest tools plus a generated hub (103 generated pages). The source is in `tools/`;
 committed, self-contained output is in `dist/`.
 
 ## Read first
@@ -41,8 +41,9 @@ checkout; do not claim otherwise. Existing migration evidence remains under `tes
   the non-asserting `tests/flood-live-run.mjs` outage capture as acceptance.
 
 - 71 v1 tools are preserved on the v2 architecture; Settings, Flight Tracker, The Arcade, 26
-  further v4 tools, and the v4.1 Flood Risk & Conditions page bring the manifest to 101 tools,
-  plus the hub (102 generated HTML pages).
+  further v4 tools, the v4.1 Flood Risk & Conditions page, and staged Optical Transfer bring the
+  integration worktree to 102 tools, plus the hub (103 generated HTML pages). Optical Transfer is
+  not part of the existing v4.1 release claim.
 - V4.1 adds `flood.html`: FEMA NFHL point classification (with a two-step Census address
   confirmation, tool-local `suite.flood.target`, an inline containing-zone SVG footprint, NWS
   flood alerts, and bounded NWPS gauges). Plan and evidence: `FLOOD-TOOL-PLAN.md`,

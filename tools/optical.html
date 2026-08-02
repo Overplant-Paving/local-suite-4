@@ -1,0 +1,791 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Optical Transfer · Local Suite</title>
+<link rel="stylesheet" href="../core/suite.css" data-suite-inline>
+<style>
+  :root { --warn: #8a5a16; --bad: #a83b2e; --good: #2f6f51; }
+  @media (prefers-color-scheme: dark) { :root { --warn: #e0a44f; --bad: #ee8171; --good: #72c999; } }
+  :root[data-theme="light"] { --warn: #8a5a16; --bad: #a83b2e; --good: #2f6f51; }
+  :root[data-theme="dark"] { --warn: #e0a44f; --bad: #ee8171; --good: #72c999; }
+  body { padding: 1.4rem 1.25rem 4rem; }
+  .wrap { max-width: 1040px; margin: 0 auto; }
+  .topbar { display: flex; align-items: center; gap: .8rem; }
+  .spacer { flex: 1; }
+  .topbar .theme-btn { float: none; }
+  header h1 { font-size: clamp(1.75rem, 5vw, 2.5rem); letter-spacing: -.035em; margin-top: 1rem; }
+  header .tag { color: var(--muted); margin-top: .35rem; max-width: 50rem; line-height: 1.55; }
+  .privacy {
+    margin: 1rem 0; padding: .85rem 1rem; border: 1px solid color-mix(in srgb, var(--warn) 45%, var(--line));
+    border-left: 4px solid var(--warn); border-radius: 10px; background: color-mix(in srgb, var(--warn) 9%, var(--card));
+    line-height: 1.5; font-size: .92rem;
+  }
+  .privacy strong { color: var(--warn); }
+  .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; margin: 1.1rem 0; }
+  .tab, .primary, .secondary {
+    min-height: 44px; border-radius: 10px; padding: .65rem 1rem; font: inherit; font-weight: 650; cursor: pointer;
+  }
+  .tab { border: 1px solid var(--line); color: var(--muted); background: var(--card); }
+  .tab[aria-selected="true"] { border-color: var(--accent); color: var(--bg); background: var(--accent); }
+  .panel[hidden] { display: none; }
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, .86fr); gap: 1rem; align-items: start; }
+  .card { padding: 1rem; display: block; }
+  .card h2 { font-size: 1.08rem; margin-bottom: .3rem; }
+  .hint, .status { color: var(--muted); font-size: .88rem; line-height: 1.5; }
+  .status { min-height: 2.75rem; margin-top: .7rem; padding: .65rem .75rem; background: var(--bg); border-radius: 8px; }
+  .status.error { color: var(--bad); border-left: 3px solid var(--bad); }
+  .status.good { color: var(--good); border-left: 3px solid var(--good); }
+  .mode { display: flex; gap: .45rem; margin: .8rem 0; }
+  .mode label { flex: 1; position: relative; }
+  .mode input { position: absolute; opacity: 0; }
+  .mode span { display: block; border: 1px solid var(--line); border-radius: 9px; padding: .55rem; text-align: center; cursor: pointer; color: var(--muted); }
+  .mode input:checked + span { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+  .mode input:focus-visible + span { outline: 3px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset: 2px; }
+  label.field { display: block; color: var(--muted); font-size: .83rem; margin-top: .8rem; }
+  input[type="file"], textarea, select {
+    width: 100%; margin-top: .3rem; padding: .62rem .68rem; border: 1px solid var(--line); border-radius: 9px;
+    color: var(--ink); background: var(--bg); font: inherit;
+  }
+  textarea { resize: vertical; min-height: 130px; line-height: 1.5; }
+  .actions { display: flex; flex-wrap: wrap; gap: .55rem; margin-top: .85rem; }
+  .primary { border: 1px solid var(--accent); color: var(--bg); background: var(--accent); }
+  .secondary { border: 1px solid var(--line); color: var(--ink); background: var(--card); }
+  button:disabled { cursor: not-allowed; opacity: .55; }
+  details { margin-top: .85rem; }
+  summary { color: var(--accent); cursor: pointer; font-weight: 650; }
+  .settings-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; margin-top: .55rem; }
+  .settings-grid label { color: var(--muted); font-size: .78rem; }
+  #stage { margin-top: .9rem; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 10px; text-align: center; }
+  #sendQr { display: block; max-width: 100%; height: auto; margin: 0 auto; image-rendering: pixelated; background: #fff; }
+  .stream-meta { margin-top: .45rem; color: #263038; font-size: .78rem; font-variant-numeric: tabular-nums; }
+  .camera-note { margin-bottom: .8rem; }
+  #cameraPreview { position: relative; aspect-ratio: 4 / 3; border-radius: 12px; overflow: hidden; background: #101418; border: 1px solid var(--line); }
+  #cameraPreview[hidden] { display: none; }
+  #cameraVideo { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .hud { position: absolute; inset: auto 0 0; padding: 2.5rem .75rem .75rem; background: linear-gradient(transparent, rgba(0,0,0,.86)); color: #fff; }
+  .progress { height: 11px; border-radius: 999px; overflow: hidden; background: rgba(255,255,255,.22); margin-top: .35rem; }
+  .progress > div { height: 100%; width: 0; background: #73cfc5; transition: width .16s linear; }
+  .progress.error > div { background: var(--bad); }
+  .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; margin-top: .7rem; }
+  .metric { padding: .5rem; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
+  .metric b { display: block; font-variant-numeric: tabular-nums; }
+  .metric span { color: var(--muted); font-size: .72rem; }
+  #result { margin-top: .8rem; }
+  .result-box { padding: .85rem; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); }
+  .result-box.verified { border-color: color-mix(in srgb, var(--good) 60%, var(--line)); }
+  .received-text { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 18rem; overflow: auto; margin-top: .6rem; }
+  .download { display: inline-flex; align-items: center; min-height: 44px; margin-top: .7rem; padding: .6rem .85rem; border-radius: 9px; background: var(--accent); color: var(--bg); text-decoration: none; font-weight: 650; }
+  .architecture { margin-top: 1rem; }
+  .architecture p { margin-top: .45rem; }
+  footer { margin-top: 2rem; line-height: 1.55; }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } .metrics { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 440px) { body { padding-inline: .75rem; } .settings-grid { grid-template-columns: 1fr; } }
+  @media (prefers-reduced-motion: reduce) { .progress > div { transition: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="index.html">← suite</a>
+    <div class="spacer"></div>
+    <button class="theme-btn" id="themeBtn" title="Toggle light/dark">◐ theme</button>
+  </div>
+  <header>
+    <h1>Optical Transfer</h1>
+    <p class="tag">Move a file or text snippet from one screen to another device’s camera as an endless fountain-coded QR stream. No payload upload, network path, account, pairing, app, key, tracking, or relay.</p>
+  </header>
+
+  <div class="privacy" role="note"><strong>Not confidential:</strong> any camera that can see the sending screen can recover the payload. Optical Transfer removes the network path; it does not encrypt the screen.</div>
+
+  <div class="tabs" role="tablist" aria-label="Optical Transfer mode">
+    <button class="tab" id="sendTab" role="tab" aria-selected="true" aria-controls="sendPanel">Send</button>
+    <button class="tab" id="receiveTab" role="tab" aria-selected="false" aria-controls="receivePanel" tabindex="-1">Receive</button>
+  </div>
+
+  <section class="panel" id="sendPanel" role="tabpanel" aria-labelledby="sendTab">
+    <div class="grid">
+      <div class="card">
+        <h2>Prepare payload</h2>
+        <p class="hint">Everything is packed locally. The 16 MB ceiling limits peak memory on phones; text snippets are limited to 1 MB.</p>
+        <div class="mode" role="radiogroup" aria-label="Payload type">
+          <label><input type="radio" name="payloadMode" value="file" checked><span>File</span></label>
+          <label><input type="radio" name="payloadMode" value="text"><span>Text snippet</span></label>
+        </div>
+        <div id="filePane">
+          <label class="field" for="sendFile">File · 16 MB maximum
+            <input id="sendFile" type="file">
+          </label>
+        </div>
+        <div id="textPane" hidden>
+          <label class="field" for="sendText">Text · 1 MB UTF-8 maximum
+            <textarea id="sendText" placeholder="Paste a note, URL, configuration, or other text."></textarea>
+          </label>
+        </div>
+        <div class="actions">
+          <button class="primary" id="prepareBtn" type="button">Prepare transfer</button>
+          <button class="primary" id="streamBtn" type="button" disabled>Start optical stream</button>
+          <button class="secondary" id="pauseBtn" type="button" hidden>Pause</button>
+          <button class="secondary" id="clearSendBtn" type="button">Reset</button>
+        </div>
+        <div class="status" id="sendStatus" role="status" aria-live="polite">Choose a file or enter text, then prepare it.</div>
+        <details>
+          <summary>Transfer tuning</summary>
+          <div class="settings-grid">
+            <label for="txFps">Frames per second
+              <select id="txFps"><option>10</option><option>15</option><option>20</option><option selected>24</option><option>30</option><option>60</option></select>
+            </label>
+            <label for="frameBytes">Bytes per QR frame
+              <select id="frameBytes"><option>500</option><option>1000</option><option selected>1465</option><option>1850</option><option>2331</option><option>2953</option></select>
+            </label>
+            <label for="eccLevel">QR error correction
+              <select id="eccLevel"><option selected>L</option><option>M</option></select>
+            </label>
+            <label for="displaySize">Maximum display size
+              <select id="displaySize"><option>420</option><option selected>700</option><option>900</option><option>1100</option></select>
+            </label>
+          </div>
+          <p class="hint">The safe default is 1,465 bytes at 24 FPS. Denser codes or 60 FPS may reduce real throughput when autofocus or display refresh causes more drops.</p>
+        </details>
+      </div>
+      <div class="card">
+        <h2>Sending screen</h2>
+        <p class="hint">Turn up brightness, keep the whole QR code visible, and hold or prop the receiving camera steady.</p>
+        <div id="stage" hidden>
+          <canvas id="sendQr" width="16" height="16" role="img" aria-label="Animated optical transfer QR code"></canvas>
+          <div class="stream-meta" id="streamMeta">Ready</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="receivePanel" role="tabpanel" aria-labelledby="receiveTab" hidden>
+    <div class="grid">
+      <div class="card">
+        <h2>Camera receiver</h2>
+        <p class="hint camera-note" id="cameraDisclosure">Receive asks only for camera permission. Mobile browsers generally require this page on hosted HTTPS; opening a local file commonly cannot use the camera on iOS Safari or Android Chrome. Install or revisit the hosted Local Suite PWA once, and its cache enables later offline use while retaining the HTTPS origin.</p>
+        <div class="actions">
+          <button class="primary" id="cameraBtn" type="button">Start camera</button>
+          <button class="secondary" id="stopCameraBtn" type="button" hidden>Stop camera</button>
+          <button class="secondary" id="resetReceiveBtn" type="button">Reset receiver</button>
+        </div>
+        <div class="status" id="receiveStatus" role="status" aria-live="polite">Ready. Point this device at a sending screen after starting the camera.</div>
+        <div id="cameraPreview" hidden>
+          <video id="cameraVideo" muted playsinline></video>
+          <div class="hud">
+            <div id="progressLabel">Waiting for a valid stream…</div>
+            <div class="progress" id="receiveProgress" role="progressbar" aria-label="Verified transfer recovery progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="receiveBar"></div></div>
+          </div>
+        </div>
+        <div class="metrics" id="metrics" hidden>
+          <div class="metric"><b id="metricFrames">0 / 0</b><span>new / duplicate frames</span></div>
+          <div class="metric"><b id="metricBlocks">0 / 0</b><span>solved blocks</span></div>
+          <div class="metric"><b id="metricRate">—</b><span>accepted QR data</span></div>
+          <div class="metric"><b id="metricCamera">—</b><span>camera mode</span></div>
+          <div class="metric"><b id="metricWorkers">0</b><span>decoder workers</span></div>
+          <div class="metric"><b id="metricSession">—</b><span>session</span></div>
+        </div>
+        <div id="result" aria-live="polite"></div>
+      </div>
+      <div class="card">
+        <h2>Receive tuning</h2>
+        <div class="settings-grid">
+          <label for="captureWidth">Capture width
+            <select id="captureWidth"><option>960</option><option selected>1280</option><option>1920</option></select>
+          </label>
+          <label for="captureFps">Requested camera FPS
+            <select id="captureFps"><option selected>30</option><option>60</option></select>
+          </label>
+          <label for="workerCount">Decode workers
+            <select id="workerCount"><option selected>1</option><option>2</option></select>
+          </label>
+        </div>
+        <p class="hint">One worker is the memory-safe default; each worker instantiates its own embedded ZXing WASM decoder. Busy workers drop frames instead of queueing stale video—the fountain code tolerates that.</p>
+        <details class="architecture">
+          <summary>Protocol and security boundaries</summary>
+          <p class="hint">Each DCF2 container carries a safe filename, media type, exact compressed and original lengths, and SHA-256. A 20-byte frame header identifies the stream. Frames are LT fountain equations selected by a deterministic robust-soliton distribution; two distinct valid frames are required before replacing an active session. Completion stays below 100% and no download exists until both the optical checksum and SHA-256 pass.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Local processing only. Adapted from Decimen Optical Transfer at snapshot <code>ed4cbcf558b80913fcba2e91193f71801f8e919c</code> (MIT, © 2026 BashAlarmist), with node-qrcode (MIT, © Ryan Day) and zxing-wasm / ZXing-C++ decoder artifacts. Upstream’s reported ~128 KB/s handheld and ~186 KB/s propped parent-experiment observations are not Local Suite performance guarantees. Source provenance and notices: <code>assets/optical/PROVENANCE.md</code>.
+  </footer>
+</div>
+
+<script src="../core/suite.js" data-suite-inline></script>
+<script src="../assets/optical/qrcode.js" data-suite-vendor></script>
+<script>
+"use strict";
+
+/*
+ * Optical protocol and LT fountain implementation adapted from Decimen Optical
+ * Transfer, snapshot ed4cbcf558b80913fcba2e91193f71801f8e919c.
+ * Copyright (c) 2026 BashAlarmist. MIT license; see assets/optical/PROVENANCE.md.
+ */
+Suite.theme.init();
+
+const HEADER_LEN = 20;
+const FILE_HEADER_LEN = 49;
+const MAX_FILE_BYTES = 16 * 1024 * 1024;
+const MAX_SNIPPET_BYTES = 1024 * 1024;
+const MAX_NAME_BYTES = 1024;
+const MAX_TYPE_BYTES = 255;
+const MAX_CONTAINER_BYTES = MAX_FILE_BYTES + FILE_HEADER_LEN + MAX_NAME_BYTES + MAX_TYPE_BYTES;
+const MAX_FRAME_BYTES = 2953;
+const MAX_SOURCE_BLOCKS = 0xffff;
+const FILE_MAGIC = new Uint8Array([0x44, 0x43, 0x46, 0x32]);
+const FRAME_MAGIC0 = 0xd1;
+const FRAME_MAGIC1 = 0x0c;
+const SNIPPET_TYPE = "application/vnd.decimen.snippet";
+const encoderUtf8 = new TextEncoder();
+const decoderUtf8 = new TextDecoder();
+const decoderUtf8Fatal = new TextDecoder("utf-8", { fatal: true });
+const OPTICAL_WORKER_SOURCE = /* @suite:optical-worker */""/* /@suite:optical-worker */;
+
+function formatBytes(n) {
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+  return `${(n / 1024 / 1024).toFixed(1)} MB`;
+}
+function setStatus(el, message, kind = "") {
+  el.textContent = message;
+  el.className = `status${kind ? ` ${kind}` : ""}`;
+}
+function digest(bytes) {
+  return crypto.subtle.digest("SHA-256", Uint8Array.from(bytes)).then((value) => new Uint8Array(value));
+}
+function equalBytes(a, b) {
+  if (a.length !== b.length) return false;
+  let mismatch = 0;
+  for (let i = 0; i < a.length; i++) mismatch |= a[i] ^ b[i];
+  return mismatch === 0;
+}
+function fnv1a(bytes) {
+  let hash = 0x811c9dc5;
+  for (const byte of bytes) { hash ^= byte; hash = Math.imul(hash, 0x01000193); }
+  return hash >>> 0;
+}
+function randomSessionId() {
+  const value = new Uint16Array(1);
+  do { crypto.getRandomValues(value); } while (value[0] === 0);
+  return value[0];
+}
+function safeFileName(input) {
+  let name = String(input || "").split(/[\\/]/).pop() || "";
+  try { name = name.normalize("NFC"); } catch { /* old engine: keep code points */ }
+  name = name
+    .replace(/[\u0000-\u001f\u007f\u202a-\u202e\u2066-\u2069]/g, "")
+    .replace(/[<>:"|?*]/g, "_")
+    .replace(/[. ]+$/g, "")
+    .trim();
+  if (!name || name === "." || name === "..") return "transfer.bin";
+  const stem = name.split(".")[0].toUpperCase();
+  if (/^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$/.test(stem)) name = `_${name}`;
+  const chars = Array.from(name);
+  if (chars.length > 180) {
+    const dot = name.lastIndexOf(".");
+    const ext = dot > 0 && name.length - dot <= 20 ? name.slice(dot) : "";
+    name = chars.slice(0, 180 - Array.from(ext).length).join("") + ext;
+  }
+  return name || "transfer.bin";
+}
+function safeMediaType(input) {
+  const type = String(input || "").trim();
+  if (type.length > MAX_TYPE_BYTES || !/^[a-z0-9!#$&^_.+-]+\/[a-z0-9!#$&^_.+-]+(?:\s*;\s*[a-z0-9!#$&^_.+-]+=[a-z0-9!#$&^_.+-]+)*$/i.test(type)) {
+    return "application/octet-stream";
+  }
+  return type;
+}
+function isPrecompressedType(input) {
+  const type = String(input || "").split(";")[0].trim().toLowerCase();
+  if (type.startsWith("video/")) return true;
+  if (type.startsWith("image/") && !/^image\/(bmp|x-ms-bmp|svg\+xml|tiff|x-icon|vnd\.microsoft\.icon)$/.test(type)) return true;
+  if (type.startsWith("audio/") && !/^audio\/(wav|x-wav|wave|vnd\.wave|aiff|x-aiff|basic|l16)$/.test(type)) return true;
+  return /^(application\/(zip|gzip|x-gzip|x-7z-compressed|x-rar-compressed|vnd\.rar|zstd)|application\/vnd\.openxmlformats-officedocument\.|application\/vnd\.oasis\.opendocument\.)/.test(type) || type.endsWith("+zip");
+}
+async function gzipBytes(bytes) {
+  if (typeof CompressionStream === "undefined") return null;
+  const stream = new Blob([bytes]).stream().pipeThrough(new CompressionStream("gzip"));
+  return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+async function gunzipLimited(bytes, maxBytes) {
+  if (!Number.isSafeInteger(maxBytes) || maxBytes < 1 || maxBytes > MAX_FILE_BYTES) throw new Error("Invalid decompression ceiling.");
+  if (typeof DecompressionStream === "undefined") throw new Error("This browser cannot decompress the received gzip payload.");
+  const reader = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip")).getReader();
+  const chunks = [];
+  let total = 0;
+  try {
+    for (;;) {
+      const item = await reader.read();
+      if (item.done) break;
+      total += item.value.length;
+      if (total > maxBytes) throw new Error("The recovered file expands past its declared length.");
+      chunks.push(item.value);
+    }
+  } catch (error) {
+    await reader.cancel().catch(() => undefined);
+    throw error;
+  }
+  const out = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) { out.set(chunk, offset); offset += chunk.length; }
+  return out;
+}
+async function packFile(name, type, bytes) {
+  if (!(bytes instanceof Uint8Array) || bytes.length === 0) throw new Error("The payload is empty.");
+  if (bytes.length > MAX_FILE_BYTES) throw new Error(`Files are limited to ${formatBytes(MAX_FILE_BYTES)}.`);
+  const safeName = safeFileName(name);
+  const safeType = safeMediaType(type);
+  const nameBytes = encoderUtf8.encode(safeName);
+  const typeBytes = encoderUtf8.encode(safeType);
+  if (nameBytes.length > MAX_NAME_BYTES) throw new Error("The safe filename is too long.");
+  const tryGzip = bytes.length >= 768 && !isPrecompressedType(safeType);
+  const [sha256, compressed] = await Promise.all([digest(bytes), tryGzip ? gzipBytes(bytes) : null]);
+  const useGzip = compressed && compressed.length + 64 < bytes.length;
+  const transmitted = useGzip ? compressed : bytes;
+  const out = new Uint8Array(FILE_HEADER_LEN + nameBytes.length + typeBytes.length + transmitted.length);
+  const view = new DataView(out.buffer);
+  out.set(FILE_MAGIC);
+  view.setUint8(4, useGzip ? 1 : 0);
+  view.setUint16(5, nameBytes.length, true);
+  view.setUint16(7, typeBytes.length, true);
+  view.setUint32(9, bytes.length, true);
+  view.setUint32(13, transmitted.length, true);
+  out.set(sha256, 17);
+  out.set(nameBytes, FILE_HEADER_LEN);
+  out.set(typeBytes, FILE_HEADER_LEN + nameBytes.length);
+  out.set(transmitted, FILE_HEADER_LEN + nameBytes.length + typeBytes.length);
+  return { container: out, compression: useGzip ? "gzip" : "none", originalSize: bytes.length, transmittedSize: transmitted.length, name: safeName, type: safeType };
+}
+async function unpackFile(container) {
+  if (!(container instanceof Uint8Array) || container.length < FILE_HEADER_LEN || container.length > MAX_CONTAINER_BYTES) throw new Error("The recovered container size is invalid.");
+  for (let i = 0; i < FILE_MAGIC.length; i++) if (container[i] !== FILE_MAGIC[i]) throw new Error("The recovered file header is invalid.");
+  const view = new DataView(container.buffer, container.byteOffset, container.byteLength);
+  const compression = view.getUint8(4);
+  const nameLength = view.getUint16(5, true);
+  const typeLength = view.getUint16(7, true);
+  const fileLength = view.getUint32(9, true);
+  const transmittedLength = view.getUint32(13, true);
+  if (compression > 1 || nameLength > MAX_NAME_BYTES || typeLength > MAX_TYPE_BYTES || fileLength < 1 || fileLength > MAX_FILE_BYTES || transmittedLength < 1 || transmittedLength > MAX_FILE_BYTES) throw new Error("The recovered file header contains unsupported values.");
+  const dataOffset = FILE_HEADER_LEN + nameLength + typeLength;
+  if (!Number.isSafeInteger(dataOffset) || dataOffset + transmittedLength !== container.length) throw new Error("The recovered file length does not match its header.");
+  const transmitted = container.slice(dataOffset);
+  if (compression === 1) {
+    if (transmitted.length < 18 || transmitted[0] !== 0x1f || transmitted[1] !== 0x8b || transmitted[2] !== 8) throw new Error("The recovered gzip payload is invalid.");
+    const trailer = new DataView(transmitted.buffer, transmitted.byteOffset + transmitted.byteLength - 4, 4);
+    if (trailer.getUint32(0, true) !== fileLength) throw new Error("The gzip payload length does not match its file header.");
+  }
+  const bytes = compression === 1 ? await gunzipLimited(transmitted, fileLength) : transmitted;
+  if (bytes.length !== fileLength) throw new Error("The decompressed file length does not match its header.");
+  const rawName = decoderUtf8.decode(container.subarray(FILE_HEADER_LEN, FILE_HEADER_LEN + nameLength));
+  const rawType = decoderUtf8.decode(container.subarray(FILE_HEADER_LEN + nameLength, dataOffset));
+  return { name: safeFileName(rawName), type: safeMediaType(rawType), bytes, sha256: container.slice(17, 49), compression: compression === 1 ? "gzip" : "none", transmittedSize: transmitted.length };
+}
+async function verifyFile(file) { return equalBytes(await digest(file.bytes), file.sha256); }
+function packFrame(header, block) {
+  if (block.length !== header.blockLen) throw new Error("Frame block length mismatch.");
+  const out = new Uint8Array(HEADER_LEN + block.length);
+  const view = new DataView(out.buffer);
+  view.setUint8(0, FRAME_MAGIC0); view.setUint8(1, FRAME_MAGIC1);
+  view.setUint16(2, header.sessionId, true); view.setUint32(4, header.seq, true);
+  view.setUint16(8, header.k, true); view.setUint16(10, header.blockLen, true);
+  view.setUint32(12, header.totalLen, true); view.setUint32(16, header.payloadFnv, true);
+  out.set(block, HEADER_LEN);
+  return out;
+}
+function parseFrame(bytes) {
+  if (!(bytes instanceof Uint8Array) || bytes.length <= HEADER_LEN || bytes.length > MAX_FRAME_BYTES || bytes[0] !== FRAME_MAGIC0 || bytes[1] !== FRAME_MAGIC1) return null;
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const header = { sessionId: view.getUint16(2, true), seq: view.getUint32(4, true), k: view.getUint16(8, true), blockLen: view.getUint16(10, true), totalLen: view.getUint32(12, true), payloadFnv: view.getUint32(16, true) };
+  if (!header.sessionId || !header.k || !header.blockLen || !header.totalLen || header.totalLen > MAX_CONTAINER_BYTES || bytes.length !== HEADER_LEN + header.blockLen || header.k !== Math.ceil(header.totalLen / header.blockLen) || header.k > MAX_SOURCE_BLOCKS) return null;
+  return { header, block: bytes.subarray(HEADER_LEN) };
+}
+function streamIdentity(h) { return `${h.sessionId}:${h.k}:${h.blockLen}:${h.totalLen}:${h.payloadFnv}`; }
+function splitmix32(seed) {
+  let state = seed | 0;
+  return () => { state = (state + 0x9e3779b9) | 0; let value = state ^ (state >>> 16); value = Math.imul(value, 0x21f0aaad); value ^= value >>> 15; value = Math.imul(value, 0x735a2d97); value ^= value >>> 15; return value >>> 0; };
+}
+const LN2 = 0.6931471805599453;
+function dlog(x) {
+  let exponent = 0, mantissa = x;
+  while (mantissa >= 1.5) { mantissa /= 2; exponent++; }
+  while (mantissa < .75) { mantissa *= 2; exponent--; }
+  const z = (mantissa - 1) / (mantissa + 1), z2 = z * z;
+  let term = z, sum = 0;
+  for (let n = 1; n <= 21; n += 2) { sum += term / n; term *= z2; }
+  return exponent * LN2 + 2 * sum;
+}
+function solitonCdf(k) {
+  const cdf = new Float64Array(k);
+  if (k === 1) { cdf[0] = 1; return cdf; }
+  const radius = Math.max(1, .1 * dlog(k / .5) * Math.sqrt(k));
+  const spike = Math.min(k, Math.ceil(k / radius));
+  let total = 0;
+  for (let degree = 1; degree <= k; degree++) {
+    const rho = degree === 1 ? 1 / k : 1 / (degree * (degree - 1));
+    let tau = 0;
+    if (degree < spike) tau = radius / (degree * k);
+    else if (degree === spike) tau = radius * Math.max(0, dlog(radius / .5)) / k;
+    total += rho + tau; cdf[degree - 1] = total;
+  }
+  for (let i = 0; i < k; i++) cdf[i] /= total;
+  cdf[k - 1] = 1;
+  return cdf;
+}
+function frameSeed(sessionId, seq) { let hash = (Math.imul(sessionId + 1, 0x9e3779b1) ^ (seq + 0x85ebca6b)) | 0; hash = Math.imul(hash ^ (hash >>> 13), 0xc2b2ae35); return (hash ^ (hash >>> 16)) | 0; }
+function frameIndices(k, cdf, sessionId, seq) {
+  const random = splitmix32(frameSeed(sessionId, seq));
+  const sample = random() * 2 ** -32;
+  let low = 0, high = k - 1;
+  while (low < high) { const mid = (low + high) >> 1; if (cdf[mid] >= sample) high = mid; else low = mid + 1; }
+  const degree = Math.min(k, low + 1);
+  if (degree > k >> 3) {
+    const scratch = new Uint32Array(k); for (let i = 0; i < k; i++) scratch[i] = i;
+    const out = new Array(degree);
+    for (let i = 0; i < degree; i++) { const j = i + random() % (k - i); const value = scratch[i]; scratch[i] = scratch[j]; scratch[j] = value; out[i] = scratch[i]; }
+    return out;
+  }
+  const selected = new Set(); while (selected.size < degree) selected.add(random() % k);
+  return [...selected];
+}
+function xorInto(target, source) { for (let i = 0; i < target.length; i++) target[i] = (target[i] ^ source[i]) >>> 0; }
+class LTEncoder {
+  constructor(payload, blockLen, sessionId) {
+    this.blockLen = blockLen; this.sessionId = sessionId; this.k = Math.max(1, Math.ceil(payload.length / blockLen));
+    if (this.k > MAX_SOURCE_BLOCKS) throw new Error("This payload needs too many source blocks at the selected frame size.");
+    this.words = Math.ceil(blockLen / 4); this.blocks = new Uint32Array(this.k * this.words);
+    const bytes = new Uint8Array(this.blocks.buffer);
+    for (let block = 0; block < this.k; block++) bytes.set(payload.subarray(block * blockLen, Math.min((block + 1) * blockLen, payload.length)), block * this.words * 4);
+    this.cdf = solitonCdf(this.k);
+  }
+  encode(seq) {
+    const out = new Uint32Array(this.words);
+    for (const block of frameIndices(this.k, this.cdf, this.sessionId, seq)) { const offset = block * this.words; for (let word = 0; word < this.words; word++) out[word] = (out[word] ^ this.blocks[offset + word]) >>> 0; }
+    return new Uint8Array(out.buffer, 0, this.blockLen);
+  }
+}
+class LTDecoder {
+  constructor(k, blockLen, sessionId, totalLen) {
+    if (!Number.isInteger(k) || k < 1 || k > MAX_SOURCE_BLOCKS || !Number.isInteger(blockLen) || blockLen < 1 || blockLen > MAX_FRAME_BYTES - HEADER_LEN || totalLen < 1 || totalLen > MAX_CONTAINER_BYTES || k !== Math.ceil(totalLen / blockLen)) throw new Error("Unsafe fountain decoder parameters.");
+    this.k = k; this.blockLen = blockLen; this.sessionId = sessionId; this.totalLen = totalLen;
+    this.words = Math.ceil(blockLen / 4); this.cdf = solitonCdf(k); this.solved = new Array(k).fill(null); this.byBlock = new Map(); this.seen = new Set(); this.solvedCount = 0; this.framesNew = 0; this.framesDup = 0;
+    this.maxFrames = Math.min(262144, Math.max(64, k * 4));
+  }
+  get isComplete() { return this.solvedCount >= this.k; }
+  addFrame(seq, block) {
+    if (!(block instanceof Uint8Array) || block.length !== this.blockLen) return false;
+    if (this.seen.has(seq)) { this.framesDup++; return false; }
+    if (this.seen.size >= this.maxFrames) throw new Error("The fountain frame memory ceiling was reached without recovery.");
+    this.seen.add(seq); this.framesNew++;
+    if (this.isComplete) return false;
+    const indices = new Set(frameIndices(this.k, this.cdf, this.sessionId, seq));
+    const words = new Uint32Array(this.words); new Uint8Array(words.buffer).set(block);
+    for (const index of [...indices]) { const solved = this.solved[index]; if (solved) { xorInto(words, solved); indices.delete(index); } }
+    if (indices.size === 0) return true;
+    if (indices.size === 1) { this.resolve(indices.values().next().value, words); return true; }
+    const pending = { idx: indices, words };
+    for (const index of indices) { let waiting = this.byBlock.get(index); if (!waiting) { waiting = new Set(); this.byBlock.set(index, waiting); } waiting.add(pending); }
+    return true;
+  }
+  resolve(initialBlock, initialWords) {
+    const queue = [[initialBlock, initialWords]];
+    while (queue.length) {
+      const [block, words] = queue.pop();
+      if (this.solved[block]) continue;
+      this.solved[block] = words; this.solvedCount++;
+      const waiting = this.byBlock.get(block); if (!waiting) continue;
+      this.byBlock.delete(block);
+      for (const pending of waiting) { xorInto(pending.words, words); pending.idx.delete(block); if (pending.idx.size === 1) { const remaining = pending.idx.values().next().value; this.byBlock.get(remaining)?.delete(pending); if (!this.solved[remaining]) queue.push([remaining, pending.words]); } }
+    }
+  }
+  assemble() {
+    if (!this.isComplete) return null;
+    const out = new Uint8Array(this.totalLen);
+    for (let block = 0; block < this.k; block++) { const start = block * this.blockLen; const length = Math.min(this.blockLen, this.totalLen - start); if (length > 0) out.set(new Uint8Array(this.solved[block].buffer, 0, length), start); }
+    return out;
+  }
+  dispose() { this.byBlock.clear(); this.seen.clear(); this.solved.fill(null); }
+}
+class SessionReceiver {
+  constructor(onActivate = () => undefined) { this.onActivate = onActivate; this.reset(); }
+  reset() { this.decoder?.dispose(); this.decoder = null; this.key = ""; this.header = null; this.candidate = null; }
+  activate(header) { this.decoder?.dispose(); this.header = { ...header }; this.key = streamIdentity(header); this.decoder = new LTDecoder(header.k, header.blockLen, header.sessionId, header.totalLen); this.candidate = null; this.onActivate(header); }
+  accept(parsed, now = performance.now()) {
+    if (!parsed) return { accepted: false, replaced: false };
+    const key = streamIdentity(parsed.header);
+    if (!this.decoder) this.activate(parsed.header);
+    else if (key !== this.key) {
+      if (!this.candidate || this.candidate.key !== key || now - this.candidate.firstAt > 3000) this.candidate = { key, header: { ...parsed.header }, firstAt: now, seqs: new Set() };
+      this.candidate.seqs.add(parsed.header.seq);
+      if (this.candidate.seqs.size < 2) return { accepted: false, replaced: false, candidate: true };
+      this.activate(parsed.header);
+      this.decoder.addFrame(parsed.header.seq, parsed.block);
+      return { accepted: true, replaced: true };
+    }
+    this.decoder.addFrame(parsed.header.seq, parsed.block);
+    return { accepted: true, replaced: false };
+  }
+}
+
+const sendTab = document.getElementById("sendTab");
+const receiveTab = document.getElementById("receiveTab");
+const sendPanel = document.getElementById("sendPanel");
+const receivePanel = document.getElementById("receivePanel");
+const sendStatus = document.getElementById("sendStatus");
+const sendFile = document.getElementById("sendFile");
+const sendText = document.getElementById("sendText");
+const prepareBtn = document.getElementById("prepareBtn");
+const streamBtn = document.getElementById("streamBtn");
+const pauseBtn = document.getElementById("pauseBtn");
+const stage = document.getElementById("stage");
+const sendQr = document.getElementById("sendQr");
+const streamMeta = document.getElementById("streamMeta");
+let selectedPayload = null;
+let sendGeneration = 0;
+let sendPaused = false;
+let sendFrameCount = 0;
+
+function selectTab(which) {
+  const receive = which === "receive";
+  sendTab.setAttribute("aria-selected", String(!receive)); receiveTab.setAttribute("aria-selected", String(receive));
+  sendTab.tabIndex = receive ? -1 : 0; receiveTab.tabIndex = receive ? 0 : -1;
+  sendPanel.hidden = receive; receivePanel.hidden = !receive;
+  if (!receive) stopCamera();
+}
+for (const tab of [sendTab, receiveTab]) {
+  tab.addEventListener("click", () => selectTab(tab === receiveTab ? "receive" : "send"));
+  tab.addEventListener("keydown", (event) => { if (event.key === "ArrowRight" || event.key === "ArrowLeft") { event.preventDefault(); const other = tab === sendTab ? receiveTab : sendTab; other.click(); other.focus(); } });
+}
+for (const input of document.querySelectorAll('input[name="payloadMode"]')) input.addEventListener("change", () => { const text = input.value === "text" && input.checked; document.getElementById("filePane").hidden = text; document.getElementById("textPane").hidden = !text; resetSender(false); });
+function resetSender(clearInputs = true) {
+  sendGeneration++; selectedPayload = null; sendPaused = false; sendFrameCount = 0; streamBtn.disabled = true; pauseBtn.hidden = true; stage.hidden = true;
+  if (clearInputs) { sendFile.value = ""; sendText.value = ""; }
+  setStatus(sendStatus, "Choose a file or enter text, then prepare it.");
+}
+document.getElementById("clearSendBtn").addEventListener("click", () => resetSender(true));
+for (const setting of ["txFps", "frameBytes", "eccLevel", "displaySize"]) document.getElementById(setting).addEventListener("change", () => { if (selectedPayload) { sendGeneration++; stage.hidden = true; pauseBtn.hidden = true; streamBtn.disabled = false; setStatus(sendStatus, "Transfer tuning changed. Start again to create an isolated new session."); } });
+prepareBtn.addEventListener("click", async () => {
+  const generation = ++sendGeneration;
+  selectedPayload = null; streamBtn.disabled = true; stage.hidden = true;
+  try {
+    const textMode = document.querySelector('input[name="payloadMode"]:checked').value === "text";
+    let bytes, name, type;
+    if (textMode) {
+      bytes = encoderUtf8.encode(sendText.value);
+      if (!sendText.value.trim()) throw new Error("Enter some text before preparing the transfer.");
+      if (bytes.length > MAX_SNIPPET_BYTES) throw new Error(`Text snippets are limited to ${formatBytes(MAX_SNIPPET_BYTES)}.`);
+      name = "snippet.txt"; type = SNIPPET_TYPE;
+    } else {
+      const file = sendFile.files?.[0];
+      if (!file) throw new Error("Choose a file before preparing the transfer.");
+      if (file.size < 1) throw new Error("The selected file is empty.");
+      if (file.size > MAX_FILE_BYTES) throw new Error(`${file.name} is ${formatBytes(file.size)}, over the ${formatBytes(MAX_FILE_BYTES)} limit.`);
+      bytes = new Uint8Array(await file.arrayBuffer()); name = file.name; type = file.type;
+    }
+    setStatus(sendStatus, "Packing locally and calculating SHA-256…");
+    const packed = await packFile(name, type, bytes);
+    if (generation !== sendGeneration) return;
+    selectedPayload = packed; streamBtn.disabled = false;
+    setStatus(sendStatus, `${packed.name} prepared · ${formatBytes(packed.originalSize)} · ${packed.compression === "gzip" ? `gzip to ${formatBytes(packed.transmittedSize)}` : "uncompressed"} · SHA-256 embedded.`, "good");
+  } catch (error) { if (generation === sendGeneration) setStatus(sendStatus, error instanceof Error ? error.message : String(error), "error"); }
+});
+function rasterizeQr(modules, margin = 4) {
+  const count = modules.size, size = count + margin * 2, pixels = new Uint32Array(size * size); pixels.fill(0xffffffff);
+  for (let y = 0; y < count; y++) for (let x = 0; x < count; x++) if (modules.data[y * count + x]) pixels[(y + margin) * size + x + margin] = 0xff000000;
+  return { size, pixels };
+}
+streamBtn.addEventListener("click", () => startStream());
+pauseBtn.addEventListener("click", () => { sendPaused = !sendPaused; pauseBtn.textContent = sendPaused ? "Resume" : "Pause"; setStatus(sendStatus, sendPaused ? "Optical stream paused on one frame." : "Optical stream resumed."); });
+function startStream() {
+  const generation = ++sendGeneration;
+  if (!selectedPayload) return;
+  const frameBytes = Number(document.getElementById("frameBytes").value), blockLen = frameBytes - HEADER_LEN;
+  if (Math.ceil(selectedPayload.container.length / blockLen) > MAX_SOURCE_BLOCKS) { setStatus(sendStatus, "This payload needs a larger bytes-per-frame setting.", "error"); return; }
+  const fps = Number(document.getElementById("txFps").value), ecc = document.getElementById("eccLevel").value, maxDisplay = Number(document.getElementById("displaySize").value);
+  const sessionId = randomSessionId(), fountain = new LTEncoder(selectedPayload.container, blockLen, sessionId);
+  const baseHeader = { sessionId, seq: 0, k: fountain.k, blockLen, totalLen: selectedPayload.container.length, payloadFnv: fnv1a(selectedPayload.container) };
+  let seq = 0, version, modules, nextAt = performance.now(), queued = null;
+  sendPaused = false; sendFrameCount = 0; pauseBtn.textContent = "Pause"; pauseBtn.hidden = false; streamBtn.disabled = true; stage.hidden = false;
+  const staging = document.createElement("canvas");
+  function makeFrame() {
+    const frame = packFrame({ ...baseHeader, seq }, fountain.encode(seq)); seq = (seq + 1) >>> 0;
+    const qr = OpticalQRCode.create([{ data: frame, mode: "byte" }], { errorCorrectionLevel: ecc, version, maskPattern: 4 });
+    if (version === undefined) { version = qr.version; modules = qr.modules.size; const budget = Math.min(maxDisplay, window.innerWidth - 48, window.innerHeight * .82); const scale = Math.max(1, Math.floor(budget / (modules + 8))); staging.width = modules + 8; staging.height = modules + 8; sendQr.width = staging.width * scale; sendQr.height = staging.height * scale; sendQr.style.width = `${staging.width * scale}px`; sendQr.style.height = `${staging.height * scale}px`; }
+    const raster = rasterizeQr(qr.modules); return new ImageData(new Uint8ClampedArray(raster.pixels.buffer), raster.size, raster.size);
+  }
+  try { queued = makeFrame(); } catch (error) { streamBtn.disabled = false; pauseBtn.hidden = true; stage.hidden = true; setStatus(sendStatus, `This density does not fit QR ECC ${ecc}. Lower bytes per frame or choose ECC L.`, "error"); return; }
+  setStatus(sendStatus, `Streaming endlessly · session ${sessionId} · ${fps} FPS · ${frameBytes} bytes/frame · QR V${version} ${ecc} · K=${fountain.k}.`, "good");
+  function tick(now) {
+    if (generation !== sendGeneration) return;
+    requestAnimationFrame(tick);
+    if (sendPaused || now < nextAt) return;
+    const image = queued;
+    try { queued = makeFrame(); } catch (error) { sendGeneration++; setStatus(sendStatus, error instanceof Error ? error.message : String(error), "error"); return; }
+    const stagingContext = staging.getContext("2d"); stagingContext.putImageData(image, 0, 0);
+    const context = sendQr.getContext("2d"); context.imageSmoothingEnabled = false; context.drawImage(staging, 0, 0, sendQr.width, sendQr.height);
+    sendFrameCount++; streamMeta.textContent = `frame ${sendFrameCount.toLocaleString()} · sequence ${(seq - 2) >>> 0} · session ${sessionId}`;
+    nextAt += 1000 / fps; if (now - nextAt > 3000 / fps) nextAt = now + 1000 / fps;
+  }
+  requestAnimationFrame(tick);
+}
+
+class WorkerPool {
+  constructor(onDecoded) { this.onDecoded = onDecoded; this.workers = []; this.busy = []; this.urls = []; }
+  get size() { return this.workers.length; }
+  get busyCount() { return this.busy.filter(Boolean).length; }
+  resize(count) {
+    while (this.workers.length > count) { this.workers.pop().terminate(); this.busy.pop(); const url = this.urls.pop(); if (url) URL.revokeObjectURL(url); }
+    while (this.workers.length < count) {
+      const slot = this.workers.length;
+      let worker, url = null;
+      if (window.__opticalWorkerFactory) worker = window.__opticalWorkerFactory();
+      else if (OPTICAL_WORKER_SOURCE) { url = URL.createObjectURL(new Blob([OPTICAL_WORKER_SOURCE], { type: "text/javascript" })); worker = new Worker(url); }
+      else worker = new Worker(new URL("../assets/optical/zxing-worker.js", location.href));
+      worker.onmessage = (event) => { if (event.data?.id === -1) return; this.busy[slot] = false; if (event.data?.bytes) this.onDecoded(new Uint8Array(event.data.bytes)); };
+      worker.onerror = () => { this.busy[slot] = false; setStatus(receiveStatus, "The embedded QR decoder could not start on this browser.", "error"); };
+      this.workers.push(worker); this.busy.push(false); this.urls.push(url);
+    }
+    document.getElementById("metricWorkers").textContent = String(this.size);
+  }
+  submit(message, transfers) { const slot = this.busy.indexOf(false); if (slot < 0) return false; this.busy[slot] = true; this.workers[slot].postMessage(message, transfers); return true; }
+}
+const cameraBtn = document.getElementById("cameraBtn"), stopCameraBtn = document.getElementById("stopCameraBtn"), cameraVideo = document.getElementById("cameraVideo"), cameraPreview = document.getElementById("cameraPreview"), receiveStatus = document.getElementById("receiveStatus"), result = document.getElementById("result"), receiveProgress = document.getElementById("receiveProgress"), receiveBar = document.getElementById("receiveBar"), progressLabel = document.getElementById("progressLabel"), metrics = document.getElementById("metrics");
+let cameraStream = null, captureGeneration = 0, receiveGeneration = 0, statsTimer = 0, receiveStart = 0, completionPending = false, downloadUrl = null, lastDecodedAt = 0, frameId = 0;
+const receiver = new SessionReceiver((header) => { receiveStart = performance.now(); completionPending = false; result.replaceChildren(); document.getElementById("metricSession").textContent = String(header.sessionId); setStatus(receiveStatus, `Locked to session ${header.sessionId}; collecting independent fountain frames.`); });
+const pool = new WorkerPool(onDecodedFrame);
+const grabCanvas = document.createElement("canvas");
+cameraBtn.addEventListener("click", () => startCamera()); stopCameraBtn.addEventListener("click", stopCamera); document.getElementById("resetReceiveBtn").addEventListener("click", resetReceiver);
+for (const id of ["captureWidth", "captureFps", "workerCount"]) document.getElementById(id).addEventListener("change", () => { if (cameraStream) void applyCameraSettings(); });
+function mediaDevicesForTest() { return Object.prototype.hasOwnProperty.call(window, "__opticalMediaDevices") ? window.__opticalMediaDevices : navigator.mediaDevices; }
+async function startCamera() {
+  if (completionPending) { setStatus(receiveStatus, "Reset the completed or failed receiver before starting a new camera session.", "error"); return; }
+  const media = mediaDevicesForTest();
+  if (!media?.getUserMedia) {
+    const localNote = location.protocol === "file:" ? " Local files commonly cannot receive on mobile; use the hosted HTTPS PWA." : " Serve this page over HTTPS (localhost is the desktop exception).";
+    setStatus(receiveStatus, `Camera access is unavailable in this browsing context.${localNote}`, "error"); return;
+  }
+  const requestGeneration = ++captureGeneration;
+  cameraBtn.disabled = true; cameraBtn.textContent = "Starting…";
+  const width = Number(document.getElementById("captureWidth").value), fps = Number(document.getElementById("captureFps").value);
+  const base = { facingMode: { ideal: "environment" }, width: { ideal: width }, height: { ideal: Math.round(width * .75) } };
+  let stream;
+  try {
+    try { stream = await media.getUserMedia({ audio: false, video: { ...base, frameRate: { exact: fps } } }); }
+    catch (first) {
+      if (requestGeneration !== captureGeneration) return;
+      if (first?.name === "NotAllowedError" || first?.name === "SecurityError") throw first;
+      stream = await media.getUserMedia({ audio: false, video: { ...base, frameRate: { ideal: fps } } });
+    }
+  } catch (error) {
+    if (requestGeneration !== captureGeneration) return;
+    cameraBtn.disabled = false; cameraBtn.textContent = "Start camera";
+    const denied = error?.name === "NotAllowedError" || error?.name === "SecurityError";
+    setStatus(receiveStatus, denied ? "Camera permission was denied. Allow camera access in browser settings, then try again." : `Camera could not start: ${error instanceof Error ? error.message : String(error)}`, "error"); return;
+  }
+  if (requestGeneration !== captureGeneration || receivePanel.hidden) { stream?.getTracks?.().forEach((track) => track.stop()); return; }
+  cameraStream = stream;
+  cameraVideo.srcObject = stream; await cameraVideo.play().catch(() => undefined);
+  if (requestGeneration !== captureGeneration || cameraStream !== stream || receivePanel.hidden) { stream?.getTracks?.().forEach((track) => track.stop()); return; }
+  cameraBtn.hidden = true; cameraBtn.disabled = false; cameraBtn.textContent = "Start camera"; stopCameraBtn.hidden = false; cameraPreview.hidden = false; metrics.hidden = false;
+  pool.resize(Number(document.getElementById("workerCount").value));
+  const settings = stream.getVideoTracks?.()[0]?.getSettings?.() || {};
+  document.getElementById("metricCamera").textContent = `${settings.width || width}×${settings.height || Math.round(width * .75)} @ ${settings.frameRate || fps}`;
+  setStatus(receiveStatus, "Camera active. Searching for a Local Suite optical stream…");
+  lastDecodedAt = performance.now(); captureGeneration++; scheduleCapture(captureGeneration); clearInterval(statsTimer); statsTimer = setInterval(updateReceiveMetrics, 500);
+}
+async function applyCameraSettings() {
+  pool.resize(Number(document.getElementById("workerCount").value));
+  const track = cameraStream?.getVideoTracks?.()[0]; if (!track?.applyConstraints) return;
+  const width = Number(document.getElementById("captureWidth").value), fps = Number(document.getElementById("captureFps").value);
+  try { await track.applyConstraints({ width: { ideal: width }, height: { ideal: Math.round(width * .75) }, frameRate: { ideal: fps } }); } catch { setStatus(receiveStatus, "This camera refused a live setting change; the current stream remains active."); }
+}
+function scheduleCapture(generation) {
+  if (!cameraStream || generation !== captureGeneration) return;
+  const next = () => { if (!cameraStream || generation !== captureGeneration) return; captureFrame(); scheduleCapture(generation); };
+  if (cameraVideo.requestVideoFrameCallback) cameraVideo.requestVideoFrameCallback(next); else requestAnimationFrame(next);
+}
+function captureFrame() {
+  const width = cameraVideo.videoWidth, height = cameraVideo.videoHeight;
+  if (!width || !height || pool.busyCount >= pool.size) return;
+  if (grabCanvas.width !== width || grabCanvas.height !== height) { grabCanvas.width = width; grabCanvas.height = height; }
+  const context = grabCanvas.getContext("2d", { willReadFrequently: true }); context.drawImage(cameraVideo, 0, 0);
+  const image = context.getImageData(0, 0, width, height); pool.submit({ id: frameId++, buf: image.data.buffer, w: width, h: height }, [image.data.buffer]);
+}
+function onDecodedFrame(bytes) {
+  const parsed = parseFrame(bytes); if (!parsed || completionPending) return;
+  lastDecodedAt = performance.now();
+  let accepted;
+  try { accepted = receiver.accept(parsed, lastDecodedAt); }
+  catch (error) { receiver.reset(); completionPending = false; setStatus(receiveStatus, error instanceof Error ? error.message : String(error), "error"); return; }
+  if (accepted.candidate) { setStatus(receiveStatus, "A different valid session appeared; waiting for a second distinct frame before replacing the active transfer."); return; }
+  if (!accepted.accepted) return;
+  updateReceiveMetrics();
+  if (receiver.decoder.isComplete) {
+    completionPending = true;
+    const container = receiver.decoder.assemble();
+    const header = { ...receiver.header };
+    void finishReceive(container, header, receiveGeneration);
+  }
+}
+function progressFraction(decoder) {
+  if (!decoder) return 0;
+  const expected = Math.max(decoder.k + 1, Math.ceil(decoder.k * Math.min(1.6, Math.max(1.15, 1.1 + 2.45 / Math.sqrt(decoder.k)))));
+  const collecting = decoder.framesNew < decoder.k ? .86 * decoder.framesNew / decoder.k : .86 + .1 * Math.min(1, (decoder.framesNew - decoder.k) / Math.max(1, expected - decoder.k));
+  return Math.min(.99, Math.max(collecting, .99 * decoder.solvedCount / decoder.k));
+}
+function updateReceiveMetrics() {
+  const decoder = receiver.decoder;
+  if (!decoder) { if (cameraStream && performance.now() - lastDecodedAt > 10000) setStatus(receiveStatus, "No valid frame yet. On the sender, try 1,465 bytes/frame at 24 FPS, fill the camera view, and hold steady."); return; }
+  const fraction = progressFraction(decoder), percent = fraction * 100, elapsed = Math.max(.1, (performance.now() - receiveStart) / 1000);
+  receiveBar.style.width = `${percent.toFixed(1)}%`; receiveProgress.setAttribute("aria-valuenow", String(Math.floor(percent)));
+  progressLabel.textContent = `${percent < 10 ? percent.toFixed(1) : percent.toFixed(0)}% · ${decoder.framesNew} frames · ${decoder.solvedCount}/${decoder.k} blocks`;
+  document.getElementById("metricFrames").textContent = `${decoder.framesNew} / ${decoder.framesDup}`; document.getElementById("metricBlocks").textContent = `${decoder.solvedCount} / ${decoder.k}`; document.getElementById("metricRate").textContent = `${(decoder.framesNew * decoder.blockLen / 1024 / elapsed).toFixed(1)} KB/s`;
+}
+async function finishReceive(container, header, generation) {
+  stopCamera(false); receiveBar.style.width = "99%"; receiveProgress.setAttribute("aria-valuenow", "99"); progressLabel.textContent = "99% · recovered; verifying checksums…";
+  try {
+    if (!container || fnv1a(container) !== header.payloadFnv) throw new Error("The optical stream checksum did not match.");
+    const file = await unpackFile(container);
+    if (generation !== receiveGeneration) return;
+    const verified = await verifyFile(file);
+    if (generation !== receiveGeneration) return;
+    if (!verified) throw new Error("The recovered file failed SHA-256 verification.");
+    receiveBar.style.width = "100%"; receiveProgress.setAttribute("aria-valuenow", "100"); progressLabel.textContent = "100% · SHA-256 verified";
+    setStatus(receiveStatus, `${file.name} recovered and SHA-256 verified.`, "good");
+    const box = document.createElement("div"); box.className = "result-box verified";
+    const heading = document.createElement("strong"); heading.textContent = "Verified transfer complete"; box.append(heading);
+    if (file.type === SNIPPET_TYPE) {
+      let text; try { text = decoderUtf8Fatal.decode(file.bytes); } catch { throw new Error("The verified text snippet is not valid UTF-8."); }
+      const body = document.createElement("div"); body.className = "received-text"; body.textContent = text;
+      const copy = document.createElement("button"); copy.className = "secondary"; copy.type = "button"; copy.textContent = "Copy verified text"; copy.addEventListener("click", async () => { try { await navigator.clipboard.writeText(text); copy.textContent = "Copied"; } catch { copy.textContent = "Copy unavailable"; } });
+      box.append(body, copy);
+    } else {
+      if (downloadUrl) URL.revokeObjectURL(downloadUrl);
+      downloadUrl = URL.createObjectURL(new Blob([file.bytes], { type: file.type }));
+      const download = document.createElement("a"); download.className = "download"; download.href = downloadUrl; download.download = file.name; download.textContent = `Save ${file.name}`; box.append(download);
+    }
+    result.replaceChildren(box);
+  } catch (error) {
+    if (generation !== receiveGeneration) return;
+    receiveProgress.classList.add("error"); progressLabel.textContent = "Transfer failed verification";
+    setStatus(receiveStatus, error instanceof Error ? error.message : String(error), "error");
+    const box = document.createElement("div"); box.className = "result-box"; const heading = document.createElement("strong"); heading.textContent = "No download was created"; const note = document.createElement("p"); note.className = "hint"; note.textContent = "Reset both sides and scan a fresh stream. Unverified bytes are discarded."; box.append(heading, note); result.replaceChildren(box);
+  }
+}
+function stopCamera(update = true) {
+  captureGeneration++; cameraStream?.getTracks?.().forEach((track) => track.stop()); cameraStream = null; cameraVideo.srcObject = null; clearInterval(statsTimer); statsTimer = 0; pool.resize(0); cameraPreview.hidden = true; stopCameraBtn.hidden = true; cameraBtn.hidden = false;
+  cameraBtn.disabled = false; cameraBtn.textContent = "Start camera";
+  if (update) setStatus(receiveStatus, "Camera stopped. The current fountain state remains until Reset receiver.");
+}
+function resetReceiver() {
+  receiveGeneration++; stopCamera(false); receiver.reset(); completionPending = false; receiveBar.style.width = "0"; receiveProgress.classList.remove("error"); receiveProgress.setAttribute("aria-valuenow", "0"); progressLabel.textContent = "Waiting for a valid stream…"; metrics.hidden = true; result.replaceChildren(); if (downloadUrl) { URL.revokeObjectURL(downloadUrl); downloadUrl = null; } setStatus(receiveStatus, "Receiver reset. No partial or verified payload remains in memory.");
+}
+window.addEventListener("pagehide", () => { receiveGeneration++; stopCamera(false); if (downloadUrl) URL.revokeObjectURL(downloadUrl); });
+
+window.OpticalTransferTest = Object.freeze({ HEADER_LEN, FILE_HEADER_LEN, MAX_FILE_BYTES, MAX_CONTAINER_BYTES, safeFileName, safeMediaType, fnv1a, dlog, solitonCdf, frameIndices, packFrame, parseFrame, packFile, unpackFile, verifyFile, gzipBytes, gunzipLimited, LTEncoder, LTDecoder, SessionReceiver, streamIdentity, splitmix32, feedDecodedFrame: onDecodedFrame, resetReceiver });
+</script>
+</body>
+</html>

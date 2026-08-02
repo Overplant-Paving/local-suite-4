@@ -159,7 +159,7 @@ Adding a tool = one manifest entry; the hub, service worker, and CSP all update 
 ### 4.4 `--check` gates
 
 0. **Exact release identities**: the manifest contains exactly the release's declared tool count
-   (`RELEASE_TOOL_COUNT`, currently 101 as of v4.1) of distinct tool IDs, every ID matches its file
+   (`RELEASE_TOOL_COUNT`, currently 102 in the Optical Transfer integration worktree; v4.1 baseline 101) of distinct tool IDs, every ID matches its file
    stem; under-count, over-count, duplicate-ID, and ID/file-mismatch fixtures all fail dedicated
    negative tests.
 0a. **Source text integrity**: NUL and non-whitespace control bytes are rejected before rendering;

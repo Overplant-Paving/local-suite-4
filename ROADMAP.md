@@ -240,6 +240,12 @@ release checklist executed · tag pushed.
 
 ## V4 work
 
+- [ ] **Optical Transfer integration (independent worktree, 2026-08-01).** Staged as the 102nd
+  manifest tool: one self-contained Send/Receive page with DCF2 containers, deterministic LT
+  fountain recovery, inlined QR encoder and ZXing-WASM worker, SHA-256-gated completion, bounded
+  hostile-input handling, honest mobile HTTPS/PWA behavior, focused deterministic tests, and MIT
+  provenance. Architecture: `OPTICAL-TRANSFER.md`; evidence: `tests/evidence/optical/`.
+
 - [ ] **Local Suite v4.1 — Flood Risk & Conditions (release candidate, 2026-07-31).** Implemented,
   built and green on both its deterministic gate and the strict live acceptance gate
   `tests/flood-live-accept.mjs`, which returned the recorded New Orleans result (zone X,
