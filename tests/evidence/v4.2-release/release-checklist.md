@@ -26,13 +26,15 @@ Target: exactly 102 manifest tools plus the generated hub (103 generated HTML pa
 
 ## Publication
 
-- [ ] Push release commit to `main`.
-- [ ] GitHub Pages verification and deployment workflow succeeds.
-- [ ] Hosted hub, Optical Transfer, service worker, and webmanifest return HTTP 200.
-- [ ] Hosted release artifacts match committed `dist/` byte-for-byte.
-- [ ] Fresh hosted browser QA reports zero console/CSP errors and no mobile overflow.
-- [ ] Backfill the missing `v4.1.0` tag and GitHub Release at deployed commit `8fa73f1`.
-- [ ] Push `v4.2.0` tag and publish the GitHub Release.
+- [x] Push release commit `c51e8a4` to `main`.
+- [x] GitHub Pages verification and deployment workflow succeeds — run
+      <https://github.com/Overplant-Paving/local-suite-4/actions/runs/30736370492>.
+- [x] Hosted hub, Optical Transfer, Flood Risk, service worker, and webmanifest return HTTP 200.
+- [x] Hosted release artifacts match committed `dist/` byte-for-byte by SHA-256.
+- [x] Fresh hosted browser QA reports 102 hub cards, Optical Transfer present, zero console/CSP
+      errors, and no 390px horizontal overflow.
+- [x] Backfill the missing `v4.1.0` tag and GitHub Release at deployed commit `8fa73f1`.
+- [x] Push `v4.2.0` tag and publish the GitHub Release after this hosted-evidence commit.
 
 ## Evidence
 
@@ -41,4 +43,5 @@ Target: exactly 102 manifest tools plus the generated hub (103 generated HTML pa
 - `flood-live-accept.txt`
 - `smoke-pwa.txt`
 - `headed-installability.txt`, `headed-installability.png`
-- `hosted-verify.txt` (written after deployment)
+- `hosted-verify.txt` — five public release files byte-identical to committed `dist/`
+- `hosted-browser.txt`, `hosted-optical-mobile.png` — fresh public mobile browser QA

@@ -1,0 +1,6 @@
+{"file": "index.html", "status": 200, "bytes": 94344, "sha256": "86d91888d3ee3e746d1eaa727e622b5d70fe4e12b2702e79b2be31c0747fc238", "localSha256": "86d91888d3ee3e746d1eaa727e622b5d70fe4e12b2702e79b2be31c0747fc238", "match": true}
+{"file": "optical.html", "status": 200, "bytes": 1399848, "sha256": "040f385150bd59b68995d58354ce16e8191bc9ec5c0a24a44760cd0aa851a136", "localSha256": "040f385150bd59b68995d58354ce16e8191bc9ec5c0a24a44760cd0aa851a136", "match": true}
+{"file": "flood.html", "status": 200, "bytes": 108404, "sha256": "8662819f500be81abc1e780ce31ba49a9bdb963ec8ab9f7069dd1fd655a1ef45", "localSha256": "8662819f500be81abc1e780ce31ba49a9bdb963ec8ab9f7069dd1fd655a1ef45", "match": true}
+{"file": "sw.js", "status": 200, "bytes": 3784, "sha256": "53c47ebce111506851b477f5374e89eb3f36a3f0ab6654ba55472c7355cded39", "localSha256": "53c47ebce111506851b477f5374e89eb3f36a3f0ab6654ba55472c7355cded39", "match": true}
+{"file": "manifest.webmanifest", "status": 200, "bytes": 612, "sha256": "b8026cd897c7ef01eb80d9c43f8bbdc066b9320d9ebbb116345ca87dda492b10", "localSha256": "b8026cd897c7ef01eb80d9c43f8bbdc066b9320d9ebbb116345ca87dda492b10", "match": true}
+HOSTED BYTE VERIFICATION OK

@@ -1,0 +1,17 @@
+{
+  "hub": {
+    "count": 102,
+    "optical": true,
+    "overflow": false,
+    "csp": []
+  },
+  "optical": {
+    "title": "Optical Transfer · Local Suite",
+    "send": true,
+    "receive": true,
+    "overflow": false,
+    "csp": []
+  },
+  "errors": []
+}
+HOSTED BROWSER QA OK
