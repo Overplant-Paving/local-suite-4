@@ -291,9 +291,10 @@ release checklist executed · tag pushed.
   selected detail, both pagination dialects have practical controls, resource-specific fields are
   visible, and 401/403/429 stop the queued tab fan-out. Gates: `node tests/nps-schema-inventory.mjs`
   + `node tests/parks-built.mjs` + `node tests/verify-tool.mjs parks`.
-- [x] The Arcade — five owned games (Bathhouse Brigade desktop/mobile, Chromatic Chains
-  desktop/mobile, DOOM 1993 shareware), every card linking to a live-verified GitHub Pages
-  deployment, art copied from the game repos (DOOM: screenshot of its own deployment, credited
+- [x] The Arcade — seven owned games (Bathhouse Brigade desktop/mobile, Chromatic Chains
+  desktop/mobile, DOOM 1993 shareware, Unicorn 42069er, Miner 42069er), every card linking to a
+  live-verified GitHub Pages deployment, art copied from the game repos (DOOM: screenshot of its
+  own deployment, credited
   to id Software), optimized and inlined at build time via the new `data-suite-asset` marker.
   Games category reopened. Gate: `node tests/arcade-built.mjs`.
 - [x] 26 further v4 tools (manifest 100 total): offline — calc, hash, checklists, image, ics,

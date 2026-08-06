@@ -47,7 +47,7 @@ checkout; do not claim otherwise. Existing migration evidence remains under `tes
   counts.
 - V4 adds suite-wide favorites and recently-used quick access (core chrome + hub sections), a
   live flight weather map (Open-Meteo precipitation grid, NWS SIGMETs and METARs), a re-audited
-  29-resource National Parks Explorer with a drawn boundary map, The Arcade (five playable games,
+  29-resource National Parks Explorer with a drawn boundary map, The Arcade (seven playable games,
   art inlined from the owned repos via `data-suite-asset`), and 26 new offline/keyless tools.
 - GitHub repository: https://github.com/Overplant-Paving/local-suite-4
 - Hosted suite: https://overplant-paving.github.io/local-suite-4/

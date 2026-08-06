@@ -1,8 +1,8 @@
 # Arcade card art — source and provenance
 
 All art was copied from Overplant-Paving's own game repositories (or their live GitHub Pages
-deployments) on 2026-07-30, then mechanically downscaled and JPEG-compressed for card payload
-size (Pillow, Lanczos, quality 78). No image was creatively generated or redrawn.
+deployments) on the dates below, then mechanically downscaled and JPEG-compressed for card payload
+size. No image was creatively generated or redrawn.
 
 | File | Source | Original |
 |---|---|---|
@@ -11,6 +11,8 @@ size (Pillow, Lanczos, quality 78). No image was creatively generated or redrawn
 | `chromatic-chains-desktop.jpg` | `Overplant-Paving/chromatic-chains-desktop` @ main, `assets/scenes/title/title-scene.png` | 1536×864 PNG, 1,343,165 B |
 | `chromatic-chains-mobile.jpg` | `Overplant-Paving/chromatic-chains-mobile` @ main, `assets/scenes/title-portrait/title-scene-portrait.png` | 864×1536 PNG, 1,307,555 B |
 | `doom-shareware.jpg` | Screenshot of the repository's own live deployment `https://overplant-paving.github.io/doom-shareware/` (the repo contains no image files) | 900×620 capture, 117,248 B |
+| `unicorn-42069er.jpg` | `Overplant-Paving/unicorn-42069er` @ `afe35bb1`, `screenshots/title.png` (copied 2026-08-06; ImageMagick Lanczos, 640×400 crop, JPEG quality 78) | 1536×864 PNG, 1,542,913 B |
+| `miner-42069er.jpg` | `Overplant-Paving/miner-42069er` @ `e3b750d1`, `screenshots/title.png` (copied 2026-08-06; ImageMagick Lanczos, 640×400 crop, JPEG quality 78) | 1536×864 PNG, 1,678,067 B |
 
 The DOOM capture shows the game's title screen as served by the owned deployment; DOOM and its
 artwork are © id Software — the card credits this and links only to the shareware deployment.

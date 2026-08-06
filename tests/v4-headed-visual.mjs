@@ -97,7 +97,7 @@ async function audit(page,issues,name){
  const {context,page,issues}=await makePage();
  await page.goto(url("arcade.html"));await page.waitForSelector(".game");
  const decoded=await page.evaluate(()=>[...document.querySelectorAll(".art img")].every(i=>i.complete&&i.naturalWidth>0));
- check("arcade five cards and decoded art",await page.locator(".game").count()===5&&decoded);
+ check("arcade seven cards and decoded art",await page.locator(".game").count()===7&&decoded);
  await page.screenshot({path:join(OUT,"arcade-desktop.png")});
  await page.setViewportSize({width:390,height:844});await page.screenshot({path:join(OUT,"arcade-mobile.png")});
  await audit(page,issues,"arcade desktop/mobile");await context.close()

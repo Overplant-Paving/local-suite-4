@@ -700,10 +700,11 @@ refinance what-ifs (10.11), dice and pick-from-list (10.5). Storage and quota di
 ## 11 · Games & Arcade
 
 ### 11.1 The Arcade — *built* ✅ (v4)
-A launcher for five browser games from this suite's own workshop: Bathhouse Brigade (desktop and
-mobile editions), Chromatic Chains (desktop and mobile editions), and DOOM 1993 shareware in an
-EmulatorJS/PrBoom wrapper. Every card links to its live GitHub Pages deployment (all five
-verified playable 2026-07-30) plus the source repository, honestly labeled.
+A launcher for seven browser games from this suite's own workshop: Bathhouse Brigade (desktop and
+mobile editions), Chromatic Chains (desktop and mobile editions), DOOM 1993 shareware in an
+EmulatorJS/PrBoom wrapper, Unicorn 42069er: The Sprinkle Mines, and Miner 42069er. Every card links
+to its live GitHub Pages deployment (all seven verified playable 2026-08-06) plus the source
+repository, honestly labeled.
 - **Data:** none — zero network requests. Card art is copied from the game repositories
   (DOOM: a screenshot of the repository's own deployment, credited to id Software), optimized,
   and inlined at build time via the `data-suite-asset` marker; provenance in

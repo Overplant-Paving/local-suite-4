@@ -125,11 +125,11 @@ sync across tabs, and ride along in Settings backup/restore like every other `su
 
 ### The Arcade (v4)
 
-`dist/arcade.html` is a launcher for five browser games from this suite's own workshop —
+`dist/arcade.html` is a launcher for seven browser games from this suite's own workshop —
 Bathhouse Brigade (desktop + mobile editions), Chromatic Chains (desktop + mobile editions),
-and the DOOM 1993 shareware episode in an emulator. Every card links to a live GitHub Pages
-deployment; the card art is copied from the game repositories and inlined at build time
-(provenance: `assets/arcade/PROVENANCE.md`).
+the DOOM 1993 shareware episode in an emulator, Unicorn 42069er: The Sprinkle Mines, and Miner
+42069er. Every card links to a live GitHub Pages deployment; the card art is copied from the game
+repositories and inlined at build time (provenance: `assets/arcade/PROVENANCE.md`).
 
 ### National Parks Explorer setup
 

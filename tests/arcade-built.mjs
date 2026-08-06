@@ -1,4 +1,4 @@
-/* Built Arcade contract: five cards, honest live-Pages destinations, inlined art,
+/* Built Arcade contract: seven cards, honest live-Pages destinations, inlined art,
    alt text, external-link safety, keyboard focus, CSP, file:// + hosted mode, mobile.
    Deterministic — no request leaves the page (the cards are links, not fetches).
    Run from tests/:  node arcade-built.mjs                          exit 0 = green */
@@ -15,6 +15,8 @@ const EXPECT = [
   ["Chromatic Chains — Desktop Edition", "Desktop · mouse + keyboard", "https://overplant-paving.github.io/chromatic-chains-desktop/", "https://github.com/Overplant-Paving/chromatic-chains-desktop"],
   ["Chromatic Chains — Mobile Edition", "Mobile · touch-first", "https://overplant-paving.github.io/chromatic-chains-mobile/", "https://github.com/Overplant-Paving/chromatic-chains-mobile"],
   ["DOOM (1993) — Shareware", "Desktop + touch", "https://overplant-paving.github.io/doom-shareware/", "https://github.com/Overplant-Paving/doom-shareware"],
+  ["Unicorn 42069er: The Sprinkle Mines", "Desktop · keyboard", "https://overplant-paving.github.io/unicorn-42069er/", "https://github.com/Overplant-Paving/unicorn-42069er"],
+  ["Miner 42069er", "Desktop · keyboard", "https://overplant-paving.github.io/miner-42069er/", "https://github.com/Overplant-Paving/miner-42069er"],
 ];
 
 let browser;
@@ -59,7 +61,7 @@ async function audit(page, modeName) {
     alt: c.querySelector(".art img")?.getAttribute("alt") || "",
     artLabel: c.querySelector("a.art")?.getAttribute("aria-label") || "",
   })));
-  check("five cards render", cards.length === 5, String(cards.length));
+  check("seven cards render", cards.length === 7, String(cards.length));
   EXPECT.forEach(([title, edition, play, src], i) => {
     const c = cards[i] || {};
     check(`card ${i + 1}: ${title}`,
@@ -116,7 +118,7 @@ async function audit(page, modeName) {
     cards: document.querySelectorAll(".game").length,
     imgs: [...document.querySelectorAll(".art img")].every(i => i.complete && i.naturalWidth > 0),
   }));
-  check("hosted mode: five cards, art decodes", hosted.cards === 5 && hosted.imgs, JSON.stringify(hosted));
+  check("hosted mode: seven cards, art decodes", hosted.cards === 7 && hosted.imgs, JSON.stringify(hosted));
   check("hosted zero console/page errors", mon.errs.length === 0, mon.errs.join("|"));
   check("hosted zero CSP violations", (await mon.csp()).length === 0, (await mon.csp()).join("|"));
   await ctx.close();
