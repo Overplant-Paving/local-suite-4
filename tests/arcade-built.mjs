@@ -10,13 +10,13 @@ import { readFileSync } from "node:fs";
 
 const ROOT = resolve(import.meta.dirname, "..");
 const EXPECT = [
-  ["Bathhouse Brigade", "Desktop · keyboard", "https://overplant-paving.github.io/bathhouse-brigade/", "https://github.com/Overplant-Paving/bathhouse-brigade"],
-  ["Bathhouse Brigade — Mobile Detail", "Mobile · touch + keyboard", "https://overplant-paving.github.io/bathhouse-brigade-mobile/", "https://github.com/Overplant-Paving/bathhouse-brigade-mobile"],
-  ["Chromatic Chains — Desktop Edition", "Desktop · mouse + keyboard", "https://overplant-paving.github.io/chromatic-chains-desktop/", "https://github.com/Overplant-Paving/chromatic-chains-desktop"],
-  ["Chromatic Chains — Mobile Edition", "Mobile · touch-first", "https://overplant-paving.github.io/chromatic-chains-mobile/", "https://github.com/Overplant-Paving/chromatic-chains-mobile"],
-  ["DOOM (1993) — Shareware", "Desktop + touch", "https://overplant-paving.github.io/doom-shareware/", "https://github.com/Overplant-Paving/doom-shareware"],
-  ["Unicorn 42069er: The Sprinkle Mines", "Desktop · keyboard", "https://overplant-paving.github.io/unicorn-42069er/", "https://github.com/Overplant-Paving/unicorn-42069er"],
-  ["Miner 42069er", "Desktop · keyboard", "https://overplant-paving.github.io/miner-42069er/", "https://github.com/Overplant-Paving/miner-42069er"],
+  ["Bathhouse Brigade", "Desktop · keyboard", "https://overplant-paving.github.io/bathhouse-brigade/", "https://github.com/Overplant-Paving/bathhouse-brigade", "Soviet-constructivist falling blocks"],
+  ["Bathhouse Brigade — Mobile Detail", "Mobile · touch + keyboard", "https://overplant-paving.github.io/bathhouse-brigade-mobile/", "https://github.com/Overplant-Paving/bathhouse-brigade-mobile", "phone in portrait"],
+  ["Chromatic Chains — Desktop Edition", "Desktop · mouse + keyboard", "https://overplant-paving.github.io/chromatic-chains-desktop/", "https://github.com/Overplant-Paving/chromatic-chains-desktop", "glowing colored glass beads"],
+  ["Chromatic Chains — Mobile Edition", "Mobile · touch-first", "https://overplant-paving.github.io/chromatic-chains-mobile/", "https://github.com/Overplant-Paving/chromatic-chains-mobile", "portrait title scene"],
+  ["DOOM (1993) — Shareware", "Desktop + touch", "https://overplant-paving.github.io/doom-shareware/", "https://github.com/Overplant-Paving/doom-shareware", "DOOM title screen"],
+  ["Unicorn 42069er: The Sprinkle Mines", "Desktop · keyboard", "https://overplant-paving.github.io/unicorn-42069er/", "https://github.com/Overplant-Paving/unicorn-42069er", "pastel candy-mine entrance"],
+  ["Miner 42069er", "Desktop · keyboard", "https://overplant-paving.github.io/miner-42069er/", "https://github.com/Overplant-Paving/miner-42069er", "timbered mine entrance"],
 ];
 
 let browser;
@@ -51,7 +51,9 @@ async function audit(page, modeName) {
 
   const cards = await page.evaluate(() => [...document.querySelectorAll(".game")].map(c => ({
     title: c.querySelector("h2 a")?.textContent.trim(),
+    headingHref: c.querySelector("h2 a")?.getAttribute("href"),
     edition: c.querySelector(".chips .chip")?.textContent.trim(),
+    artHref: c.querySelector("a.art")?.getAttribute("href"),
     play: c.querySelector("a.play")?.getAttribute("href"),
     playLabel: c.querySelector("a.play")?.textContent.trim(),
     src: c.querySelector("a.src")?.getAttribute("href"),
@@ -62,13 +64,15 @@ async function audit(page, modeName) {
     artLabel: c.querySelector("a.art")?.getAttribute("aria-label") || "",
   })));
   check("seven cards render", cards.length === 7, String(cards.length));
-  EXPECT.forEach(([title, edition, play, src], i) => {
+  EXPECT.forEach(([title, edition, play, src, altFragment], i) => {
     const c = cards[i] || {};
     check(`card ${i + 1}: ${title}`,
-      c.title === title && c.edition === edition && c.play === play && c.src === src,
+      c.title === title && c.edition === edition && c.play === play && c.src === src &&
+        c.artHref === play && c.headingHref === play,
       JSON.stringify(c));
     check(`card ${i + 1} art inlined as data URI, decoded, meaningful alt`,
-      c.imgData && c.imgLoaded && c.alt.length > 30 && /new tab/.test(c.artLabel), JSON.stringify({ imgData: c.imgData, imgLoaded: c.imgLoaded, alt: c.alt.slice(0, 40) }));
+      c.imgData && c.imgLoaded && c.alt.includes(altFragment) && /new tab/.test(c.artLabel),
+      JSON.stringify({ imgData: c.imgData, imgLoaded: c.imgLoaded, alt: c.alt.slice(0, 80) }));
     check(`card ${i + 1} external links are noopener+_blank`,
       c.rels.length >= 3 && c.rels.every(r => /noopener/.test(r) && /_blank/.test(r)), JSON.stringify(c.rels));
   });

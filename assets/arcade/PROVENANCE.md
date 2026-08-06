@@ -1,8 +1,10 @@
 # Arcade card art — source and provenance
 
-All art was copied from Overplant-Paving's own game repositories (or their live GitHub Pages
-deployments) on the dates below, then mechanically downscaled and JPEG-compressed for card payload
-size. No image was creatively generated or redrawn.
+The original five assets were copied from Overplant-Paving's own game repositories (or their live
+GitHub Pages deployments) on 2026-07-30, then mechanically downscaled and JPEG-compressed with
+Pillow (Lanczos, quality 78). The Unicorn and Miner additions were copied on 2026-08-06 and
+processed with ImageMagick as specified in their rows. No image was creatively generated or
+redrawn.
 
 | File | Source | Original |
 |---|---|---|

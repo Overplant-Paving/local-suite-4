@@ -16,7 +16,7 @@ Scope: add `Overplant-Paving/unicorn-42069er` and `Overplant-Paving/miner-42069e
 - `node tests/arcade-built.mjs`: PASS — seven exact cards, decoded inlined art, meaningful alt text, noopener/blank external links, keyboard focus, zero load-time network requests, zero console/page/CSP errors, and no 390px overflow in both `file://` and local hosted modes.
 - Full GitHub Pages workflow-equivalent gate chain: PASS.
 - Smoke matrix: 103/103 generated pages green.
-- PWA coexistence: PASS — new `suite-v4-c3c6bec98cd6` cache contains 107 entries, preserves the v3 cache, and removes obsolete v4 caches.
+- PWA coexistence: PASS — new `suite-v4-ae5666c34bfd` cache contains 107 entries, preserves the v3 cache, and removes obsolete v4 caches.
 
 ## Visual QA
 
