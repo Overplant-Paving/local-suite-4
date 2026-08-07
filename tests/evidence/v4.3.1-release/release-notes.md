@@ -29,4 +29,4 @@ The focused Optical gate now covers composited QR geometry, maximum-density live
 
 - Local and publication checklist: `tests/evidence/v4.3.1-release/release-checklist.md`
 - Local gate output: `tests/evidence/v4.3.1-release/`
-- Hosted verification is recorded in the same directory after GitHub Pages deployment.
+- Hosted byte-for-byte and browser verification: `tests/evidence/v4.3.1-release/hosted-verify.txt`

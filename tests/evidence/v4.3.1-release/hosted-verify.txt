@@ -1,0 +1,91 @@
+$ node /tmp/local-suite-v431-hosted.mjs
+{
+  "artifacts": [
+    {
+      "rel": "index.html",
+      "http": 200,
+      "bytes": 94345,
+      "localSha256": "7f5abbca108abc06d9219f572a524ae66cea9c8cd0651e8bcc1ab3c4a7e0d15e",
+      "hostedSha256": "7f5abbca108abc06d9219f572a524ae66cea9c8cd0651e8bcc1ab3c4a7e0d15e",
+      "match": true
+    },
+    {
+      "rel": "optical.html",
+      "http": 200,
+      "bytes": 1403115,
+      "localSha256": "4d5d3d2b607f7e3012a21cb795bd6b52ce51b65c26d09e4cf62d5ab0613268dc",
+      "hostedSha256": "4d5d3d2b607f7e3012a21cb795bd6b52ce51b65c26d09e4cf62d5ab0613268dc",
+      "match": true
+    },
+    {
+      "rel": "sw.js",
+      "http": 200,
+      "bytes": 3784,
+      "localSha256": "aea9aedfcf3e10f4c3d80206d3430e5cb0f4446735b8bf4e19c3887cf358d0b1",
+      "hostedSha256": "aea9aedfcf3e10f4c3d80206d3430e5cb0f4446735b8bf4e19c3887cf358d0b1",
+      "match": true
+    },
+    {
+      "rel": "manifest.webmanifest",
+      "http": 200,
+      "bytes": 612,
+      "localSha256": "b8026cd897c7ef01eb80d9c43f8bbdc066b9320d9ebbb116345ca87dda492b10",
+      "hostedSha256": "b8026cd897c7ef01eb80d9c43f8bbdc066b9320d9ebbb116345ca87dda492b10",
+      "match": true
+    },
+    {
+      "rel": "icons/icon-192.png",
+      "http": 200,
+      "bytes": 1747,
+      "localSha256": "9a4d5b4480b6759f561200ba4db234628432e51305b2d063153fe1b867dd7e76",
+      "hostedSha256": "9a4d5b4480b6759f561200ba4db234628432e51305b2d063153fe1b867dd7e76",
+      "match": true
+    }
+  ],
+  "browser": {
+    "desktop": {
+      "intrinsic": [
+        399,
+        399
+      ],
+      "rendered": [
+        399,
+        399
+      ],
+      "square": true
+    },
+    "breakpoint761": {
+      "intrinsic": [
+        266,
+        266
+      ],
+      "rendered": [
+        266,
+        266
+      ],
+      "square": true
+    },
+    "breakpoint760": {
+      "intrinsic": [
+        532,
+        532
+      ],
+      "rendered": [
+        532,
+        532
+      ],
+      "square": true
+    },
+    "markers": {
+      "reducedMotion": true,
+      "integrity": true,
+      "stageSizing": true
+    },
+    "arcadeDescription": true,
+    "errors": []
+  }
+}
+[exit 0]
+
+Pages workflow: https://github.com/Overplant-Paving/local-suite-4/actions/runs/31139502818
+Deployed commit: 8fd362db873b4ce9c7073cae201cb635c28bfcf1
