@@ -699,7 +699,7 @@ refinance what-ifs (10.11), dice and pick-from-list (10.5). Storage and quota di
 
 ## 11 · Games & Arcade
 
-### 11.1 The Arcade — *built* ✅ (v4)
+### 11.1 The Arcade — *built* ✅ (v4; expanded in v4.3.0)
 A launcher for seven browser games from this suite's own workshop: Bathhouse Brigade (desktop and
 mobile editions), Chromatic Chains (desktop and mobile editions), DOOM 1993 shareware in an
 EmulatorJS/PrBoom wrapper, Unicorn 42069er: The Sprinkle Mines, and Miner 42069er. Every card links

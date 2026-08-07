@@ -1,13 +1,14 @@
 # Local Suite 4
 
-This is **Local Suite v4**, built on the verified v2/v3 single-file architecture. **v4.2.0** contains
-**102 manifest tools** (103 generated pages). It adds **Optical Transfer**, a local-first screen-to-
-camera file and text transport using an endless fountain-coded QR stream, an inlined ZXing-WASM
-decoder, and checksum-gated recovery with no payload network path.
+This is **Local Suite v4**, built on the verified v2/v3 single-file architecture. **v4.3.1** contains
+**102 manifest tools** (103 generated pages) and hardens Optical Transfer with stage-relative square
+QR rendering, deterministic sender/receiver teardown, bounded equation memory, accurate completion
+states, safer reduced-motion pacing, current camera metrics, and stronger rendered-layout tests.
 
-Current release: **v4.2.0** (2026-08-02). Release evidence is archived under
-`tests/evidence/v4.2-release/`; v4.0.0 evidence remains under `tests/evidence/v4-release/` and
-v3.0.0 evidence under `tests/evidence/v3-release/`.
+Current release: **v4.3.1** (2026-08-06). Release evidence is archived under
+`tests/evidence/v4.3.1-release/`; v4.3.0 evidence remains under `tests/evidence/v4.3-release/`,
+v4.2.0 evidence under `tests/evidence/v4.2-release/`, v4.0.0 evidence under
+`tests/evidence/v4-release/`, and v3.0.0 evidence under `tests/evidence/v3-release/`.
 
 **v4.1.0 was released and deployed on 2026-07-31.** It added **Flood Risk & Conditions**
 (`flood.html`) as the 101st tool: one exact, explicitly confirmed U.S. point is screened against
@@ -16,9 +17,18 @@ informational screening only, never a parcel or legal determination. Its determi
 live acceptance gates were green before deployment. Evidence: `tests/evidence/flood/` and
 `tests/evidence/flood-feasibility/`.
 
-**v4.2.0 adds Optical Transfer** as the 102nd tool. Its sender works directly from `file://`; mobile
+**v4.2.0 added Optical Transfer** as the 102nd tool. Its sender works directly from `file://`; mobile
 camera receive generally requires hosted HTTPS, and the installable PWA preserves that secure origin
 for later offline use. See [OPTICAL-TRANSFER.md](OPTICAL-TRANSFER.md).
+
+**v4.3.0 expands The Arcade** with Unicorn 42069er and Miner 42069er. All seven cards use exact
+live Pages/source destinations, inlined locally stored art, truthful alternatives, keyboard-safe
+external links, and deterministic file/hosted/mobile regression coverage.
+
+**v4.3.1 hardens Optical Transfer** without changing its DCF2/LT wire format. It fixes desktop QR
+distortion, stops hidden sender work, makes verification and mode-switch state deterministic,
+rejects impossible QR tuning before streaming, refreshes live camera settings safely, bounds
+equation buffers to 32 MiB, clarifies integrity versus authenticity, and respects reduced motion.
 
 **To use the suite: open [`dist/index.html`](dist/index.html).** Everything in `dist/` is
 built and self-contained — double-click any file there. The `tools/` folder holds the
@@ -123,7 +133,7 @@ section plus a 🕘 Recently used row (deduplicated, most-recent-first, bounded 
 clear button). Both live in `localStorage` (`suite.hub.favorites`, `suite.hub.recents`), stay in
 sync across tabs, and ride along in Settings backup/restore like every other `suite.*` key.
 
-### The Arcade (v4)
+### The Arcade (v4; expanded in v4.3.0)
 
 `dist/arcade.html` is a launcher for seven browser games from this suite's own workshop —
 Bathhouse Brigade (desktop + mobile editions), Chromatic Chains (desktop + mobile editions),

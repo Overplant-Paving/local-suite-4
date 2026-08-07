@@ -1,0 +1,230 @@
+$ node tests/multiple-locations.mjs
+multiple locations: PASS {"migration":true,"uniqueIds":["home","home-2"],"legacyWriterSync":true,"labelClear":true,"activeFallback":true,"finalClear":true,"invalidRejected":true,"unknownFieldsPreserved":true,"futureSchemaPreserved":true,"damagedDataPreserved":true,"inFlightGuard":{"rejected":true,"cached":null},"builtHub":{"toolLinks":102,"activeLabel":"Home","collection":{"schema":1,"activeId":"saved-location","items":[{"id":"saved-location","revision":1,"lat":40.7128,"lon":-74.006,"label":"Home"}]}},"wildfireScoped":true}
+[exit 0]
+
+$ node tests/location-cross-tab.mjs
+location cross-tab: PASS {"reloads":2,"active":{"lat":34.0522,"lon":-118.2437,"label":"B"},"paintedLabel":"B","coveredTools":32}
+[exit 0]
+
+$ node tests/favorites-recents.mjs
+ok   unknown favorite id ignored, known one renders
+ok   recents with only unknown ids stays hidden
+ok   hub card star has aria-label
+ok   hub star toggles storage + pressed state
+ok   unfavoriting from the Favorites section works
+ok   search hides the quick-access sections
+ok   clearing the search restores Favorites
+ok   tool chrome star is a native button with aria-pressed
+ok   opening a tool records it first in recents
+ok   keyboard Enter toggles the chrome star
+ok   cross-tab: hub favorites updated live
+ok   cross-tab: hub recents updated live
+ok   recents dedupe + most-recent-first
+ok   recents bounded at 10, newest kept
+ok   hub + settings excluded from recents
+ok   clear empties recents + hides section + announces
+ok   mobile 390px: sections render, no horizontal overflow
+ok   zero console/page errors
+
+favorites-recents: PASS
+[exit 0]
+
+$ node tests/flight-built.mjs
+built flight tracker: PASS {"title":"AA100","route":["JFK","LAX"],"mapVisible":true,"keyExposed":false,"cspAllowsProvider":true,"positionSource":"Airplanes.live ADS-B · Position updated less than a minute ago","cached":true,"precipCells":7,"wxPanels":true,"metarDecoded":true}
+[exit 0]
+
+$ node tests/parks-built.mjs
+{
+  "title": "National Parks Explorer · Local Suite",
+  "park": "Yellowstone National Park",
+  "healthRows": 29,
+  "healthOk": 29,
+  "nativeSectionButtons": true,
+  "nativeParkButtons": true,
+  "cspAllowsApi": true,
+  "cspAllowsImages": true,
+  "keyVisible": false,
+  "horizontalOverflow": false,
+  "galleryPickerOptions": 2,
+  "endpointCount": 29,
+  "allHeaderAuth": true,
+  "queryLeak": false,
+  "galleryScoped": true,
+  "consoleIssues": [],
+  "authSuppression": {
+    "requests": 3,
+    "paths": [
+      "/campgrounds",
+      "/parks"
+    ],
+    "keyVisible": false
+  },
+  "rateSuppression": {
+    "requests": 3,
+    "paths": [
+      "/campgrounds",
+      "/parks"
+    ],
+    "keyVisible": false
+  }
+}
+[exit 0]
+
+$ node tests/arcade-built.mjs
+ok   seven cards render
+ok   card 1: Bathhouse Brigade
+ok   card 1 art inlined as data URI, decoded, meaningful alt
+ok   card 1 external links are noopener+_blank
+ok   card 2: Bathhouse Brigade — Mobile Detail
+ok   card 2 art inlined as data URI, decoded, meaningful alt
+ok   card 2 external links are noopener+_blank
+ok   card 3: Chromatic Chains — Desktop Edition
+ok   card 3 art inlined as data URI, decoded, meaningful alt
+ok   card 3 external links are noopener+_blank
+ok   card 4: Chromatic Chains — Mobile Edition
+ok   card 4 art inlined as data URI, decoded, meaningful alt
+ok   card 4 external links are noopener+_blank
+ok   card 5: DOOM (1993) — Shareware
+ok   card 5 art inlined as data URI, decoded, meaningful alt
+ok   card 5 external links are noopener+_blank
+ok   card 6: Unicorn 42069er: The Sprinkle Mines
+ok   card 6 art inlined as data URI, decoded, meaningful alt
+ok   card 6 external links are noopener+_blank
+ok   card 7: Miner 42069er
+ok   card 7 art inlined as data URI, decoded, meaningful alt
+ok   card 7 external links are noopener+_blank
+ok   playable labels say what happens
+ok   DOOM card credits id Software and disclaims open source
+ok   no network request escapes the page on load
+ok   card art link is keyboard-focusable
+ok   file:// zero console/page errors
+ok   file:// zero CSP violations
+ok   mobile 390px: no horizontal overflow
+ok   hosted mode: seven cards, art decodes
+ok   hosted zero console/page errors
+ok   hosted zero CSP violations
+
+arcade: PASS
+[exit 0]
+
+$ node tests/flood-built.mjs
+ok   census two-step confirm + request shapes + AE/SFHA render
+ok   census multiple candidates are selectable
+ok   census no-match and JSONP failure cleanup
+ok   direct coordinates need one explicit Check
+ok   device position is a candidate needing an explicit Check
+ok   suite shortcut is explicit; cross-tab change updates only the candidate
+ok   suite-location abort mid-flight → single retry for the current target
+ok   superseded target: old response neither renders nor retries
+ok   zone: X 0.2% band
+ok   zone: X minimal
+ok   zone: D undetermined
+ok   zone: VE coastal
+ok   zone: AO depth
+ok   zone: sentinel -9999 suppressed
+ok   dual overlapping zones: any SFHA_TF=T wins the summary; all listed
+ok   no zone + NFHL availability present
+ok   no zone + no NFHL coverage
+ok   FEMA unreachable is not 'no flood zone'
+ok   GeoJSON dialect rejected → one Esri JSON fallback, same allowlist
+ok   zone ok + panel failure keeps the zone
+ok   footprint SVG + approximate edge distance (Polygon)
+ok   footprint renders MultiPolygon without errors
+ok   poor device accuracy suppresses the edge distance
+ok   NWS filtering, ordering, unrelated-only wording
+ok   unrelated-only alerts say 'no flood-related', not 'no alerts'
+ok   gauges: flood stage outranks nearest; sentinels; 20 km bound
+ok   no gauges → explicit 50 km expansion + rivers link
+ok   remote strings cannot inject markup
+ok   caches: warm boot renders before network; stale + partial offline honest
+ok   flood caches are bounded and never touch other keys
+ok   Refresh forces a network attempt inside the TTL; failure keeps the cached copy
+ok   stale panel/LOMR whose refresh fails are labelled, not presented as current
+ok   unreadable 200 payloads produce unknown states, never a negative claim
+ok   zone fallback after a target switch keeps the original point's identity
+ok   expired cache + failed network + cross-tab location change still renders the cache
+ok   SFHA unknown, not outside: null flag
+ok   SFHA unknown, not outside: string "Null"
+ok   SFHA unknown, not outside: unknown code
+ok   SFHA unknown, not outside: non-string flag
+ok   explicit F on every record is the only route to an outside-SFHA claim
+ok   one unknown record among explicit F records blocks the outside claim
+ok   all-unreadable FEMA zone records read as unknown, not as an empty answer
+ok   partly unreadable FEMA records render the readable ones and say so
+ok   all-unreadable NWS records read as unknown, never 'no flood alert'
+ok   all-unreadable NWPS records read as unknown, never 'no gauge within 20 km'
+ok   non-string NWS text fields render safely instead of throwing
+ok   a slow address lookup cannot repaint over a newer checked target
+ok   BFE unit: feet
+ok   BFE unit: meters
+ok   BFE unit: missing unit
+ok   panel identity is normalized and a tie is shown as ambiguous, not guessed
+ok   an explicitly printed panel outranks one with no stated print status
+ok   a gauge 18 km due north or south is inside the advertised 20 km search
+ok   not-current readings are unavailable, undated, and lose forecast ranking
+ok   a malformed ring is discarded whole, never stitched across missing vertices
+ok   no usable ring: no footprint, no edge distance, no inside-the-polygon claim
+ok   per-section status nodes announce classification, enrichment and conditions
+ok   a failed enrichment announces the failure without retracting the zone
+ok   aria-busy is true while a section is in flight
+ok   the fallback pipeline stays inside the documented six-request ceiling
+ok   live regions, disclosure keyboard path, no horizontal overflow (375px), dark theme
+ok   desktop screenshots, both themes
+
+flood-built: all scenarios green
+[exit 0]
+
+$ node tests/optical-built.mjs
+ok   built page exposes the deterministic protocol API
+ok   page load makes no HTTP(S) request
+ok   page boot has no console/page errors
+ok   page boot has no CSP violations
+ok   20-byte little-endian frame golden vector
+ok   frame golden vector parses exactly
+ok   deterministic log golden vector
+ok   robust-soliton CDF fingerprints
+ok   fountain block-subset golden vector
+ok   30% dropped frames recover exactly
+ok   duplicate frames are ignored without corruption
+ok   shuffled/out-of-order frames recover exactly
+ok   changed payload fails SHA-256
+ok   malformed/hostile frame headers are rejected before allocation
+ok   malformed container magic and lengths are rejected
+ok   gzip inflation stops at the declared ceiling
+ok   unsolved unique equations stop at a bounded memory ceiling
+ok   maximum-payload equation buffers are bounded to the explicit byte budget
+ok   received filename sanitization handles paths, bidi, invalid and reserved names
+ok   one stray valid frame cannot replace an active session
+ok   two distinct frames replace and isolate the session
+ok   UI Send flow packs locally and enables streaming
+ok   UI Send flow renders a real animated QR frame
+ok   desktop-composited QR remains exactly square
+ok   animated stream has an explicit pause control
+ok   rendered QR decodes through the real ZXing worker to a valid fountain frame
+ok   receiver exposes a download only after SHA-256 integrity verification
+ok   corrupt recovered bytes create no download or completed progress
+ok   invalid UTF-8 snippets fail without completed progress
+ok   receiver reset invalidates an in-flight verification
+ok   mode switch invalidates an in-flight verification
+ok   embedded ZXing worker and data-URI WASM warm under generated CSP
+ok   worker warm-up makes no HTTP(S) request
+ok   Receive reports unavailable camera / secure-context state
+ok   Receive permission denial is explicit and retryable
+ok   maximum-density QR remains square through a live resize to the 760/761px breakpoint
+ok   switching to Receive invalidates hidden sender work
+ok   impossible 2,953-byte ECC M tuning is rejected before streaming
+ok   reduced-motion preference limits the high-contrast stream to 2 FPS
+ok   camera stop tears down tracks, workers, and Blob lifecycle slots
+ok   Optical Transfer has no 390px mobile horizontal overflow
+ok   late camera-setting resolution cannot update torn-down UI state
+ok   late camera permission resolution cannot outlive a mode switch
+ok   generated artifact is self-contained
+ok   PWA app-shell cache includes optical.html
+ok   generated CSP scopes WASM/data/blob allowances
+ok   mobile HTTPS and PWA offline caveat is visible
+ok   confidentiality warning is explicit
+ok   integrity wording does not imply sender authenticity
+ok   vendored Optical assets match recorded provenance hashes
+
+optical: PASS
+[exit 0]

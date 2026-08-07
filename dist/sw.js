@@ -2,7 +2,7 @@
    App shell cache-first; API calls are a network-only pass-through — the tools'
    own localStorage caching (visible "cached from <time>" stamps) is the single
    caching brain, never a second invisible layer. */
-const CACHE = "suite-v4-ae5666c34bfd";
+const CACHE = "suite-v4-f6ba26ebfbb4";
 const PRECACHE = [
   "air.html",
   "airport.html",

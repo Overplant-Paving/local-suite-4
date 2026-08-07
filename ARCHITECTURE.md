@@ -159,9 +159,9 @@ Adding a tool = one manifest entry; the hub, service worker, and CSP all update 
 ### 4.4 `--check` gates
 
 0. **Exact release identities**: the manifest contains exactly the release's declared tool count
-   (`RELEASE_TOOL_COUNT`, 102 in v4.2.0; v4.1.0 baseline 101) of distinct tool IDs, every ID matches its file
-   stem; under-count, over-count, duplicate-ID, and ID/file-mismatch fixtures all fail dedicated
-   negative tests.
+   (`RELEASE_TOOL_COUNT`, 102 in v4.3.1, v4.3.0, and v4.2.0; v4.1.0 baseline 101) of distinct tool IDs,
+   every ID matches its file stem; under-count, over-count, duplicate-ID, and ID/file-mismatch
+   fixtures all fail dedicated negative tests.
 0a. **Source text integrity**: NUL and non-whitespace control bytes are rejected before rendering;
     browsers replace them during HTML parsing, which would otherwise invalidate an apparently
     correct generated CSP hash. This gate covers every tool source plus `core/suite.js` and

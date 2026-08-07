@@ -240,6 +240,21 @@ release checklist executed · tag pushed.
 
 ## V4 work
 
+- [x] **Local Suite v4.3.1 — Optical Transfer hardening, 2026-08-06.** Corrected desktop and
+  responsive QR geometry with stage-relative square sizing; stopped hidden sender work; reset
+  receiver state on mode changes; made verification, invalid UTF-8, and failure progress accurate;
+  rejected impossible QR/ECC combinations early; guarded asynchronous camera-setting updates;
+  bounded equation buffers to 32 MiB; clarified integrity versus sender authenticity; added
+  reduced-motion pacing and vendor hash checks; and expanded focused rendered-layout/lifecycle
+  regressions. Release evidence: `tests/evidence/v4.3.1-release/`.
+
+- [x] **Local Suite v4.3.0 — Arcade expansion, 2026-08-06.** Expanded The Arcade from five to
+  seven verified browser games with Unicorn 42069er: The Sprinkle Mines and Miner 42069er. Added
+  exact live Pages/source destinations, repository-derived optimized/inlined card art with exact
+  provenance, truthful image alternatives, stronger destination/alt regression coverage, and
+  desktop/mobile visual evidence. Release evidence: `tests/evidence/v4.3-release/` and
+  `tests/evidence/arcade-2026-08-06/`.
+
 - [x] **Local Suite v4.2.0 — Optical Transfer, 2026-08-02.** Released as the 102nd manifest tool:
   one self-contained Send/Receive page with DCF2 containers, deterministic LT
   fountain recovery, inlined QR encoder and ZXing-WASM worker, SHA-256-gated completion, bounded
@@ -291,10 +306,10 @@ release checklist executed · tag pushed.
   selected detail, both pagination dialects have practical controls, resource-specific fields are
   visible, and 401/403/429 stop the queued tab fan-out. Gates: `node tests/nps-schema-inventory.mjs`
   + `node tests/parks-built.mjs` + `node tests/verify-tool.mjs parks`.
-- [x] The Arcade — seven owned games (Bathhouse Brigade desktop/mobile, Chromatic Chains
-  desktop/mobile, DOOM 1993 shareware, Unicorn 42069er, Miner 42069er), every card linking to a
-  live-verified GitHub Pages deployment, art copied from the game repos (DOOM: screenshot of its
-  own deployment, credited
+- [x] The Arcade — seven owned games (expanded in v4.3.0; Bathhouse Brigade desktop/mobile,
+  Chromatic Chains desktop/mobile, DOOM 1993 shareware, Unicorn 42069er, Miner 42069er), with every
+  card linking to a live-verified GitHub Pages deployment, art copied from the game repos (DOOM:
+  screenshot of its own deployment, credited
   to id Software), optimized and inlined at build time via the new `data-suite-asset` marker.
   Games category reopened. Gate: `node tests/arcade-built.mjs`.
 - [x] 26 further v4 tools (manifest 100 total): offline — calc, hash, checklists, image, ics,

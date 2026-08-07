@@ -129,8 +129,14 @@ const security = await page.evaluate(async () => {
   let equationCeiling = false;
   try { bounded.addFrame(2, new Uint8Array(4)); } catch (error) { equationCeiling = /memory ceiling/.test(String(error)); }
 
+  const equationBudget = [1445, 2933].every(blockLen => {
+    const k = Math.ceil(T.MAX_CONTAINER_BYTES / blockLen);
+    const decoder = new T.LTDecoder(k, blockLen, 10, T.MAX_CONTAINER_BYTES);
+    return decoder.maxFrames * Math.ceil(blockLen / 4) * 4 <= T.MAX_PENDING_EQUATION_BYTES;
+  });
+
   return {
-    hashMismatch, malformed, badContainer, lengthRejected, bombRejected, equationCeiling,
+    hashMismatch, malformed, badContainer, lengthRejected, bombRejected, equationCeiling, equationBudget,
     names: ["../../etc/passwd", "C:\\Windows\\CON", "\u202Egpj.exe", "report?.txt", "..", "NUL.txt"].map(T.safeFileName),
   };
 });
@@ -139,6 +145,7 @@ check("malformed/hostile frame headers are rejected before allocation", security
 check("malformed container magic and lengths are rejected", security.badContainer && security.lengthRejected, JSON.stringify(security));
 check("gzip inflation stops at the declared ceiling", security.bombRejected);
 check("unsolved unique equations stop at a bounded memory ceiling", security.equationCeiling);
+check("maximum-payload equation buffers are bounded to the explicit byte budget", security.equationBudget);
 check("received filename sanitization handles paths, bidi, invalid and reserved names",
   JSON.stringify(security.names) === JSON.stringify(["passwd", "_CON", "gpj.exe", "report_.txt", "transfer.bin", "_NUL.txt"]), JSON.stringify(security.names));
 
@@ -165,8 +172,12 @@ await page.waitForFunction(() => !document.getElementById("streamBtn").disabled)
 check("UI Send flow packs locally and enables streaming", /prepared/.test(await page.textContent("#sendStatus")));
 await page.click("#streamBtn");
 await page.waitForFunction(() => /frame [1-9]/.test(document.getElementById("streamMeta").textContent), null, { timeout: 10_000 });
-const sendUi = await page.evaluate(() => ({ width: sendQr.width, height: sendQr.height, status: sendStatus.textContent, meta: streamMeta.textContent }));
+const sendUi = await page.evaluate(() => {
+  const rect = sendQr.getBoundingClientRect();
+  return { width: sendQr.width, height: sendQr.height, clientWidth: rect.width, clientHeight: rect.height, status: sendStatus.textContent, meta: streamMeta.textContent };
+});
 check("UI Send flow renders a real animated QR frame", sendUi.width > 100 && sendUi.height === sendUi.width && /Streaming endlessly/.test(sendUi.status), JSON.stringify(sendUi));
+check("desktop-composited QR remains exactly square", sendUi.clientWidth === sendUi.clientHeight && sendUi.clientWidth <= 700, JSON.stringify(sendUi));
 await page.click("#pauseBtn");
 check("animated stream has an explicit pause control", /paused/.test(await page.textContent("#sendStatus")));
 const qrRoundTrip = await page.evaluate(() => new Promise(resolve => {
@@ -198,7 +209,7 @@ const receiverUi = await page.evaluate(async () => {
     await new Promise(resolve => setTimeout(resolve, 0));
   }
   await new Promise(resolve => setTimeout(resolve, 100));
-  const verified = { download: !!document.querySelector("#result a.download"), status: document.getElementById("receiveStatus").textContent, progress: document.getElementById("receiveProgress").getAttribute("aria-valuenow") };
+  const verified = { download: !!document.querySelector("#result a.download"), status: document.getElementById("receiveStatus").textContent, progress: document.getElementById("receiveProgress").getAttribute("aria-valuenow"), progressVisible: !document.getElementById("cameraPreview").hidden };
 
   T.resetReceiver();
   const corrupt = packed.container.slice(); corrupt[corrupt.length - 1] ^= 0xff;
@@ -212,20 +223,43 @@ const receiverUi = await page.evaluate(async () => {
   const corruptResult = { download: !!document.querySelector("#result a.download"), text: document.getElementById("result").textContent, progress: document.getElementById("receiveProgress").getAttribute("aria-valuenow") };
 
   T.resetReceiver();
+  const invalidUtf8 = await T.packFile("snippet.txt", "application/vnd.decimen.snippet", new Uint8Array([0xc3, 0x28]));
+  const textEncoder = new T.LTEncoder(invalidUtf8.container, blockLen, sessionId + 2);
+  const textHeader = { sessionId: sessionId + 2, seq: 0, k: textEncoder.k, blockLen, totalLen: invalidUtf8.container.length, payloadFnv: T.fnv1a(invalidUtf8.container) };
+  for (let seq = 0; seq < 100 && !/not valid UTF-8/.test(document.getElementById("receiveStatus").textContent); seq++) {
+    T.feedDecodedFrame(T.packFrame({ ...textHeader, seq }, textEncoder.encode(seq)));
+    await new Promise(resolve => setTimeout(resolve, 0));
+  }
+  await new Promise(resolve => setTimeout(resolve, 100));
+  const invalidText = { status: document.getElementById("receiveStatus").textContent, progress: document.getElementById("receiveProgress").getAttribute("aria-valuenow") };
+
+  T.resetReceiver();
   const racePacked = await T.packFile("reset-race.txt", "text/plain", new TextEncoder().encode("verification must not outlive reset"));
-  const raceEncoder = new T.LTEncoder(racePacked.container, blockLen, sessionId + 2);
-  const raceHeader = { sessionId: sessionId + 2, seq: 0, k: raceEncoder.k, blockLen, totalLen: racePacked.container.length, payloadFnv: T.fnv1a(racePacked.container) };
+  const raceEncoder = new T.LTEncoder(racePacked.container, blockLen, sessionId + 3);
+  const raceHeader = { sessionId: sessionId + 3, seq: 0, k: raceEncoder.k, blockLen, totalLen: racePacked.container.length, payloadFnv: T.fnv1a(racePacked.container) };
   for (let seq = 0; seq < 100 && document.getElementById("receiveProgress").getAttribute("aria-valuenow") !== "99"; seq++) {
     T.feedDecodedFrame(T.packFrame({ ...raceHeader, seq }, raceEncoder.encode(seq)));
   }
   T.resetReceiver();
   await new Promise(resolve => setTimeout(resolve, 100));
   const resetRace = { download: !!document.querySelector("#result a.download"), text: document.getElementById("receiveStatus").textContent, progress: document.getElementById("receiveProgress").getAttribute("aria-valuenow") };
-  return { verified, corruptResult, resetRace };
+
+  T.resetReceiver();
+  document.getElementById("receiveTab").click();
+  const modePacked = await T.packFile("mode-race.txt", "text/plain", new TextEncoder().encode("mode switch cancels verification"));
+  const modeEncoder = new T.LTEncoder(modePacked.container, blockLen, sessionId + 4);
+  const modeHeader = { sessionId: sessionId + 4, seq: 0, k: modeEncoder.k, blockLen, totalLen: modePacked.container.length, payloadFnv: T.fnv1a(modePacked.container) };
+  for (let seq = 0; seq < 100 && document.getElementById("receiveProgress").getAttribute("aria-valuenow") !== "99"; seq++) T.feedDecodedFrame(T.packFrame({ ...modeHeader, seq }, modeEncoder.encode(seq)));
+  document.getElementById("sendTab").click();
+  await new Promise(resolve => setTimeout(resolve, 100));
+  const modeRace = { result: document.getElementById("result").textContent, sendVisible: !document.getElementById("sendPanel").hidden };
+  return { verified, corruptResult, invalidText, resetRace, modeRace };
 });
-check("receiver exposes a download only after SHA-256 verified completion", receiverUi.verified.download && /SHA-256 verified/.test(receiverUi.verified.status) && receiverUi.verified.progress === "100", JSON.stringify(receiverUi));
-check("corrupt recovered bytes create no download", !receiverUi.corruptResult.download && /No download was created/.test(receiverUi.corruptResult.text) && receiverUi.corruptResult.progress === "99", JSON.stringify(receiverUi));
+check("receiver exposes a download only after SHA-256 integrity verification", receiverUi.verified.download && /SHA-256 integrity verified/.test(receiverUi.verified.status) && receiverUi.verified.progress === "100" && receiverUi.verified.progressVisible, JSON.stringify(receiverUi));
+check("corrupt recovered bytes create no download or completed progress", !receiverUi.corruptResult.download && /No download was created/.test(receiverUi.corruptResult.text) && receiverUi.corruptResult.progress === "0", JSON.stringify(receiverUi));
+check("invalid UTF-8 snippets fail without completed progress", /not valid UTF-8/.test(receiverUi.invalidText.status) && receiverUi.invalidText.progress === "0", JSON.stringify(receiverUi));
 check("receiver reset invalidates an in-flight verification", !receiverUi.resetRace.download && /Receiver reset/.test(receiverUi.resetRace.text) && receiverUi.resetRace.progress === "0", JSON.stringify(receiverUi));
+check("mode switch invalidates an in-flight verification", receiverUi.modeRace.sendVisible && receiverUi.modeRace.result === "", JSON.stringify(receiverUi));
 
 const workerWarm = await page.evaluate(() => new Promise(resolve => {
   const url = URL.createObjectURL(new Blob([OPTICAL_WORKER_SOURCE], { type: "text/javascript" }));
@@ -255,6 +289,65 @@ await capabilityScenario("Receive reports unavailable camera / secure-context st
 await capabilityScenario("Receive permission denial is explicit and retryable", () => { window.__opticalMediaDevices = { getUserMedia: () => Promise.reject(new DOMException("denied", "NotAllowedError")) }; }, /permission was denied/);
 
 {
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const p = await ctx.newPage();
+  await p.goto(URL);
+  await p.locator("#sendPanel details").evaluate(element => { element.open = true; });
+  await p.selectOption("#frameBytes", "2953");
+  await p.click('input[name="payloadMode"][value="text"]');
+  await p.fill("#sendText", "breakpoint geometry and lifecycle");
+  await p.click("#prepareBtn");
+  await p.waitForFunction(() => !document.getElementById("streamBtn").disabled);
+  await p.click("#streamBtn");
+  await p.waitForFunction(() => /frame [1-9]/.test(document.getElementById("streamMeta").textContent));
+  const before = await p.evaluate(() => {
+    const rect = document.getElementById("sendQr").getBoundingClientRect();
+    return { width: rect.width, height: rect.height, intrinsic: document.getElementById("sendQr").width, meta: document.getElementById("streamMeta").textContent };
+  });
+  await p.setViewportSize({ width: 761, height: 900 });
+  await p.waitForFunction(previous => document.getElementById("sendQr").width < previous, before.intrinsic);
+  const resized = await p.evaluate(() => {
+    const qr = document.getElementById("sendQr"), rect = qr.getBoundingClientRect();
+    return { width: rect.width, height: rect.height, intrinsic: qr.width };
+  });
+  await p.click("#receiveTab");
+  const stopped = await p.evaluate(() => ({ meta: document.getElementById("streamMeta").textContent, pauseHidden: document.getElementById("pauseBtn").hidden }));
+  await p.waitForTimeout(180);
+  const after = await p.evaluate(() => ({ meta: document.getElementById("streamMeta").textContent, pauseHidden: document.getElementById("pauseBtn").hidden }));
+  check("maximum-density QR remains square through a live resize to the 760/761px breakpoint", before.width === before.height && resized.width === resized.height && resized.intrinsic < before.intrinsic, JSON.stringify({ before, resized }));
+  check("switching to Receive invalidates hidden sender work", after.meta === stopped.meta && after.pauseHidden, JSON.stringify({ before, stopped, after }));
+  await ctx.close();
+}
+
+{
+  const ctx = await browser.newContext();
+  const p = await ctx.newPage();
+  await p.goto(URL);
+  await p.locator("#sendPanel details").evaluate(element => { element.open = true; });
+  await p.selectOption("#frameBytes", "2953");
+  await p.selectOption("#eccLevel", "M");
+  const tuning = await p.evaluate(() => ({ disabled: document.getElementById("prepareBtn").disabled, status: document.getElementById("sendStatus").textContent }));
+  check("impossible 2,953-byte ECC M tuning is rejected before streaming", tuning.disabled && /does not fit/.test(tuning.status), JSON.stringify(tuning));
+  await ctx.close();
+}
+
+{
+  const ctx = await browser.newContext({ reducedMotion: "reduce" });
+  const p = await ctx.newPage();
+  await p.goto(URL);
+  await p.click('input[name="payloadMode"][value="text"]');
+  await p.fill("#sendText", "reduced motion sender");
+  await p.click("#prepareBtn");
+  await p.waitForFunction(() => !document.getElementById("streamBtn").disabled);
+  await p.click("#streamBtn");
+  await p.waitForFunction(() => /frame [1-9]/.test(document.getElementById("streamMeta").textContent));
+  await p.waitForTimeout(450);
+  const motion = await p.evaluate(() => ({ status: document.getElementById("sendStatus").textContent, frames: Number(document.getElementById("streamMeta").textContent.match(/frame ([\d,]+)/)?.[1].replaceAll(",", "")) }));
+  check("reduced-motion preference limits the high-contrast stream to 2 FPS", /2 FPS reduced-motion limit/.test(motion.status) && motion.frames <= 2, JSON.stringify(motion));
+  await ctx.close();
+}
+
+{
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const p = await ctx.newPage();
   await p.addInitScript(() => {
@@ -264,7 +357,8 @@ await capabilityScenario("Receive permission denial is explicit and retryable", 
       window.__opticalLifecycle.created++;
       return { onmessage: null, onerror: null, postMessage() {}, terminate() { window.__opticalLifecycle.terminated++; } };
     };
-    const track = { getSettings: () => ({ width: 1280, height: 960, frameRate: 30 }), applyConstraints: () => Promise.resolve(), stop: () => { window.__opticalLifecycle.stopped++; } };
+    let changed = false;
+    const track = { getSettings: () => changed ? ({ width: 960, height: 720, frameRate: 60 }) : ({ width: 1280, height: 960, frameRate: 30 }), applyConstraints: () => { changed = true; return Promise.resolve(); }, stop: () => { window.__opticalLifecycle.stopped++; } };
     const stream = new MediaStream();
     stream.getVideoTracks = () => [track];
     stream.getTracks = () => [track];
@@ -274,10 +368,41 @@ await capabilityScenario("Receive permission denial is explicit and retryable", 
   await p.click("#receiveTab");
   await p.click("#cameraBtn");
   await p.waitForFunction(() => document.getElementById("stopCameraBtn").hidden === false);
+  await p.selectOption("#captureWidth", "960");
+  await p.selectOption("#captureFps", "60");
+  await p.waitForFunction(() => document.getElementById("metricCamera").textContent === "960×720 @ 60");
   await p.click("#stopCameraBtn");
   const lifecycle = await p.evaluate(() => ({ ...window.__opticalLifecycle, overflow: document.documentElement.scrollWidth > document.documentElement.clientWidth, workers: document.getElementById("metricWorkers").textContent }));
   check("camera stop tears down tracks, workers, and Blob lifecycle slots", lifecycle.created === 1 && lifecycle.terminated === 1 && lifecycle.stopped === 1 && lifecycle.workers === "0", JSON.stringify(lifecycle));
   check("Optical Transfer has no 390px mobile horizontal overflow", !lifecycle.overflow);
+  await ctx.close();
+}
+
+{
+  const ctx = await browser.newContext();
+  const p = await ctx.newPage();
+  await p.addInitScript(() => {
+    HTMLMediaElement.prototype.play = () => Promise.resolve();
+    let changed = false;
+    const track = {
+      getSettings: () => changed ? ({ width: 960, height: 720, frameRate: 30 }) : ({ width: 1280, height: 960, frameRate: 30 }),
+      applyConstraints: () => new Promise(resolve => setTimeout(() => { changed = true; resolve(); }, 80)),
+      stop() {},
+    };
+    const stream = new MediaStream();
+    stream.getVideoTracks = () => [track];
+    stream.getTracks = () => [track];
+    window.__opticalMediaDevices = { getUserMedia: () => Promise.resolve(stream) };
+  });
+  await p.goto(URL);
+  await p.click("#receiveTab");
+  await p.click("#cameraBtn");
+  await p.waitForFunction(() => document.getElementById("metricCamera").textContent === "1280×960 @ 30");
+  await p.selectOption("#captureWidth", "960");
+  await p.click("#stopCameraBtn");
+  await p.waitForTimeout(140);
+  const staleSettings = await p.evaluate(() => ({ status: document.getElementById("receiveStatus").textContent, camera: document.getElementById("metricCamera").textContent }));
+  check("late camera-setting resolution cannot update torn-down UI state", /Camera stopped/.test(staleSettings.status) && staleSettings.camera === "1280×960 @ 30", JSON.stringify(staleSettings));
   await ctx.close();
 }
 
@@ -310,6 +435,12 @@ check("PWA app-shell cache includes optical.html", serviceWorker.includes('"opti
 check("generated CSP scopes WASM/data/blob allowances", /script-src[^;]+'wasm-unsafe-eval'/.test(html) && /connect-src data:/.test(html) && /worker-src 'self' blob:/.test(html));
 check("mobile HTTPS and PWA offline caveat is visible", /Mobile browsers generally require this page on hosted HTTPS/.test(html) && /cache enables later offline use/.test(html));
 check("confidentiality warning is explicit", /Not confidential:/.test(html) && /does not encrypt the screen/.test(html));
+check("integrity wording does not imply sender authenticity", /SHA-256 integrity verified/.test(html) && !/Verified transfer complete/.test(html));
+
+const provenance = readFileSync(join(ROOT, "assets", "optical", "PROVENANCE.md"), "utf8");
+const crypto = await import("node:crypto");
+const vendorHashes = Object.fromEntries(["qrcode.js", "zxing-worker.js", "zxing_reader.wasm"].map(name => [name, crypto.createHash("sha256").update(readFileSync(join(ROOT, "assets", "optical", name))).digest("hex")]));
+check("vendored Optical assets match recorded provenance hashes", Object.entries(vendorHashes).every(([name, hash]) => provenance.includes(`\`${name}\``) && provenance.includes(`\`${hash}\``)), JSON.stringify(vendorHashes));
 
 await browser.close();
 console.log(failures.length ? `\noptical: ${failures.length} FAILURE(S)` : "\noptical: PASS");

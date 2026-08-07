@@ -19,6 +19,12 @@ frame density, and device performance dominate real throughput.
   local browser operations.
 - The stream is endless until paused, reset, or the page changes mode. The safe
   default is 1,465 bytes per QR frame at 24 FPS and QR ECC L.
+- Sender QR sizing is derived from the rendered stage and uses an integer module
+  scale, so responsive desktop columns cannot stretch the symbol. A resize
+  recalculates the square while preserving the wire format.
+- High-contrast animation can affect people sensitive to flashing. Pause freezes
+  the symbol, and `prefers-reduced-motion` limits sender presentation to 2 FPS
+  without catch-up bursts.
 - Receive requests only camera permission. It never uploads a captured frame.
 - Any camera with a view of the sender can recover the payload. This is a
   no-network transport, not encryption or confidentiality.
@@ -46,9 +52,13 @@ The format remains compatible with the audited Decimen DCF2 protocol:
    optional bounded gzip expansion, and SHA-256 verification must all pass
    before the UI reaches 100% or creates a download/copy action.
 
+“SHA-256 integrity verified” means the reconstructed bytes match the digest in
+the same transfer. It does not authenticate or establish trust in the sender.
+
 The one-page combination does not mix sender and receiver state. Selecting a
-new tab tears down active camera workers. Sender tuning creates a fresh random
-session. Receive requires two distinct valid frames from another identity
+new tab stops the sender or resets the receiver and tears down active camera
+workers. Sender tuning creates a fresh random session. Receive requires two
+distinct valid frames from another identity
 before replacing an active decoder, which prevents one stray QR from discarding
 progress. Generation tokens also invalidate late camera-permission resolutions
 and asynchronous verification after a reset, mode switch, or page lifecycle end.
@@ -75,8 +85,11 @@ choice. Busy workers drop rather than queue camera frames. Stop, mode switch,
 reset, completion, and `pagehide` all terminate workers, revoke Blob URLs, stop
 camera tracks, and invalidate capture callbacks with a generation counter.
 
-The fountain decoder also caps retained unique, unsolved equations at four
-times the source-block count (with fixed lower and upper bounds). Exceeding the
+The fountain decoder caps retained unique equations at four times the source-
+block count and additionally constrains their padded equation buffers to a
+32 MiB budget (with fixed lower and upper bounds). The payload limit is not a
+peak-memory claim: solved blocks, camera RGBA frames, WASM, compression, and
+browser overhead are additional. Exceeding the
 ceiling aborts and resets that optical session instead of allowing hostile,
 valid-looking frames to grow memory indefinitely.
 
@@ -111,4 +124,7 @@ shuffled frames; tests corruption, malformed lengths, gzip expansion, filename
 sanitization, and session replacement; exercises file Send and verified/no-
 download Receive UI paths; warms the real inlined ZXing worker/WASM under CSP;
 tests unavailable/denied camera states with deterministic stubs; and exercises
-late camera permission and in-flight verification cancellation races.
+late camera permission and in-flight verification cancellation races. It also
+checks composited QR geometry at desktop breakpoints, hidden-sender shutdown,
+camera metric refresh, tuning compatibility, integrity wording, and vendored
+asset hashes.

@@ -30,12 +30,22 @@ checkout; do not claim otherwise. Existing migration evidence remains under `tes
 - API keys are user-owned local data. Never commit, print, or place them in URLs when a provider
   supports header authentication.
 
-## Current project state (v4.2.0, 2026-08-02)
+## Current project state (v4.3.1, 2026-08-06)
 
-- **v4.2.0 is the current release.** It contains 102 tools plus the hub (103 generated HTML pages)
-  and adds Optical Transfer: a self-contained Send/Receive page with deterministic LT fountain
-  recovery, inlined QR encoding and ZXing-WASM decoding, bounded hostile-input handling, SHA-256-
-  gated completion, honest mobile HTTPS/PWA behavior, and preserved third-party provenance.
+- **v4.3.1 is the current release.** It retains 102 tools plus the hub (103 generated HTML pages)
+  and hardens Optical Transfer without changing its DCF2/LT wire format: stage-relative square QR
+  sizing, deterministic mode teardown, accurate verification/error progress, early QR tuning
+  validation, guarded live camera settings, a 32 MiB equation-buffer budget, integrity wording,
+  reduced-motion pacing, vendor hash checks, and rendered-layout regressions.
+- **v4.3.0 was released and deployed on 2026-08-06.** It contains 102 tools plus the hub and
+  expands The Arcade from five to seven verified browser games with Unicorn 42069er: The
+  Sprinkle Mines and Miner 42069er. Their repository-derived card art is optimized, provenance-
+  recorded, and inlined; focused tests gate all destinations, truthful alternatives, link safety,
+  file/hosted behavior, and mobile layout.
+- **v4.2.0 was released and deployed on 2026-08-02.** It added Optical Transfer: a self-contained
+  Send/Receive page with deterministic LT fountain recovery, inlined QR encoding and ZXing-WASM
+  decoding, bounded hostile-input handling, SHA-256-gated completion, honest mobile HTTPS/PWA
+  behavior, and preserved third-party provenance.
 - **v4.1.0 was released and deployed on 2026-07-31.** It added `flood.html`: FEMA NFHL point
   classification (with a two-step Census address
   confirmation, tool-local `suite.flood.target`, an inline containing-zone SVG footprint, NWS
@@ -51,7 +61,7 @@ checkout; do not claim otherwise. Existing migration evidence remains under `tes
   art inlined from the owned repos via `data-suite-asset`), and 26 new offline/keyless tools.
 - GitHub repository: https://github.com/Overplant-Paving/local-suite-4
 - Hosted suite: https://overplant-paving.github.io/local-suite-4/
-- Current release evidence and the final checklist live under `tests/evidence/v4.2-release/`.
+- Current release evidence and the final checklist live under `tests/evidence/v4.3.1-release/`.
 - The headed Chromium gate verifies a real `beforeinstallprompt` event, zero manifest and
   installability errors, service-worker control, same-origin manifest icons under CSP, and the
   `suite-v4-` precache. Full build, PWA, update, and 103-page smoke gates remain mandatory for
