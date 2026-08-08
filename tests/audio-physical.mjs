@@ -3,6 +3,7 @@
    node tests/audio-physical.mjs */
 import { chromium } from "playwright";
 import { createHash } from "node:crypto";
+import { existsSync } from "node:fs";
 
 const physicalBytes = Number(process.env.AUDIO_PHYSICAL_BYTES || 1);
 if (!Number.isSafeInteger(physicalBytes) || physicalBytes < 1 || physicalBytes > 1024 * 1024) {
@@ -11,10 +12,14 @@ if (!Number.isSafeInteger(physicalBytes) || physicalBytes < 1 || physicalBytes >
 const payload = Buffer.alloc(physicalBytes);
 for (let i = 0; i < payload.length; i++) payload[i] = (i * 73 + 19) & 0xff;
 const expectedSha256 = createHash("sha256").update(payload).digest("hex");
+const sourceBlocks = Math.ceil(physicalBytes / 512);
+const equationCount = Math.max(8, Math.ceil(sourceBlocks * 1.35) + 2);
+const totalPackets = 5 + 2 + equationCount + 7;
+const physicalTimeoutMs = Math.max(90000, 30000 + totalPackets * 5000);
 
 const origin = "http://127.0.0.1:8765";
 const browser = await chromium.launch({
-  executablePath: "/snap/bin/chromium",
+  executablePath: existsSync("/snap/bin/chromium") ? "/snap/bin/chromium" : chromium.executablePath(),
   headless: false,
   ignoreDefaultArgs: ["--mute-audio"],
   args: ["--autoplay-policy=no-user-gesture-required"],
@@ -39,7 +44,7 @@ try {
   await sender.goto(`${origin}/audio.html`);
   await sender.locator("#sendFile").setInputFiles({name: `air-${physicalBytes}.bin`, mimeType: "application/octet-stream", buffer: payload});
   await sender.locator("#startSendBtn").click();
-  const deadline = Date.now() + 90000;
+  const deadline = Date.now() + physicalTimeoutMs;
   let observation = {};
   let maxDbfs = -Infinity;
   let signalSeen = false;

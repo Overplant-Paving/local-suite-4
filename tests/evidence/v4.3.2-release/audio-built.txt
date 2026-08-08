@@ -1,6 +1,7 @@
 ok   hub exposes the new Beta Tools category
 ok   Audio Transfer is a separate Beta Tools card
 ok   page exposes bounded transfer helpers
+ok   finite fountain schedule reconstructs every deterministic no-loss and loss-matrix case
 ok   Send creates observed-rate AudioContext and audible packet
 ok   Receive opens microphone and reports effective processing
 ok   Receive reports real listening state

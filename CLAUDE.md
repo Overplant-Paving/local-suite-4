@@ -32,7 +32,7 @@ checkout; do not claim otherwise. Existing migration evidence remains under `tes
 
 ## Current project state (v4.3.2, 2026-08-08)
 
-- **v4.3.2 is the current version.** It contains 103 tools plus the hub (104 generated HTML pages)
+- **v4.3.2 is the current release.** It contains 103 tools plus the hub (104 generated HTML pages)
   and adds Audio Transfer as a separate tool in the new **Beta Tools** category. Audio Transfer uses
   audible C0/R1 BPSK OFDM, bounded robust-soliton fountain recovery, CRC32C, and SHA-256-gated
   reconstruction with no payload network path. v4.3.1's Optical Transfer hardening is retained.
@@ -62,7 +62,7 @@ checkout; do not claim otherwise. Existing migration evidence remains under `tes
   art inlined from the owned repos via `data-suite-asset`), and 26 new offline/keyless tools.
 - GitHub repository: https://github.com/Overplant-Paving/local-suite-4
 - Hosted suite: https://overplant-paving.github.io/local-suite-4/
-- The most recent published release evidence and final checklist live under `tests/evidence/v4.3.1-release/`.
+- Current release evidence and the final checklist live under `tests/evidence/v4.3.2-release/`.
 - The headed Chromium gate verifies a real `beforeinstallprompt` event, zero manifest and
   installability errors, service-worker control, same-origin manifest icons under CSP, and the
   `suite-v4-` precache. Full build, PWA, update, and 104-page smoke gates remain mandatory for

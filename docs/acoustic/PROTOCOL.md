@@ -1,6 +1,9 @@
 # Acoustic Transfer Protocol 1.1
 
-Status: Gate R0 replacement logical wire contract
+Status: **Superseded planning contract**, archived 2026-08-08. It is not the wire protocol shipped
+by the v4.3.2 Audio Transfer beta; see `assets/acoustic/app/` and the release tests for shipped behavior.
+
+Historical status: Gate R0 replacement logical wire contract
 Wire version: major `1`, minor `1`
 Byte order: network order (big-endian) for every multibyte integer
 

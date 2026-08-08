@@ -1,6 +1,9 @@
 # Acoustic Modem DSP Design
 
-Status: Gate R0 replacement DSP contract; physical parameter lock remains blocked
+Status: **Superseded planning contract**, archived 2026-08-08. It is not normative for the released
+v4.3.2 Audio Transfer beta; see `assets/acoustic/app/` and the v4.3.2 release tests for shipped behavior.
+
+Historical status: Gate R0 replacement DSP contract; physical parameter lock remained blocked
 Required baseline: robust audible control plus audible OFDM BPSK/QPSK data
 
 `LANE1_REPLACEMENT_CONTRACT.md` is normative for the cursor TX, exact 32-sample WOLA, ±80 Hz

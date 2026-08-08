@@ -1,6 +1,9 @@
 # Lane 1 Replacement Contract
 
-Status: normative Gate R0 contract, 2026-08-07
+Status: **Superseded planning contract**, archived 2026-08-08. It is not normative for the released
+v4.3.2 Audio Transfer beta; see `assets/acoustic/app/` and the v4.3.2 release tests for shipped behavior.
+
+Historical status: normative Gate R0 contract, 2026-08-07
 Contract base: 9b6cdbb774805bc12146cf628068579b97fc335c
 Wire version: 1.1
 Manifest version: 1.1

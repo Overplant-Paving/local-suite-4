@@ -4,9 +4,10 @@ This is **Local Suite v4**, built on the verified v2/v3 single-file architecture
 **103 manifest tools** (104 generated pages). It adds Audio Transfer as a separate tool in the new
 **Beta Tools** category while retaining the v4.3.1 Optical Transfer hardening.
 
-Current version: **v4.3.2** (2026-08-08). Audio Transfer is gated by `tests/audio-built.mjs` and the
-explicit hardware-only `tests/audio-physical.mjs`; prior release evidence is archived under
-`tests/evidence/v4.3.1-release/`, while v4.3.0 evidence remains under `tests/evidence/v4.3-release/`,
+Current release: **v4.3.2** (2026-08-08). Audio Transfer is gated by `tests/audio-modem.mjs`,
+`tests/audio-built.mjs`, and the explicit hardware-only `tests/audio-physical.mjs`; release evidence
+is archived under `tests/evidence/v4.3.2-release/`, while v4.3.1 evidence remains under
+`tests/evidence/v4.3.1-release/` and v4.3.0 evidence under `tests/evidence/v4.3-release/`,
 v4.2.0 evidence under `tests/evidence/v4.2-release/`, v4.0.0 evidence under
 `tests/evidence/v4-release/`, and v3.0.0 evidence under `tests/evidence/v3-release/`.
 

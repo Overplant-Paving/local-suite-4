@@ -1,0 +1,25 @@
+Local Suite v4.3.2 hosted verification
+
+Initial deployed main commit: 1868fddf562e09e6eabbd2f29816d69ded522d7a
+Successful Pages run: https://github.com/Overplant-Paving/local-suite-4/actions/runs/31276598456
+Hosted suite: https://overplant-paving.github.io/local-suite-4/
+Hosted Audio Transfer: https://overplant-paving.github.io/local-suite-4/audio.html
+
+Byte-for-byte hosted/local SHA-256 matches:
+6f84ad42f7b3a0af0df58702ac20e550ed28b5528caf0979921224f53f8997e0  index.html
+6694c68b55b7a5d14032ad48983cc36aabfa8546a97d00ac4238ba8dd0dc6748  audio.html
+e8f7b5899e78fea1e8b4d4d1dda7b7d97e772a574c3d1ed2d43488ac5717fe05  sw.js
+b8026cd897c7ef01eb80d9c43f8bbdc066b9320d9ebbb116345ca87dda492b10  manifest.webmanifest
+9a4d5b4480b6759f561200ba4db234628432e51305b2d063153fe1b867dd7e76  icons/icon-192.png
+
+Fresh hosted Chromium verification:
+- Hub reports 103 tools.
+- Beta Tools category is present.
+- Audio Transfer appears as a separate card linking audio.html.
+- Audio page title: Audio Transfer · Local Suite.
+- Production profile label: C0 BPSK + R1 BPSK.
+- Secure context: true.
+- Service worker registration: present.
+- Hub horizontal overflow: false.
+- Audio page horizontal overflow: false.
+- Console/page errors: none.

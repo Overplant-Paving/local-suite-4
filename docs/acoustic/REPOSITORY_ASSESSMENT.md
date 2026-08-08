@@ -1,5 +1,8 @@
 # Acoustic Modem Repository Assessment
 
+Status: **Archived pre-release assessment**. It is retained as design provenance and does not
+describe the released v4.3.2 Audio Transfer beta contract or limits.
+
 Assessment date: 2026-08-07
 Repository state assessed: `feat/acoustic-modem-codex` at `70d55ff22d67019d14f46d3ccdf7446d706709e3`
 Product baseline assessed: Local Suite v4.3.1 at `725e5863429fc2b7b41f5f6ab797ee0d67f66023`
