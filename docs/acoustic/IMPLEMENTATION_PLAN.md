@@ -1,8 +1,8 @@
 # Acoustic Modem Implementation Plan and Lane Contracts
 
-Status: Stage A3 downstream contract
-Entry commit: the cohesive Stage A3 documentation commit containing this file
-Current gate after that commit: G1 feasibility spikes; no product implementation or rate claim
+Status: Stage B downstream contract aligned to the 2026-08-07 G1 disposition
+Entry commit: the documentation commit containing `G1_DISPOSITION.md`
+Current gate after that commit: G2 / Lane 1 production protocol, DSP, simulator, and Worker core
 
 ## 1. Execution rules
 
@@ -12,6 +12,8 @@ Current gate after that commit: G1 feasibility spikes; no product implementation
   documents, Settings, and `dist/` are never edited concurrently.
 - Run the branch/HEAD/status preflight before each lane starts and before each integration. Stop on
   unexpected changes or a second writer.
+- Review each lane before integration. Integration does not convert an unresolved finding or an
+  evidence-class limitation into an accepted claim.
 - Never hand-edit generated output. Only the integration owner builds and commits `dist/`.
 - No dependency, vendored code, recording, vector, or license is added without explicit provenance
   and compatibility review.
@@ -33,10 +35,12 @@ Exit:
 
 G0 does not prove browser or acoustic feasibility.
 
-### G1 — existential feasibility spikes (STOP/GO)
+### G1 — existential feasibility disposition (PARTIAL)
 
-Spikes are minimal and disposable until accepted. They may use a dedicated spike branch and tracked
-fixtures/evidence, but they do not authorize broad UI or fast-profile work.
+The completed spikes remain disposable reference/evidence branches. They used dedicated branches and
+tracked fixtures/evidence, but neither branch is product source and neither may be cherry-picked
+wholesale. `G1_DISPOSITION.md` records the accepted facts, remaining blockers, adoption boundary,
+and authorization for ordered production work.
 
 | Spike | Required evidence and GO condition | STOP/fallback boundary |
 |---|---|---|
@@ -47,12 +51,21 @@ fixtures/evidence, but they do not authorize broad UI or fast-profile work.
 | G1e IndexedDB/memory | Atomic commit/ACK crash matrix; reload/resume; quota/corruption/eviction/private-mode/file-origin tests; bounded 16 MiB Web Crypto + Blob peak on minimum mobile device | If ACKed data can disappear through application logic, stop resume. If file-origin resume is unstable, do not silently make resume hosted-only. If memory misses, reduce file limit or review incremental SHA plan. |
 | G1f PWA/cache/accessibility | Generated-page install/update with inlined size, no stale Optical artifact, keyboard/Stop/textual calibration path, bounded announcements | Reduce embedded diagnostics or scope. No CDN/external-module fallback. |
 
-Parameter lock is prohibited until G1a–G1f have explicit recorded dispositions. A stopped platform or
-profile is removed from the support claim rather than waived. If direct `file://` full-modem support
-fails, the existing suite requirement can change only through a user-approved product decision and
-corresponding repository documentation—not inside an implementation lane.
+`G1_DISPOSITION.md` records **G1 PARTIAL / software implementation may proceed**. The reviewed
+desktop Chromium direct-file data-URL Worklet path and narrow link/DSP software reference authorize
+G2 and the later ordered G3 lane. The direct-file Blob candidate remains STOP. Android, installed
+device, physical audio, routing/loss, minimum-mobile memory, same-device acoustic, and two-device
+over-air remain unverified and block only their corresponding claims and release gates.
+
+Parameter lock remains prohibited until the open criteria have passed. A stopped platform or
+profile is removed from the support claim rather than waived. The suite's direct-file requirement
+cannot change inside an implementation lane.
 
 ### G2 — Lane 1 core vertical slice
+
+This is the first authorized production lane from the clean commit containing
+`G1_DISPOSITION.md`. Selectively reimplement or adapt reviewed ideas under the production contracts;
+do not cherry-pick `spike/acoustic-g1-link`.
 
 Implement frozen byte contracts, bounds, CRC32C, manifest, whitening, rate-1/2 FEC, interleaver,
 selective-repeat reducer, SHA adapter, FFT, C0/R1 profiles, acquisition, resampler, seeded simulator,
@@ -69,10 +82,13 @@ Exit:
 
 ### G3 — Lane 2 browser/application vertical slice
 
-Rebase onto the integrated G2 commit. Implement source-mode page, controller, worklet/runtime,
-Worker client, IndexedDB store, bounded Web Crypto preparation/finalization, UI, diagnostics, and
-test adapters. First deliver one C0/R1 live path; no encryption, near-ultrasonic, 16-QAM, or WAV
-feature surface.
+Begin only after G2 has been reviewed and integrated, then rebase onto that exact API-freeze commit.
+Implement source-mode page, controller, worklet/runtime, Worker client, IndexedDB store, bounded Web
+Crypto preparation/finalization, UI, diagnostics, and test adapters. The generated direct-file path
+must use the build-time data-URL AudioWorklet selected in `G1_DISPOSITION.md`, with no Blob module or
+runtime module-network fallback. First deliver one C0/R1 live path; no encryption,
+near-ultrasonic, 16-QAM, or WAV feature surface. Do not cherry-pick
+`spike/acoustic-g1-browser`.
 
 Exit:
 
@@ -82,10 +98,12 @@ Exit:
 - accessibility is keyboard/text complete;
 - no unbounded buffer, raw-audio default, or false “saved/authenticated/safe” wording exists.
 
-Adding `tools/audio.html` before the shared manifest/build integration will intentionally make the
-repository-wide manifest-sync gate red. Lane 2 must record that exact expected transition; it may not
-edit shared files to hide it. The serial integration step immediately after G3 restores the full
-green gate before G4 begins.
+Adding `tools/audio.html` before shared integration will intentionally make the repository-wide
+manifest-sync gate red. Lane 2 must record that exact expected transition; it may not edit shared
+files to hide it. The integration owner first reviews Lane 2 together with integrated Lane 1. Only
+after that combined review may the serial owner add the shared bundle/generator/manifest/CSP/Settings
+and generated-page changes needed to restore the full green gate before G4 begins. Browser release
+integration is not authorized before that review.
 
 ### G4 — Lane 3 independent validation, security, and documentation
 
@@ -247,6 +265,7 @@ docs/acoustic/ARCHITECTURE.md
 docs/acoustic/PROTOCOL.md
 docs/acoustic/DSP_DESIGN.md
 docs/acoustic/IMPLEMENTATION_PLAN.md
+docs/acoustic/G1_DISPOSITION.md
 tests/evidence/acoustic/g1-feasibility/**
 tests/evidence/acoustic/g5-integration/**
 tests/evidence/acoustic/g6-physical/**
@@ -305,9 +324,12 @@ AcousticV1App.Page
 after Lane 1 integration requires an explicit contract-delta note, Lane 2/Lane 3 rebase, and all
 tests rerun. Stringly typed ad hoc messages are rejected.
 
-`assets/acoustic/bundles.json` is created only after lane source lists stabilize. The integration
-owner copies the exact ordered arrays from the architecture contract, validates source HTML and
-Worker import order, and uses the deterministic transform specified in `ARCHITECTURE.md`.
+`assets/acoustic/bundles.json` is created only after lane source lists stabilize and the combined
+Lane 1/Lane 2 review accepts the production source. The integration owner copies the exact ordered
+arrays from the architecture contract, validates source HTML and Worker import order, and uses the
+deterministic transform specified in `ARCHITECTURE.md`. The generated transform embeds the validated
+Worklet bytes as a build-time base64 data URL; it provides no Blob-Worklet or runtime module-network
+fallback.
 
 ## 5. Test seams
 
@@ -346,17 +368,18 @@ out channels, and two-device hardware runs are separate required evidence.
 
 ## 6. Integration and rebase order
 
-1. **Contract base:** create every lane from the clean G0 commit. Record branch, worktree, base, and
-   expected owned paths.
-2. **Lane 1:** implement and review G2. The integration owner cherry-picks/merges it first, runs Lane
-   1 tests plus the unchanged repository static gate, and records the resulting API-freeze commit.
-3. **Lane 2 update point:** rebase Lane 2 onto the API-freeze commit. Resolve only Lane 2 files.
-   Implement G3 and deliver one reviewed commit series.
-4. **Lane 2 integration point:** integration owner merges Lane 2, then alone adds `bundles.json`,
-   generator/manifest/CSP/Settings integration and regenerated artifacts needed to restore a green
-   build. Run focused source/runtime and generated-page boot tests.
-5. **Lane 3 update point:** create/rebase Lane 3 onto that exact green generated-page commit. Author
-   G4 independent validation/docs. Defects are returned to the owning lane.
+1. **Contract base:** create Lane 1 from the clean commit containing `G1_DISPOSITION.md`. Record the
+   branch, worktree, base, and expected owned paths.
+2. **Lane 1:** implement and review G2. Only after review does the integration owner merge it, run
+   Lane 1 tests plus the unchanged repository static gate, and record the API-freeze commit.
+3. **Lane 2 update point:** create/rebase Lane 2 onto that exact reviewed API-freeze commit. Resolve
+   only Lane 2 files and deliver one reviewed G3 commit series.
+4. **Combined review and integration:** review Lane 2 against integrated Lane 1 before merging it.
+   After acceptance, the integration owner alone adds `bundles.json`, generator/manifest/CSP/Settings
+   integration, and regenerated artifacts needed for a green generated page. Run focused source,
+   runtime, packaging, CSP, no-network, and generated-page boot tests.
+5. **Lane 3 update point:** create/rebase Lane 3 only after the production Lane 1/Lane 2 integration
+   above. Author G4 independent validation/docs; return defects to the owning lane.
 6. **Defect update point:** owner rebases onto current integration, fixes only owned paths, and
    supplies a narrow commit. Integration owner merges; Lane 3 rebases and reruns affected plus full
    tests.
@@ -506,10 +529,12 @@ Before G5/G7, author and review:
 The Stage A handoff and recovery-audit documents remain historical records and are not rewritten to
 claim later feasibility or implementation.
 
-## 10. Current unresolved decisions
+## 10. Current unresolved decisions after G1
 
-- Whether full microphone + Blob AudioWorklet works under the exact generated CSP from required
-  `file://` browsers; hosted HTTPS cannot silently replace the invariant.
+- The production generated direct-file path must reverify the selected data-URL AudioWorklet at
+  44.1/48 kHz with no runtime module/network fallback; the Blob candidate remains STOP.
+- Android hosted/installed behavior and physical microphone/speaker operation remain unverified;
+  desktop Chromium/API evidence cannot substitute for those platforms or evidence classes.
 - Whether keeping both speaker/microphone routes open or switching them produces acceptable reverse
   ACK tail/latency and EC behavior.
 - Whether direct Worklet-to-Worker port transfer is reliable; bounded main-thread relay is the only

@@ -1,7 +1,7 @@
 # Acoustic Modem Architecture Contract
 
-Status: Stage A3 contract, 2026-08-07
-Current gate: feasibility only; see `IMPLEMENTATION_PLAN.md` Gate G1
+Status: Stage A3 contract aligned to the 2026-08-07 G1 disposition
+Current gate: Stage B / G2 Lane 1; see `G1_DISPOSITION.md` and `IMPLEMENTATION_PLAN.md`
 
 ## 1. Scope and invariants
 
@@ -37,14 +37,17 @@ authentication are deferred. Unsupported security flags fail closed.
   transferred fixed-size buffers, and no shared memory.
 - The source uses ordered classic scripts and one global namespace, then is deterministically
   embedded into the generated page.
+- The generated product uses the build-time `data:text/javascript;base64,...` AudioWorklet module
+  selected in `G1_DISPOSITION.md`; direct-file mode has no Blob or runtime module-fetch fallback.
 - Received chunks and their receipt state are atomically committed before ACK.
 - Settings JSON backup excludes acoustic IndexedDB sessions and must say so.
 - Baseline FEC is an owned constraint-length-7 convolutional code with soft Viterbi decoding; no
   external modem runtime or outer Reed–Solomon code is part of v1.
 
-### Provisional until mandatory spikes pass
+### Still provisional after G1
 
-- supported browser/launch-mode matrix, including full `file://` microphone + AudioWorklet use;
+- supported browser/launch-mode matrix beyond the verified desktop Chromium/API subset, including
+  physical microphone/speaker use, Android, and OS-installed-device behavior;
 - direct Worklet-to-Worker port transfer versus bounded main-thread relay;
 - exact OFDM profile parameters beyond the profile registry ranges in `DSP_DESIGN.md`;
 - control repetition, burst duration, tail guard, and ACK timeout values;
@@ -283,15 +286,16 @@ The future `build.py` transform is deterministic:
    to `../assets/acoustic/`.
 6. Let the existing CSP-hash and staleness/PWA gates operate on the final generated HTML.
 
-At runtime the generated page creates one Blob URL for the Worker and one JavaScript Blob URL for
-`audioWorklet.addModule()`. It revokes the worklet URL after the add-module promise settles and the
-Worker URL after its `READY` handshake; teardown also revokes any survivor. Source mode uses relative
-files. Generated mode makes zero runtime fetches.
+At runtime the generated page creates one Blob URL for the Worker and passes the build-time base64
+data URL for the validated Worklet bytes to `audioWorklet.addModule()`. It revokes the Worker URL
+after its `READY` handshake; teardown also revokes any survivor. Source mode uses relative files.
+Generated mode makes zero runtime fetches and has no Blob-Worklet or module-network fallback.
 
-The acoustic manifest entry will have no endpoints. It needs only tool-scoped `script-src blob:` for
-the AudioWorklet and `worker-src blob:` for the dedicated Worker, subject to the packaging spike.
-`connect-src` remains `'none'`. The allowlist and generated CSP negative tests must reject use by any
-other tool unless separately justified. Optical's exception and transform remain unchanged.
+The acoustic manifest entry will have no endpoints. It needs only tool-scoped `script-src data:` for
+the AudioWorklet and `worker-src blob:` for the dedicated Worker. `connect-src` remains `'none'`.
+The allowlist and generated CSP negative tests must reject use by any other tool unless separately
+justified. A `script-src blob:` allowance used only by the spike's rejected dual-candidate matrix is
+not inherited. Optical's exception and transform remain unchanged.
 
 ## 7. Audio runtime, sample rates, and bounded real-time behavior
 
@@ -444,8 +448,10 @@ integration. Standards may define behavior but do not substitute for implementat
 
 ## 11. Release boundary
 
-This contract does not authorize source, manifest, build, workflow, generated, or release edits.
-Those occur only through the exclusive ownership and gates in `IMPLEMENTATION_PLAN.md`. Release is
-blocked until generated-page CSP/launch tests, deterministic protocol/DSP tests, crash-safe resume,
-the full Local Suite regression suite, scoped provenance review, and a reproducible two-device
-physical matrix all pass from the exact candidate commit.
+`G1_DISPOSITION.md` authorizes ordered Stage-B Lane 1 and Lane 2 production source/test work under
+the exclusive ownership and gates in `IMPLEMENTATION_PLAN.md`. It does not authorize either spike
+to be cherry-picked or authorize shared manifest, build, workflow, generated, or release edits
+before the production lanes are integrated and jointly reviewed. Release remains blocked until
+generated-page CSP/launch tests, deterministic protocol/DSP tests, crash-safe resume, the full Local
+Suite regression suite, scoped provenance review, and a reproducible two-device physical matrix all
+pass from the exact candidate commit.
