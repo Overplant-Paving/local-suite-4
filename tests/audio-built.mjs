@@ -51,6 +51,42 @@ await page.waitForTimeout(300);
 check("page exposes bounded transfer helpers", await page.evaluate(() =>
   window.AcousticTransferTest?.MAX_FILE_BYTES === 1048576 && window.AcousticTransferTest?.CHUNK_BYTES === 512 &&
   window.AcousticTransferTest?.MAX_FOUNTAIN_FRAMES === 3072));
+const fountainMatrix = await page.evaluate(() => {
+  const T = window.AcousticTransferTest;
+  const sizes = [1, 2, 8, 16, 32, 64, 128, 2048];
+  const results = [];
+  for (const k of sizes) {
+    const seeds = k === 2048 ? 3 : 20;
+    for (let seed = 0; seed < seeds; seed++) {
+      const sid = Uint8Array.from({length: 16}, (_, i) => (seed * 29 + i * 17 + k) & 255);
+      const length = k * T.CHUNK_BYTES - (k > 1 ? 7 : 0);
+      const payload = Uint8Array.from({length}, (_, i) => (i * 31 + seed * 7 + k) & 255);
+      const count = T.fountainEquationCount(k);
+      const sequences = Array.from({length: count}, (_, equation) =>
+        T.fountainSequenceForEquation(equation, k, count));
+      const encoder = new T.LTEncoder(payload, T.CHUNK_BYTES, sid);
+      const exact = new T.LTDecoder(k, T.CHUNK_BYTES, sid, length, count);
+      for (const sequence of sequences) exact.addFrame(sequence, encoder.encode(sequence));
+      const assembled = exact.assemble();
+      results.push({k, seed, mode: "no-loss", ok: Boolean(assembled) && T.bytesEqual(assembled, payload)});
+      exact.dispose();
+      if (k >= 8 && k <= 128) {
+        const lossy = new T.LTDecoder(k, T.CHUNK_BYTES, sid, length, count);
+        for (let equation = 0; equation < sequences.length; equation++) {
+          if (equation === seed % k) continue;
+          const sequence = sequences[equation];
+          lossy.addFrame(sequence, encoder.encode(sequence));
+        }
+        const recovered = lossy.assemble();
+        results.push({k, seed, mode: "one-systematic-loss", ok: Boolean(recovered) && T.bytesEqual(recovered, payload)});
+        lossy.dispose();
+      }
+    }
+  }
+  return {total: results.length, failures: results.filter(result => !result.ok)};
+});
+check("finite fountain schedule reconstructs every deterministic no-loss and loss-matrix case",
+  fountainMatrix.failures.length === 0, JSON.stringify(fountainMatrix.failures.slice(0, 12)));
 
 await page.locator("#sendFile").setInputFiles({name: "one.bin", mimeType: "application/octet-stream", buffer: Buffer.from([0xa5])});
 await page.locator("#startSendBtn").click();

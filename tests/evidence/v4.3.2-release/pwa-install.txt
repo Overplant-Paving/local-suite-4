@@ -1,4 +1,4 @@
-sw ready; caches: ["suite-v4-c282499b0aa1"] (expected suite-v4-c282499b0aa1)
+sw ready; caches: ["suite-v4-83ccee81d6af"] (expected suite-v4-83ccee81d6af)
 precache entries: 108 (expected 108)
 app manifest url: http://127.0.0.1:8031/manifest.webmanifest; parse errors: []
 installability errors: []
@@ -6,11 +6,11 @@ origin hint: fresh-profile visible=true, with suite.* storage visible=false
 offline shell ok: index.html — "Local Suite · Command Center"
 offline shell ok: convert.html — "Unit & Kitchen Converter · Local Suite"
 offline shell ok: password.html — "Password & Passphrase Generator · Local Suite"
-offline shell ok: timers.html — "Stopwatch & Timers · Local Suite"
+offline shell ok: timers.html — "Timers · Local Suite"
 offline shell ok: weather.html — "Weather Station · Local Suite"
 offline shell ok: quakes.html — "Earthquake Monitor · Local Suite"
 offline shell ok: apod.html — "Astronomy Picture of the Day · Local Suite"
 offline shell ok: jobs.html — "Jobs & Unemployment Snapshot · Local Suite"
 offline shell ok: airport.html — "Airport & Flight-Weather Board · Local Suite"
-offline function: password.html generated "L!;pZJvFG7vCgcU$4s}X…" (len shown truncated)
+offline function: password.html generated "o1gwz7#mHC;#3i!j0V9@…" (len shown truncated)
 INSTALL/OFFLINE VERIFICATION OK

@@ -12,6 +12,7 @@ const MAX_FOUNTAIN_FRAMES = 3072;
 const MAX_FOUNTAIN_STORAGE_BYTES = 8 * 1024 * 1024;
 const INTER_PACKET_GAP_MS = 600;
 const MAX_RX_PENDING = 6;
+const SYSTEMATIC_SEQUENCE_BASE = INITIAL_MANIFEST_COPIES + 1;
 const encoder = new TextEncoder();
 const decoder = new TextDecoder("utf-8", {fatal: true});
 const EMBEDDED_MODEM_WORKER = /* @suite:acoustic-worker */""/* /@suite:acoustic-worker */;
@@ -158,6 +159,11 @@ function frameSeed(sessionSeed, sequence) {
   return (hash ^ (hash >>> 16)) | 0;
 }
 function frameIndices(k, cdf, sessionSeed, sequence) {
+  if (sequence >= SYSTEMATIC_SEQUENCE_BASE && sequence < SYSTEMATIC_SEQUENCE_BASE + k) {
+    return [sequence - SYSTEMATIC_SEQUENCE_BASE];
+  }
+  const firstParitySequence = fountainSequenceForEquation(k, k, fountainEquationCount(k));
+  if (sequence === firstParitySequence) return Array.from({length: k}, (_, index) => index);
   const random = splitmix32(frameSeed(sessionSeed, sequence));
   const sample = random() * 2 ** -32;
   let low = 0, high = k - 1;
@@ -171,6 +177,16 @@ function frameIndices(k, cdf, sessionSeed, sequence) {
   }
   const selected = new Set(); while (selected.size < degree) selected.add(random() % k);
   return [...selected];
+}
+function fountainMidpoint(k, equationCount) {
+  return Math.max(k, Math.ceil(equationCount / 2));
+}
+function fountainSequenceForEquation(equation, k, equationCount) {
+  if (!Number.isInteger(equation) || equation < 0 || equation >= equationCount) {
+    throw new RangeError("Invalid fountain equation ordinal.");
+  }
+  const midpoint = fountainMidpoint(k, equationCount);
+  return SYSTEMATIC_SEQUENCE_BASE + equation + (equation >= midpoint ? MID_MANIFEST_COPIES : 0);
 }
 function xorInto(target, source) {
   for (let i = 0; i < target.length; i++) target[i] = (target[i] ^ source[i]) >>> 0;
@@ -509,7 +525,7 @@ function makeManifest(file, fileBytes, digestBytes, sid) {
     value = {v: 2, name, type: safeMediaType(file.type), size: fileBytes.length,
       sha256: hex(digestBytes), chunkSize: CHUNK_BYTES,
       totalChunks, equationCount, dataProfile: "R1-BPSK",
-      fountain: "lt-rsd-v1", session: hex(sid)};
+      fountain: "lt-rsd-systematic-v2", session: hex(sid)};
     bytes = encoder.encode(JSON.stringify(value));
     if (bytes.length <= 512) return {value, bytes};
     name = Array.from(name).slice(0, -8).join("") || "transfer.bin";
@@ -575,12 +591,15 @@ async function startSend() {
     for (let copy = 0; copy < INITIAL_MANIFEST_COPIES; copy++) {
       await emit("manifest", manifest.bytes, 0, copy > 0);
     }
-    const midpoint = Math.ceil(equationCount / 2);
+    const midpoint = fountainMidpoint(totalChunks, equationCount);
     for (let equation = 0; equation < equationCount; equation++) {
       if (equation === midpoint) {
         for (let copy = 0; copy < MID_MANIFEST_COPIES; copy++) {
           await emit("manifest", manifest.bytes, 0, true);
         }
+      }
+      if (sequence !== fountainSequenceForEquation(equation, totalChunks, equationCount)) {
+        throw new Error("The acoustic fountain schedule is inconsistent.");
       }
       const equationBytes = fountain.encode(sequence);
       await emit("data", equationBytes, equation, false);
@@ -657,7 +676,7 @@ function parseManifest(bytes, frame) {
       value.chunkSize !== CHUNK_BYTES || !Number.isSafeInteger(value.totalChunks) ||
       value.totalChunks !== Math.ceil(value.size / CHUNK_BYTES) || value.totalChunks !== frame.totalChunks ||
       !Number.isSafeInteger(value.equationCount) || value.equationCount !== fountainEquationCount(value.totalChunks) ||
-      value.dataProfile !== "R1-BPSK" || value.fountain !== "lt-rsd-v1" || frame.profileId !== 1) {
+      value.dataProfile !== "R1-BPSK" || value.fountain !== "lt-rsd-systematic-v2" || frame.profileId !== 1) {
     throw new Error("Acoustic manifest limits or coding contract are invalid.");
   }
   const expected = fromHex(value.sha256, 32);
@@ -816,8 +835,10 @@ async function feedDecodedFrame(frame) {
   }
 }
 window.AcousticTransferTest = Object.freeze({MAX_FILE_BYTES, CHUNK_BYTES, MAX_FOUNTAIN_FRAMES,
+  SYSTEMATIC_SEQUENCE_BASE,
   safeFileName, safeMediaType, bytesEqual, hex, fromHex, sha256, u32, fountainEquationCount,
-  fountainSessionSeed, solitonCdf, frameIndices, LTEncoder, LTDecoder,
+  fountainSessionSeed, solitonCdf, frameIndices, fountainMidpoint, fountainSequenceForEquation,
+  LTEncoder, LTDecoder,
   makeManifest, parseManifest, feedDecodedFrame,
   getVerifiedBytes: () => verifiedBytesForTest ? verifiedBytesForTest.slice() : null});
 })();

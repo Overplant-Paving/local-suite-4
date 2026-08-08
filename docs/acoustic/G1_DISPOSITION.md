@@ -1,6 +1,9 @@
 # Acoustic G1 Disposition and Stage-B Authorization
 
-Status: accepted disposition, 2026-08-07
+Status: **Archived pre-release disposition**, superseded by the shipped v4.3.2 Audio Transfer beta.
+It is retained as design provenance and is not a current product contract.
+
+Historical status: accepted disposition, 2026-08-07
 Disposition base: `15191f6cb1aa1171b55c03a8f13749d895c1f3f6`
 Overall gate: **G1 PARTIAL; software implementation may proceed**
 

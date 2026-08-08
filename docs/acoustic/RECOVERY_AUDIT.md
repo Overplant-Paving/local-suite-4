@@ -1,5 +1,8 @@
 # Acoustic Modem Recovery Audit
 
+Status: **Archived pre-release audit**. It predates implementation and is retained as provenance;
+it does not describe the released v4.3.2 Audio Transfer beta.
+
 Audit completed: 2026-08-07
 
 ## Decision

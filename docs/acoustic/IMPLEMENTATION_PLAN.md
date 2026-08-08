@@ -1,10 +1,17 @@
 # Acoustic Modem Implementation Plan and Lane Contracts
 
-Status: Gate R0 replacement-lane execution contract, 2026-08-07
-Entry commit: the reviewed documentation commit containing this R0 contract
-Current gate: R0; Lane 2 is blocked through accepted R8/API freeze
+Status: **Superseded planning record**, archived 2026-08-08
 
-`LANE1_REPLACEMENT_CONTRACT.md` is normative for exact byte/API tables, exploit fixtures,
+This plan describes an unshipped 16 MiB bidirectional-ARQ/persistence design and is not normative
+for the released Local Suite v4.3.2 Audio Transfer beta. The shipped contract is the bounded 1 MiB,
+one-way, finite systematic/fountain implementation in `assets/acoustic/app/`, with its generated
+single-file page and release tests as the source of truth. The historical requirements and gate
+sequence below are retained only as design provenance.
+
+Historical entry commit: the reviewed documentation commit containing the R0 contract
+Historical gate: R0; Lane 2 was blocked through accepted R8/API freeze
+
+Historically, `LANE1_REPLACEMENT_CONTRACT.md` was designated normative for exact byte/API tables, exploit fixtures,
 replacement evidence, and R0–R8 exits. It supersedes conflicting Stage B draft sequencing for Lane
 1/Lane 2. Commit `0b2ff7ded57ea99210f06442759fda6c0a004e8c` is quarantined and must not be
 merged, cherry-picked, or adopted for source, APIs, tests, fixtures, or evidence.

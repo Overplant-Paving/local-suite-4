@@ -1,9 +1,16 @@
 # Acoustic Modem Architecture Contract
 
-Status: Gate R0 replacement architecture contract, 2026-08-07
-Current gate: R0; replacement Lane 1 follows R1–R8 and Lane 2 remains blocked
+Status: **Superseded planning record**, archived 2026-08-08
 
-`LANE1_REPLACEMENT_CONTRACT.md` is normative for the exact AM1F/AM1M 1.1 byte tables, immutable
+This document describes an unshipped 16 MiB bidirectional-ARQ design and is not normative for the
+released Local Suite v4.3.2 Audio Transfer beta. The shipped contract is the bounded 1 MiB,
+one-way, finite systematic/fountain implementation in `assets/acoustic/app/`, with its generated
+single-file page and release tests as the source of truth. The historical gate/lane language below
+is retained only as design provenance.
+
+Historical gate: R0; replacement Lane 1 followed R1–R8 and Lane 2 remained blocked
+
+Historically, `LANE1_REPLACEMENT_CONTRACT.md` was designated normative for the exact AM1F/AM1M 1.1 byte tables, immutable
 ARQ/session APIs, Worker schemas and pools, streaming DSP invariants, evidence rules, and R0–R8
 gates. It supersedes incompatible Stage A draft language. Commit
 `0b2ff7ded57ea99210f06442759fda6c0a004e8c` and all of its APIs, source layout, tests, and evidence
