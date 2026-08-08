@@ -9,6 +9,7 @@ Target: exactly 103 manifest tools plus the generated hub (104 generated HTML pa
 - [x] Manifest `since` version is `v4.3.2`.
 - [x] README, CLAUDE, ROADMAP, ARCHITECTURE, QUALITY, and historical count note updated for v4.3.2/current cardinality.
 - [x] Generated `dist/audio.html`, hub, CSP, and service worker rebuilt from source.
+- [x] Release copy distinguishes software/digital-loopback verification from still-unverified two-device physical over-air acceptance.
 - [x] Pages workflow runs `tests/audio-built.mjs`.
 
 ## Local verification

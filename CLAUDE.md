@@ -36,6 +36,8 @@ checkout; do not claim otherwise. Existing migration evidence remains under `tes
   and adds Audio Transfer as a separate tool in the new **Beta Tools** category. Audio Transfer uses
   audible C0/R1 BPSK OFDM, bounded robust-soliton fountain recovery, CRC32C, and SHA-256-gated
   reconstruction with no payload network path. v4.3.1's Optical Transfer hardening is retained.
+  Generated-page and deterministic digital-loopback gates pass; two-device physical over-air
+  compatibility, reliability, range, and goodput remain unverified beta claims.
 - **v4.3.1 was released and deployed on 2026-08-06.** It retains 102 tools plus the hub and hardens
   Optical Transfer without changing its DCF2/LT wire format.
 - **v4.3.0 was released and deployed on 2026-08-06.** It contains 102 tools plus the hub and

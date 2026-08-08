@@ -15,6 +15,9 @@ Local Suite v4.3.2 adds **Audio Transfer** as the 103rd manifest tool and introd
 - 1 MiB file ceiling, bounded receiver queue, and bounded acquisition/search limits.
 - No payload upload, relay, account, or network data path.
 - Hosted HTTPS/PWA is the supported mobile microphone-receive path; the generated direct-file sender remains self-contained.
+- Generated-page and deterministic digital-loopback verification pass. Two-device physical over-air
+  compatibility, reliability, range, and goodput remain unverified beta claims; the opt-in hardware
+  runner does not constitute acceptance evidence until it records an exact successful transfer.
 
 ## Suite integration
 
