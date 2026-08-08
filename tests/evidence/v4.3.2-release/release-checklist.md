@@ -22,6 +22,7 @@ Target: exactly 103 manifest tools plus the generated hub (104 generated HTML pa
 - [x] `node tests/pwa-verify.mjs coexist` — 108-entry v4 cache green with v3 coexistence.
 - [x] `node tests/pwa-verify.mjs install` — 108-entry precache, offline shell/function, clean manifest, and zero installability errors.
 - [x] Headed Chromium installability — `beforeinstallprompt` fired, service worker controlled the page, manifest/installability errors were empty, and the hub screenshot was visually reviewed.
+- [x] Audio Transfer desktop screenshot reviewed at 1200×900 — no clipping, overlap, overflow, malformed controls, or hierarchy defects.
 - [x] `git diff --check` — clean.
 
 ## Publication
@@ -42,4 +43,5 @@ Target: exactly 103 manifest tools plus the generated hub (104 generated HTML pa
 - `pwa-install.txt`
 - `pwa-headed.txt`
 - `headed-installability.png`
+- `audio-page.png`
 - `release-notes.md`
