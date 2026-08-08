@@ -7,6 +7,7 @@ const INITIAL_MANIFEST_COPIES = 3;
 const MID_MANIFEST_COPIES = 2;
 const DATA_PASSES = 2;
 const FIN_COPIES = 3;
+const INTER_PACKET_GAP_MS = 600;
 const MAX_RX_PENDING = 6;
 const encoder = new TextEncoder();
 const decoder = new TextDecoder("utf-8", {fatal: true});
@@ -28,6 +29,7 @@ let generation = 0;
 let active = null;
 let downloadUrl = null;
 let receiveState = null;
+let verifiedBytesForTest = null;
 
 function formatBytes(n) {
   if (!Number.isFinite(n)) return "—";
@@ -105,6 +107,7 @@ function timeout(promise, milliseconds, label) {
 function activeHandle(handle) { return active === handle && generation === handle.generation && !handle.stopped; }
 
 function resetDownload() {
+  verifiedBytesForTest = null;
   if (downloadUrl) URL.revokeObjectURL(downloadUrl);
   downloadUrl = null;
   downloadLink.hidden = true;
@@ -166,8 +169,8 @@ async function createAudio(mode, stream = null) {
     context: null, worker: null, node: null, gain: null, source: null,
     encodes: new Map(), plays: new Map(), nextRequest: 1, rxPending: 0,
     rxDrops: 0, pendingDiscontinuity: 0, preRoll: null, signalActive: false,
-    lowBlocks: 0, noiseRms: .0001, lastRms: 0, lastPeak: 0, lastSignalAt: 0,
-    lastLockAt: 0, metricTimer: 0,
+    lowBlocks: 0, noiseRms: .00004, lastRms: 0, lastPeak: 0, lastSignalAt: -Infinity,
+    lastLockAt: -Infinity, metricTimer: 0,
   };
   active = handle;
   try {
@@ -184,7 +187,7 @@ async function createAudio(mode, stream = null) {
       processorOptions: {generation: handle.generation, captureFrames: 4096},
     });
     handle.gain = handle.context.createGain();
-    handle.gain.gain.value = mode === "send" ? .72 : 0;
+    handle.gain.gain.value = mode === "send" ? 1 : 0;
     handle.node.connect(handle.gain).connect(handle.context.destination);
     if (stream) {
       handle.source = handle.context.createMediaStreamSource(stream);
@@ -300,7 +303,7 @@ function forwardCapture(handle, block, discontinuity = 0) {
 function handleCapture(handle, message) {
   handle.lastRms = Number(message.rms) || 0;
   handle.lastPeak = Number(message.peak) || 0;
-  const threshold = Math.max(.0003, Math.min(.02, handle.noiseRms * 3));
+  const threshold = Math.max(.00005, Math.min(.02, handle.noiseRms * 2));
   const strong = handle.lastRms >= threshold;
   if (strong) {
     handle.lastSignalAt = performance.now();
@@ -385,6 +388,10 @@ async function startSend() {
       const elapsed = Math.max(.1, (performance.now() - started) / 1000);
       setText("sendRate", formatRate(airBytes, elapsed));
       setProgress(sendProgress, sendBar, complete / totalPackets);
+      if (complete < totalPackets) {
+        setStatus(sendStatus, "Packet sent. Holding a short quiet interval so the receiver can reacquire…");
+        await new Promise(resolve => setTimeout(resolve, INTER_PACKET_GAP_MS));
+      }
     }
 
     for (let copy = 0; copy < INITIAL_MANIFEST_COPIES; copy++) {
@@ -547,6 +554,7 @@ async function maybeFinish(handle, state) {
   for (const chunk of state.chunks) { bytes.set(chunk, at); at += chunk.length; }
   const actual = await sha256(bytes);
   if (!bytesEqual(actual, state.expected)) throw new Error("SHA-256 mismatch. No download was created; recovered bytes were discarded.");
+  verifiedBytesForTest = bytes.slice();
   downloadUrl = URL.createObjectURL(new Blob([bytes], {type: state.manifest.type}));
   downloadLink.href = downloadUrl;
   downloadLink.download = state.manifest.name;
@@ -620,5 +628,6 @@ async function feedDecodedFrame(frame) {
   }
 }
 window.AcousticTransferTest = Object.freeze({MAX_FILE_BYTES, CHUNK_BYTES, safeFileName,
-  safeMediaType, bytesEqual, hex, fromHex, sha256, u32, makeManifest, parseManifest, feedDecodedFrame});
+  safeMediaType, bytesEqual, hex, fromHex, sha256, u32, makeManifest, parseManifest, feedDecodedFrame,
+  getVerifiedBytes: () => verifiedBytesForTest ? verifiedBytesForTest.slice() : null});
 })();

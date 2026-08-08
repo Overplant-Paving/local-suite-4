@@ -2,6 +2,15 @@
    Run from an interactive desktop/PipeWire session:
    node tests/audio-physical.mjs */
 import { chromium } from "playwright";
+import { createHash } from "node:crypto";
+
+const physicalBytes = Number(process.env.AUDIO_PHYSICAL_BYTES || 1);
+if (!Number.isSafeInteger(physicalBytes) || physicalBytes < 1 || physicalBytes > 64 * 1024) {
+  throw new RangeError("AUDIO_PHYSICAL_BYTES must be an integer from 1 through 65536");
+}
+const payload = Buffer.alloc(physicalBytes);
+for (let i = 0; i < payload.length; i++) payload[i] = (i * 73 + 19) & 0xff;
+const expectedSha256 = createHash("sha256").update(payload).digest("hex");
 
 const origin = "http://127.0.0.1:8765";
 const browser = await chromium.launch({
@@ -28,22 +37,32 @@ try {
   await receiver.waitForFunction(() => document.getElementById("rxSampleRate").textContent.includes("Hz"), null, {timeout: 15000});
 
   await sender.goto(`${origin}/audio.html`);
-  await sender.locator("#sendFile").setInputFiles({name: "air.bin", mimeType: "application/octet-stream", buffer: Buffer.from([0x41])});
+  await sender.locator("#sendFile").setInputFiles({name: `air-${physicalBytes}.bin`, mimeType: "application/octet-stream", buffer: payload});
   await sender.locator("#startSendBtn").click();
   const deadline = Date.now() + 90000;
   let observation = {};
+  let maxDbfs = -Infinity;
+  let signalSeen = false;
+  let lockedSeen = false;
+  const decoderStates = new Set();
   while (Date.now() < deadline) {
     observation = await receiver.evaluate(() => ({
       status: document.getElementById("receiveStatus").textContent,
       packets: document.getElementById("rxPackets").textContent,
       level: document.getElementById("rxLevel").textContent,
+      decoder: document.getElementById("rxDecoder").textContent,
       signal: document.getElementById("stateSignal").classList.contains("on"),
       locked: document.getElementById("stateLocked").classList.contains("on"),
       integrity: document.getElementById("integrityResult").textContent,
       download: !document.getElementById("downloadLink").hidden,
     }));
+    const measured = Number.parseFloat(observation.level);
+    if (Number.isFinite(measured)) maxDbfs = Math.max(maxDbfs, measured);
+    signalSeen ||= observation.signal;
+    lockedSeen ||= observation.locked;
+    if (observation.decoder) decoderStates.add(observation.decoder);
     if (observation.download || /failed|error|mismatch/i.test(observation.status)) break;
-    await receiver.waitForTimeout(500);
+    await receiver.waitForTimeout(100);
   }
   const send = await sender.evaluate(() => ({
     status: document.getElementById("sendStatus").textContent,
@@ -67,7 +86,24 @@ try {
       effective: document.getElementById(`${name}Effective`).textContent,
     })),
   }));
-  result = {verified: receive.download && receive.integrity.startsWith("SHA-256 verified"), send, receive, errors};
+  let downloadedSha256 = null;
+  let downloadedBytes = 0;
+  let exactDownload = false;
+  if (receive.download) {
+    const values = await receiver.evaluate(() => {
+      const bytes = window.AcousticTransferTest.getVerifiedBytes();
+      return bytes ? Array.from(bytes) : [];
+    });
+    const downloaded = Buffer.from(values);
+    downloadedBytes = downloaded.length;
+    downloadedSha256 = createHash("sha256").update(downloaded).digest("hex");
+    exactDownload = downloaded.equals(payload);
+  }
+  result = {verified: receive.download && receive.integrity.startsWith("SHA-256 verified") && exactDownload,
+    expected: {bytes: payload.length, sha256: expectedSha256},
+    downloaded: {bytes: downloadedBytes, sha256: downloadedSha256, exact: exactDownload},
+    physicalTelemetry: {maxDbfs, signalSeen, lockedSeen, decoderStates: [...decoderStates]},
+    send, receive, errors};
 } catch (error) {
   result = {verified: false, blocker: String(error), errors};
 } finally {

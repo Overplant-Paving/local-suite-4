@@ -531,5 +531,3 @@
   function create(config){try{return ok(new StreamReceiver(config));}catch(error){return fail("BAD_CONFIG",error.message);}}
   A.PhyTx=Object.freeze({encodeFrame,encode,frameLayout});A.PhyRx=Object.freeze({decodeBurst,StreamReceiver,create});
 }(globalThis));
-
-
