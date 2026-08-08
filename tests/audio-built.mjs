@@ -70,9 +70,9 @@ const fountainMatrix = await page.evaluate(() => {
       const assembled = exact.assemble();
       results.push({k, seed, mode: "no-loss", ok: Boolean(assembled) && T.bytesEqual(assembled, payload)});
       exact.dispose();
-      if (k >= 8 && k <= 128) {
+      {
         const lossy = new T.LTDecoder(k, T.CHUNK_BYTES, sid, length, count);
-        for (let equation = 0; equation < sequences.length; equation++) {
+        for (let equation = 0; equation <= k; equation++) {
           if (equation === seed % k) continue;
           const sequence = sequences[equation];
           lossy.addFrame(sequence, encoder.encode(sequence));

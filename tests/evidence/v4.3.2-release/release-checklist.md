@@ -15,7 +15,7 @@ Target: exactly 103 manifest tools plus the generated hub (104 generated HTML pa
 
 - [x] `python3 build.py --check` — all fatal gates and negative fixtures green; 103 tools plus hub.
 - [x] `node tests/audio-built.mjs` — Audio Transfer and Beta Tools assertions green.
-- [x] Fountain schedule matrix — 143 deterministic no-loss cases through 1 MiB and 100 one-systematic-packet-loss cases reconstruct exact bytes.
+- [x] Fountain schedule matrix — 143 deterministic no-loss cases through 1 MiB and 143 one-systematic-packet-loss cases reconstruct exact bytes.
 - [x] `node tests/audio-modem.mjs` — exact C0/R1 encode/decode at 44.1/48 kHz with acquisition beyond the old 4,096-sample window.
 - [x] `node tests/optical-built.mjs` — Optical Transfer regression green.
 - [x] Foundation and focused feature gates green: locations, favorites/recents, Flight, Parks, Arcade, and Flood.
