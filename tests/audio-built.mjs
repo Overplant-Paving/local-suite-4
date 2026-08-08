@@ -2,8 +2,24 @@
    Run: node tests/audio-built.mjs */
 import { chromium } from "playwright";
 import { pathToFileURL } from "node:url";
-import { resolve, join } from "node:path";
+import http from "node:http";
+import { existsSync, readFileSync } from "node:fs";
+import { resolve, join, extname } from "node:path";
 const ROOT = resolve(import.meta.dirname, "..");
+
+const mime = {".html": "text/html", ".js": "text/javascript", ".png": "image/png",
+  ".webmanifest": "application/manifest+json"};
+const server = http.createServer((request, response) => {
+  const rel = request.url.split("?")[0].replace(/^\/+/, "") || "index.html";
+  const path = join(ROOT, "dist", rel);
+  if (!existsSync(path)) { response.writeHead(404); response.end(); return; }
+  response.writeHead(200, {"content-type": mime[extname(path)] || "application/octet-stream",
+    "cache-control": "no-store"});
+  response.end(readFileSync(path));
+});
+await new Promise(resolveListen => server.listen(0, "127.0.0.1", resolveListen));
+server.unref();
+const origin = `http://127.0.0.1:${server.address().port}`;
 
 const failures = [];
 const check = (name, ok, detail = "") => {
@@ -11,7 +27,7 @@ const check = (name, ok, detail = "") => {
   if (!ok) failures.push(name);
 };
 const browser = await chromium.launch({
-  executablePath: "/snap/bin/chromium",
+  executablePath: existsSync("/snap/bin/chromium") ? "/snap/bin/chromium" : chromium.executablePath(),
   args: ["--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream"],
 });
 const context = await browser.newContext({viewport: {width: 1200, height: 900}, permissions: ["microphone"]});
@@ -24,13 +40,13 @@ await page.addInitScript(() => {
   document.addEventListener("securitypolicyviolation", event =>
     window.__csp.push(`${event.violatedDirective}:${event.blockedURI}`));
 });
-await page.goto("http://127.0.0.1:8765/index.html");
+await page.goto(`${origin}/index.html`);
 check("hub exposes the new Beta Tools category", await page.locator("h2", {hasText: "Beta Tools"}).count() === 1);
 check("Audio Transfer is a separate Beta Tools card", await page.evaluate(() => {
   const heading = [...document.querySelectorAll("h2")].find(node => node.textContent.includes("Beta Tools"));
   return heading?.closest("section")?.querySelector('a[href="audio.html"]')?.textContent.includes("Audio Transfer") === true;
 }));
-await page.goto("http://127.0.0.1:8765/audio.html");
+await page.goto(`${origin}/audio.html`);
 await page.waitForTimeout(300);
 check("page exposes bounded transfer helpers", await page.evaluate(() =>
   window.AcousticTransferTest?.MAX_FILE_BYTES === 1048576 && window.AcousticTransferTest?.CHUNK_BYTES === 512 &&
@@ -132,5 +148,6 @@ await direct.close();
 
 await context.close();
 await browser.close();
+server.close();
 console.log(failures.length ? `\naudio: ${failures.length} FAILURE(S)` : "\naudio: PASS");
 process.exitCode = failures.length ? 1 : 0;
