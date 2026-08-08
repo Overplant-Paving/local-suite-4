@@ -20,6 +20,8 @@ Target: exactly 103 manifest tools plus the generated hub (104 generated HTML pa
 - [x] Foundation and focused feature gates green: locations, favorites/recents, Flight, Parks, Arcade, and Flood.
 - [x] `node tests/smoke.mjs` — 104/104 generated pages green.
 - [x] `node tests/pwa-verify.mjs coexist` — 108-entry v4 cache green with v3 coexistence.
+- [x] `node tests/pwa-verify.mjs install` — 108-entry precache, offline shell/function, clean manifest, and zero installability errors.
+- [x] Headed Chromium installability — `beforeinstallprompt` fired, service worker controlled the page, manifest/installability errors were empty, and the hub screenshot was visually reviewed.
 - [x] `git diff --check` — clean.
 
 ## Publication
@@ -37,4 +39,7 @@ Target: exactly 103 manifest tools plus the generated hub (104 generated HTML pa
 - `audio-modem.txt`
 - `smoke.txt`
 - `pwa-coexist.txt`
+- `pwa-install.txt`
+- `pwa-headed.txt`
+- `headed-installability.png`
 - `release-notes.md`
