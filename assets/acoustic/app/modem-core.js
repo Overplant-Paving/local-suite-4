@@ -479,7 +479,7 @@
 /* adapted: phy.js */
 (function(root){
   "use strict";
-  const A=root.AcousticV1,C=A.Constants,L=C.LIMITS,ok=A.Bytes.ok,fail=A.Bytes.fail;
+  const A=root.AcousticV1,C=A.Constants,L=C.LIMITS,T=C.FRAME_TYPES,F=C.FLAGS,ok=A.Bytes.ok,fail=A.Bytes.fail;
   if(!A||!A.Resampler)throw new Error("AcousticV1.Resampler required");if(A.PhyTx||A.PhyRx)throw new Error("Acoustic PHY namespace already defined");
   const RAMP_SECONDS=.005,TARGET_RMS=.12,PEAK_LIMIT=.5,MAX_CFO_HZ=100;
   function withPrefix(samples,cp){const out=new Float32Array(samples.length+cp);out.set(samples.subarray(samples.length-cp));out.set(samples,cp);return out;}
