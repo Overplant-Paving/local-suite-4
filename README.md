@@ -35,6 +35,8 @@ equation buffers to 32 MiB, clarifies integrity versus authenticity, and respect
 It transfers arbitrary binary files from speaker to microphone using bounded audible OFDM packets,
 fountain-coded BPSK data, fail-closed CRC checks, and SHA-256-gated reconstruction. The payload has
 no network or relay path; microphone capture requires a secure hosted/PWA context on mobile.
+Software, generated-page, and deterministic digital-loopback gates pass; two-device physical
+over-air compatibility, reliability, range, and goodput remain unverified beta claims.
 
 **To use the suite: open [`dist/index.html`](dist/index.html).** Everything in `dist/` is
 built and self-contained — double-click any file there. The `tools/` folder holds the

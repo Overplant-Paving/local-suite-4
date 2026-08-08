@@ -544,6 +544,7 @@ File → speaker → air → microphone → verified file download. The producti
 - **Permission:** microphone on Receive only. Sender emits an intentionally audible 1.5–6.5 kHz modem signal with a conservative waveform level and visible warning. Hosted HTTPS/PWA is the supported mobile receive path.
 - **Limits/defaults:** 1 byte–1 MiB files; 512-byte source blocks; finite robust-soliton fountain; C0 BPSK control and R1 BPSK DATA; observed 44,100/48,000 Hz contexts; four-second physical-frame ceiling.
 - **Security:** plaintext and unauthenticated. Session identity, CRC32C, exact lengths, duplicate-conflict checks, final identity, and SHA-256 detect accidental corruption; they do not provide secrecy or sender authentication.
+- **Evidence:** generated-page and deterministic digital-loopback gates pass. Two-device physical over-air compatibility, reliability, range, and goodput remain unverified; the hardware runner is an explicit opt-in evidence tool, not proof by itself.
 - **Complexity:** L · **File:** `audio.html` · **Local:** hosted HTTPS/PWA offline ✅; generated direct-file sender uses embedded modem resources where browser audio output is permitted
 
 ### 10.3 Text Toolbox
