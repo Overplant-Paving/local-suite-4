@@ -27,13 +27,14 @@ await page.addInitScript(() => {
 await page.goto("http://127.0.0.1:8765/audio.html");
 await page.waitForTimeout(300);
 check("page exposes bounded transfer helpers", await page.evaluate(() =>
-  window.AcousticTransferTest?.MAX_FILE_BYTES === 65536 && window.AcousticTransferTest?.CHUNK_BYTES === 256));
+  window.AcousticTransferTest?.MAX_FILE_BYTES === 1048576 && window.AcousticTransferTest?.CHUNK_BYTES === 1024 &&
+  window.AcousticTransferTest?.MAX_FOUNTAIN_FRAMES === 1536));
 
 await page.locator("#sendFile").setInputFiles({name: "one.bin", mimeType: "application/octet-stream", buffer: Buffer.from([0xa5])});
 await page.locator("#startSendBtn").click();
 await page.waitForFunction(() => document.getElementById("sendSampleRate").textContent.includes("Hz"), null, {timeout: 15000});
 await page.waitForFunction(() => !document.getElementById("sendPacket").textContent.startsWith("0 /"), null, {timeout: 15000});
-check("Send creates observed-rate AudioContext and audible packet", await page.locator("#sendPacket").textContent().then(text => /1 \/ 10/.test(text)), await page.locator("#sendPacket").textContent());
+check("Send creates observed-rate AudioContext and audible packet", await page.locator("#sendPacket").textContent().then(text => /1 \/ 14/.test(text)), await page.locator("#sendPacket").textContent());
 await page.locator("#stopSendBtn").click();
 await page.waitForFunction(() => document.getElementById("stopSendBtn").hidden, null, {timeout: 5000});
 
@@ -53,9 +54,12 @@ const pipeline = await page.evaluate(async () => {
   const manifest = T.makeManifest(file, bytes, digest, sid);
   const manifestId = await T.sha256(manifest.bytes);
   const common = {sessionId: sid, manifestTag: T.u32(manifestId), totalChunks: 1};
-  await T.feedDecodedFrame({...common, type: 5, bytes: manifest.bytes});
-  await T.feedDecodedFrame({...common, type: 16, index: 0, bytes});
-  await T.feedDecodedFrame({...common, type: 23, manifestId, sha256: digest, fileLength: bytes.length});
+  const fountain = new T.LTEncoder(bytes, T.CHUNK_BYTES, sid);
+  await T.feedDecodedFrame({...common, type: 5, profileId: 1, bytes: manifest.bytes});
+  await T.feedDecodedFrame({...common, type: 16, profileId: 16, fountain: true,
+    index: 0, sequence: 4, bytes: fountain.encode(4)});
+  await T.feedDecodedFrame({...common, type: 23, profileId: 1,
+    manifestId, sha256: digest, fileLength: bytes.length});
   return {
     download: !document.getElementById("downloadLink").hidden,
     name: document.getElementById("downloadLink").download,
@@ -81,9 +85,12 @@ const mismatch = await page.evaluate(async () => {
   const manifest = T.makeManifest(file, declared, digest, sid);
   const manifestId = await T.sha256(manifest.bytes);
   const common = {sessionId: sid, manifestTag: T.u32(manifestId), totalChunks: 1};
-  await T.feedDecodedFrame({...common, type: 5, bytes: manifest.bytes});
-  await T.feedDecodedFrame({...common, type: 16, index: 0, bytes: changed});
-  await T.feedDecodedFrame({...common, type: 23, manifestId, sha256: digest, fileLength: changed.length});
+  const fountain = new T.LTEncoder(changed, T.CHUNK_BYTES, sid);
+  await T.feedDecodedFrame({...common, type: 5, profileId: 1, bytes: manifest.bytes});
+  await T.feedDecodedFrame({...common, type: 16, profileId: 16, fountain: true,
+    index: 0, sequence: 4, bytes: fountain.encode(4)});
+  await T.feedDecodedFrame({...common, type: 23, profileId: 1,
+    manifestId, sha256: digest, fileLength: changed.length});
   return {
     download: !document.getElementById("downloadLink").hidden,
     integrity: document.getElementById("integrityResult").textContent,

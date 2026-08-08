@@ -2153,7 +2153,7 @@
       "name": "Audio Transfer",
       "cat": "util",
       "cx": "L",
-      "desc": "Send small files speaker-to-microphone with audible OFDM, repeated packets, CRC32C, and SHA-256 verified recovery.",
+      "desc": "Send files speaker-to-microphone with C0/R1 audible OFDM, QPSK fountain data, and SHA-256 verified recovery.",
       "network": "offline",
       "key": null,
       "endpoints": [],

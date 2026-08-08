@@ -27,9 +27,11 @@ function requireBytes(value, length, label) {
 
 function encodePacket(packet) {
   const sessionId = requireBytes(packet.sessionId, 16, "session ID");
+  const isFountainData = packet.packetKind === "data" && packet.fountain === true;
+  const profileId = isFountainData ? C.PROFILES.R1 : C.PROFILES.C0;
   const common = {
-    flags: packet.repeat ? F.RETRANSMIT : 0,
-    profileId: C.PROFILES.C0,
+    flags: (packet.repeat ? F.RETRANSMIT : 0) | (isFountainData ? F.MORE : 0),
+    profileId,
     fecId: C.FECS.K7_R12,
     epoch: 0,
     sequence: packet.sequence,
@@ -44,6 +46,7 @@ function encodePacket(packet) {
     frame = {...common, type: T.MANIFEST, flags: common.flags | F.FINAL,
       primaryIndex: 0, itemCount: fragment.length, payloadRecord: {fragment}};
   } else if (packet.packetKind === "data") {
+    if (!isFountainData) throw new TypeError("DATA must use the R1 fountain contract");
     const bytes = requireBytes(packet.bytes, undefined, "chunk");
     frame = {...common, type: T.DATA, primaryIndex: packet.index, itemCount: 1,
       payloadRecord: {chunkIndex: packet.index, bytes}};
@@ -60,7 +63,7 @@ function encodePacket(packet) {
   }
   const wire = A.Wire.encodeFrame(frame);
   if (!wire.ok) throw wire;
-  const encoded = A.PhyTx.encodeFrame(wire.value, {sampleRate, profileId: C.PROFILES.C0});
+  const encoded = A.PhyTx.encodeFrame(wire.value, {sampleRate, profileId});
   if (!encoded.ok) throw encoded;
   return encoded.value;
 }
@@ -72,6 +75,7 @@ function summarizeFrame(frame, metrics) {
     flags: frame.flags,
     sequence: frame.sequence,
     sessionId: frame.sessionId,
+    profileId: frame.profileId,
     manifestTag: frame.manifestTag,
     primaryIndex: frame.primaryIndex,
     totalChunks: frame.totalChunks,
@@ -79,6 +83,7 @@ function summarizeFrame(frame, metrics) {
   };
   if (frame.type === T.MANIFEST) base.bytes = frame.parsed.fragment;
   else if (frame.type === T.DATA) {
+    base.fountain = frame.profileId === C.PROFILES.R1 && !!(frame.flags & F.MORE);
     base.index = frame.parsed.chunkIndex;
     base.bytes = frame.parsed.bytes;
     base.chunkCrc = frame.parsed.chunkCrc;
@@ -99,10 +104,12 @@ self.onmessage = event => {
       }
       sampleRate = message.sampleRate;
       rxGeneration = message.generation || 0;
-      const created = A.PhyRx.create({sampleRate, profileId: C.PROFILES.C0});
+      const created = A.PhyRx.create({sampleRate,
+        profileIds: [C.PROFILES.C0, C.PROFILES.R1]});
       if (!created.ok) throw created;
       receiver = created.value;
-      postMessage({kind: "READY", generation: rxGeneration, sampleRate});
+      postMessage({kind: "READY", generation: rxGeneration, sampleRate,
+        profiles: ["C0-BPSK", "R1-QPSK"]});
       return;
     }
     if (!sampleRate) throw new Error("worker is not initialized");

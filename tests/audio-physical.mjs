@@ -5,8 +5,8 @@ import { chromium } from "playwright";
 import { createHash } from "node:crypto";
 
 const physicalBytes = Number(process.env.AUDIO_PHYSICAL_BYTES || 1);
-if (!Number.isSafeInteger(physicalBytes) || physicalBytes < 1 || physicalBytes > 64 * 1024) {
-  throw new RangeError("AUDIO_PHYSICAL_BYTES must be an integer from 1 through 65536");
+if (!Number.isSafeInteger(physicalBytes) || physicalBytes < 1 || physicalBytes > 1024 * 1024) {
+  throw new RangeError("AUDIO_PHYSICAL_BYTES must be an integer from 1 through 1048576");
 }
 const payload = Buffer.alloc(physicalBytes);
 for (let i = 0; i < payload.length; i++) payload[i] = (i * 73 + 19) & 0xff;

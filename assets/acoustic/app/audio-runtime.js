@@ -1,12 +1,15 @@
 "use strict";
 
 (() => {
-const MAX_FILE_BYTES = 64 * 1024;
-const CHUNK_BYTES = 256;
+const MAX_FILE_BYTES = 1024 * 1024;
+const CHUNK_BYTES = 1024;
 const INITIAL_MANIFEST_COPIES = 3;
 const MID_MANIFEST_COPIES = 2;
-const DATA_PASSES = 2;
-const FIN_COPIES = 3;
+const FIN_COPIES = 5;
+const FOUNTAIN_OVERHEAD = .35;
+const FOUNTAIN_EXTRA_EQUATIONS = 2;
+const MAX_FOUNTAIN_FRAMES = 1536;
+const MAX_FOUNTAIN_STORAGE_BYTES = 8 * 1024 * 1024;
 const INTER_PACKET_GAP_MS = 600;
 const MAX_RX_PENDING = 6;
 const encoder = new TextEncoder();
@@ -34,6 +37,7 @@ let verifiedBytesForTest = null;
 function formatBytes(n) {
   if (!Number.isFinite(n)) return "—";
   if (n < 1024) return `${Number.isInteger(n) ? n : n.toFixed(n < 10 ? 1 : 0)} B`;
+  if (n >= 1024 * 1024) return `${(n / (1024 * 1024)).toFixed(n < 10 * 1024 * 1024 ? 2 : 1)} MiB`;
   return `${(n / 1024).toFixed(n < 10 * 1024 ? 1 : 0)} KB`;
 }
 function formatRate(bytes, elapsedSeconds) {
@@ -97,6 +101,168 @@ function sessionId() {
   do { crypto.getRandomValues(value); } while (value.every(byte => byte === 0));
   return value;
 }
+function fountainEquationCount(k) {
+  if (!Number.isInteger(k) || k < 1 || k > Math.ceil(MAX_FILE_BYTES / CHUNK_BYTES)) {
+    throw new RangeError("Invalid fountain source block count.");
+  }
+  const count = Math.ceil(k * (1 + FOUNTAIN_OVERHEAD)) + FOUNTAIN_EXTRA_EQUATIONS;
+  if (count > MAX_FOUNTAIN_FRAMES) throw new RangeError("Fountain equation limit exceeded.");
+  return count;
+}
+function fountainSessionSeed(bytes) {
+  if (!(bytes instanceof Uint8Array) || bytes.length !== 16) throw new TypeError("Invalid fountain session ID.");
+  let seed = 0x811c9dc5;
+  for (const byte of bytes) seed = Math.imul(seed ^ byte, 0x01000193);
+  return seed >>> 0;
+}
+function splitmix32(seed) {
+  let state = seed | 0;
+  return () => {
+    state = (state + 0x9e3779b9) | 0;
+    let value = state ^ (state >>> 16);
+    value = Math.imul(value, 0x21f0aaad); value ^= value >>> 15;
+    value = Math.imul(value, 0x735a2d97); value ^= value >>> 15;
+    return value >>> 0;
+  };
+}
+const LN2 = 0.6931471805599453;
+function dlog(x) {
+  let exponent = 0, mantissa = x;
+  while (mantissa >= 1.5) { mantissa /= 2; exponent++; }
+  while (mantissa < .75) { mantissa *= 2; exponent--; }
+  const z = (mantissa - 1) / (mantissa + 1), z2 = z * z;
+  let term = z, sum = 0;
+  for (let n = 1; n <= 21; n += 2) { sum += term / n; term *= z2; }
+  return exponent * LN2 + 2 * sum;
+}
+function solitonCdf(k) {
+  const cdf = new Float64Array(k);
+  if (k === 1) { cdf[0] = 1; return cdf; }
+  const radius = Math.max(1, .1 * dlog(k / .5) * Math.sqrt(k));
+  const spike = Math.min(k, Math.ceil(k / radius));
+  let total = 0;
+  for (let degree = 1; degree <= k; degree++) {
+    const rho = degree === 1 ? 1 / k : 1 / (degree * (degree - 1));
+    let tau = 0;
+    if (degree < spike) tau = radius / (degree * k);
+    else if (degree === spike) tau = radius * Math.max(0, dlog(radius / .5)) / k;
+    total += rho + tau; cdf[degree - 1] = total;
+  }
+  for (let i = 0; i < k; i++) cdf[i] /= total;
+  cdf[k - 1] = 1;
+  return cdf;
+}
+function frameSeed(sessionSeed, sequence) {
+  let hash = (Math.imul((sessionSeed + 1) | 0, 0x9e3779b1) ^ ((sequence + 0x85ebca6b) | 0)) | 0;
+  hash = Math.imul(hash ^ (hash >>> 13), 0xc2b2ae35);
+  return (hash ^ (hash >>> 16)) | 0;
+}
+function frameIndices(k, cdf, sessionSeed, sequence) {
+  const random = splitmix32(frameSeed(sessionSeed, sequence));
+  const sample = random() * 2 ** -32;
+  let low = 0, high = k - 1;
+  while (low < high) { const mid = (low + high) >> 1; if (cdf[mid] >= sample) high = mid; else low = mid + 1; }
+  const degree = Math.min(k, low + 1);
+  if (degree > k >> 3) {
+    const scratch = new Uint32Array(k); for (let i = 0; i < k; i++) scratch[i] = i;
+    const out = new Array(degree);
+    for (let i = 0; i < degree; i++) { const j = i + random() % (k - i); const value = scratch[i]; scratch[i] = scratch[j]; scratch[j] = value; out[i] = scratch[i]; }
+    return out;
+  }
+  const selected = new Set(); while (selected.size < degree) selected.add(random() % k);
+  return [...selected];
+}
+function xorInto(target, source) {
+  for (let i = 0; i < target.length; i++) target[i] = (target[i] ^ source[i]) >>> 0;
+}
+class LTEncoder {
+  constructor(payload, blockLen, sessionBytes) {
+    if (!(payload instanceof Uint8Array) || payload.length < 1 || payload.length > MAX_FILE_BYTES ||
+        blockLen !== CHUNK_BYTES) throw new Error("Unsafe fountain encoder parameters.");
+    this.blockLen = blockLen; this.sessionSeed = fountainSessionSeed(sessionBytes);
+    this.k = Math.ceil(payload.length / blockLen); fountainEquationCount(this.k);
+    this.words = Math.ceil(blockLen / 4); this.blocks = new Uint32Array(this.k * this.words);
+    const bytes = new Uint8Array(this.blocks.buffer);
+    for (let block = 0; block < this.k; block++) bytes.set(payload.subarray(block * blockLen,
+      Math.min((block + 1) * blockLen, payload.length)), block * this.words * 4);
+    this.cdf = solitonCdf(this.k);
+  }
+  encode(sequence) {
+    if (!Number.isInteger(sequence) || sequence < 1 || sequence > 0xffffffff) throw new RangeError("Invalid fountain sequence.");
+    const out = new Uint32Array(this.words);
+    for (const block of frameIndices(this.k, this.cdf, this.sessionSeed, sequence)) {
+      const offset = block * this.words;
+      for (let word = 0; word < this.words; word++) out[word] = (out[word] ^ this.blocks[offset + word]) >>> 0;
+    }
+    return new Uint8Array(out.buffer, 0, this.blockLen);
+  }
+}
+class LTDecoder {
+  constructor(k, blockLen, sessionBytes, totalLen, equationLimit) {
+    if (!Number.isInteger(k) || k < 1 || k > Math.ceil(MAX_FILE_BYTES / CHUNK_BYTES) ||
+        blockLen !== CHUNK_BYTES || !Number.isInteger(totalLen) || totalLen < 1 ||
+        totalLen > MAX_FILE_BYTES || k !== Math.ceil(totalLen / blockLen) ||
+        equationLimit !== fountainEquationCount(k)) throw new Error("Unsafe fountain decoder parameters.");
+    this.k = k; this.blockLen = blockLen; this.totalLen = totalLen;
+    this.sessionSeed = fountainSessionSeed(sessionBytes); this.words = Math.ceil(blockLen / 4);
+    this.cdf = solitonCdf(k); this.solved = new Array(k).fill(null);
+    this.byBlock = new Map(); this.seen = new Map(); this.solvedCount = 0;
+    this.framesNew = 0; this.framesDup = 0;
+    this.maxFrames = Math.min(equationLimit, MAX_FOUNTAIN_FRAMES,
+      Math.floor(MAX_FOUNTAIN_STORAGE_BYTES / (this.words * 4 * 2)));
+    if (this.maxFrames < equationLimit) throw new Error("Fountain storage ceiling is too small.");
+  }
+  get isComplete() { return this.solvedCount >= this.k; }
+  addFrame(sequence, block) {
+    if (!Number.isInteger(sequence) || sequence < 1 || sequence > 0xffffffff ||
+        !(block instanceof Uint8Array) || block.length !== this.blockLen) throw new Error("Invalid fountain equation.");
+    const prior = this.seen.get(sequence);
+    if (prior) {
+      this.framesDup++;
+      if (!bytesEqual(prior, block)) throw new Error("A repeated fountain equation conflicts with accepted bytes.");
+      return false;
+    }
+    if (this.seen.size >= this.maxFrames) throw new Error("The bounded fountain equation ceiling was reached without recovery.");
+    this.seen.set(sequence, block.slice()); this.framesNew++;
+    if (this.isComplete) return false;
+    const indices = new Set(frameIndices(this.k, this.cdf, this.sessionSeed, sequence));
+    const words = new Uint32Array(this.words); new Uint8Array(words.buffer).set(block);
+    for (const index of [...indices]) { const solved = this.solved[index]; if (solved) { xorInto(words, solved); indices.delete(index); } }
+    if (indices.size === 0) return true;
+    if (indices.size === 1) { this.resolve(indices.values().next().value, words); return true; }
+    const pending = {idx: indices, words};
+    for (const index of indices) { let waiting = this.byBlock.get(index); if (!waiting) { waiting = new Set(); this.byBlock.set(index, waiting); } waiting.add(pending); }
+    return true;
+  }
+  resolve(initialBlock, initialWords) {
+    const queue = [[initialBlock, initialWords]];
+    while (queue.length) {
+      const [block, words] = queue.pop();
+      if (this.solved[block]) continue;
+      this.solved[block] = words; this.solvedCount++;
+      const waiting = this.byBlock.get(block); if (!waiting) continue;
+      this.byBlock.delete(block);
+      for (const pending of waiting) {
+        xorInto(pending.words, words); pending.idx.delete(block);
+        if (pending.idx.size === 1) {
+          const remaining = pending.idx.values().next().value;
+          this.byBlock.get(remaining)?.delete(pending);
+          if (!this.solved[remaining]) queue.push([remaining, pending.words]);
+        }
+      }
+    }
+  }
+  assemble() {
+    if (!this.isComplete) return null;
+    const out = new Uint8Array(this.totalLen);
+    for (let block = 0; block < this.k; block++) {
+      const start = block * this.blockLen, length = Math.min(this.blockLen, this.totalLen - start);
+      if (length > 0) out.set(new Uint8Array(this.solved[block].buffer, 0, length), start);
+    }
+    return out;
+  }
+  dispose() { this.byBlock.clear(); this.seen.clear(); this.solved.fill(null); }
+}
 function timeout(promise, milliseconds, label) {
   let timer;
   return Promise.race([
@@ -115,6 +281,10 @@ function resetDownload() {
   downloadLink.removeAttribute("download");
   integrityResult.className = "integrity idle";
   integrityResult.textContent = "No file has been verified.";
+}
+function clearReceiveState() {
+  if (receiveState && receiveState.fountain) receiveState.fountain.dispose();
+  receiveState = null;
 }
 
 async function teardown(handle) {
@@ -333,10 +503,13 @@ function handleCapture(handle, message) {
 function makeManifest(file, fileBytes, digestBytes, sid) {
   let name = safeFileName(file.name);
   let value, bytes;
+  const totalChunks = Math.ceil(fileBytes.length / CHUNK_BYTES);
+  const equationCount = fountainEquationCount(totalChunks);
   do {
-    value = {v: 1, name, type: safeMediaType(file.type), size: fileBytes.length,
+    value = {v: 2, name, type: safeMediaType(file.type), size: fileBytes.length,
       sha256: hex(digestBytes), chunkSize: CHUNK_BYTES,
-      totalChunks: Math.ceil(fileBytes.length / CHUNK_BYTES), session: hex(sid)};
+      totalChunks, equationCount, dataProfile: "R1-QPSK",
+      fountain: "lt-rsd-v1", session: hex(sid)};
     bytes = encoder.encode(JSON.stringify(value));
     if (bytes.length <= 512) return {value, bytes};
     name = Array.from(name).slice(0, -8).join("") || "transfer.bin";
@@ -369,18 +542,23 @@ async function startSend() {
     const handle = await createAudio("send");
     setText("sendSampleRate", `${handle.context.sampleRate.toLocaleString()} Hz`);
     const totalChunks = manifest.value.totalChunks;
+    const equationCount = manifest.value.equationCount;
+    const fountain = new LTEncoder(fileBytes, CHUNK_BYTES, sid);
     const totalPackets = INITIAL_MANIFEST_COPIES + MID_MANIFEST_COPIES +
-      totalChunks * DATA_PASSES + FIN_COPIES;
+      equationCount + FIN_COPIES;
     let complete = 0, sequence = 1, airBytes = 0;
     const started = performance.now();
 
     async function emit(packetKind, bytes, index, repeat) {
       if (!activeHandle(handle)) throw new DOMException("Transfer stopped", "AbortError");
-      const packet = {packetKind, bytes, index, repeat, sequence: sequence++,
+      const isData = packetKind === "data";
+      const packet = {packetKind, bytes, index: isData ? index % totalChunks : index,
+        fountain: isData, repeat, sequence: sequence++,
         sessionId: sid, manifestTag, totalChunks, manifestId, sha256: digestBytes,
         fileLength: fileBytes.length};
-      setStatus(sendStatus, `Encoding ${packetKind === "data" ? `chunk ${index + 1}/${totalChunks}` : packetKind}… Keep the sending speaker near the receiving microphone.`);
+      setStatus(sendStatus, `Encoding ${isData ? `fountain equation ${index + 1}/${equationCount} · R1 QPSK` : `${packetKind} · C0 BPSK`}… Keep the sending speaker near the receiving microphone.`);
       const encoded = await encodePacket(handle, packet);
+      setText("sendProfile", "C0 BPSK control · R1 QPSK data");
       setText("sendPacket", `${complete + 1} / ${totalPackets} · ${(encoded.metadata.durationSeconds).toFixed(2)} s`);
       await playWaveform(handle, encoded.waveform);
       complete++;
@@ -397,19 +575,18 @@ async function startSend() {
     for (let copy = 0; copy < INITIAL_MANIFEST_COPIES; copy++) {
       await emit("manifest", manifest.bytes, 0, copy > 0);
     }
-    for (let index = 0; index < totalChunks; index++) {
-      await emit("data", fileBytes.slice(index * CHUNK_BYTES,
-        Math.min(fileBytes.length, (index + 1) * CHUNK_BYTES)), index, false);
-    }
-    for (let copy = 0; copy < MID_MANIFEST_COPIES; copy++) {
-      await emit("manifest", manifest.bytes, 0, true);
-    }
-    for (let index = totalChunks - 1; index >= 0; index--) {
-      await emit("data", fileBytes.slice(index * CHUNK_BYTES,
-        Math.min(fileBytes.length, (index + 1) * CHUNK_BYTES)), index, true);
+    const midpoint = Math.ceil(equationCount / 2);
+    for (let equation = 0; equation < equationCount; equation++) {
+      if (equation === midpoint) {
+        for (let copy = 0; copy < MID_MANIFEST_COPIES; copy++) {
+          await emit("manifest", manifest.bytes, 0, true);
+        }
+      }
+      const equationBytes = fountain.encode(sequence);
+      await emit("data", equationBytes, equation, false);
     }
     for (let copy = 0; copy < FIN_COPIES; copy++) await emit("fin", null, 0, copy > 0);
-    setStatus(sendStatus, `Transfer complete · ${totalPackets} audible packets · ${formatRate(airBytes, Math.max(.1, (performance.now() - started) / 1000))} actual air payload rate.`, "good");
+    setStatus(sendStatus, `Transfer complete · ${totalPackets} audible packets · ${formatRate(airBytes, Math.max(.1, (performance.now() - started) / 1000))} actual acoustic payload rate.`, "good");
     await teardown(handle);
   } catch (error) {
     if (error && error.name !== "AbortError") setStatus(sendStatus, error.message || String(error), "error");
@@ -427,10 +604,11 @@ async function startReceive() {
   await stopActive();
   resetDownload();
   receiveProgress.classList.remove("error");
-  receiveState = null;
+  clearReceiveState();
   setProgress(receiveProgress, receiveBar, 0);
   setText("rxName", "—"); setText("rxSize", "—"); setText("rxSession", "—");
   setText("rxRate", "—"); setText("rxPackets", "0"); setText("rxDrops", "0");
+  setText("rxProfile", "C0 BPSK + R1 QPSK");
   setText("rxDecoder", "idle"); setText("rxQueue", `0 / ${MAX_RX_PENDING}`);
   const media = navigator.mediaDevices;
   if (!media || typeof media.getUserMedia !== "function") {
@@ -475,10 +653,12 @@ async function startReceive() {
 function parseManifest(bytes, frame) {
   if (!(bytes instanceof Uint8Array) || bytes.length < 1 || bytes.length > 512) throw new Error("Invalid acoustic manifest length.");
   const value = JSON.parse(decoder.decode(bytes));
-  if (!value || value.v !== 1 || !Number.isSafeInteger(value.size) || value.size < 1 || value.size > MAX_FILE_BYTES ||
+  if (!value || value.v !== 2 || !Number.isSafeInteger(value.size) || value.size < 1 || value.size > MAX_FILE_BYTES ||
       value.chunkSize !== CHUNK_BYTES || !Number.isSafeInteger(value.totalChunks) ||
-      value.totalChunks !== Math.ceil(value.size / CHUNK_BYTES) || value.totalChunks !== frame.totalChunks) {
-    throw new Error("Acoustic manifest limits or dimensions are invalid.");
+      value.totalChunks !== Math.ceil(value.size / CHUNK_BYTES) || value.totalChunks !== frame.totalChunks ||
+      !Number.isSafeInteger(value.equationCount) || value.equationCount !== fountainEquationCount(value.totalChunks) ||
+      value.dataProfile !== "R1-QPSK" || value.fountain !== "lt-rsd-v1" || frame.profileId !== 1) {
+    throw new Error("Acoustic manifest limits or coding contract are invalid.");
   }
   const expected = fromHex(value.sha256, 32);
   const sid = fromHex(value.session, 16);
@@ -489,7 +669,6 @@ function parseManifest(bytes, frame) {
 async function handleRxFrame(handle, frame) {
   if (!activeHandle(handle)) return;
   setText("rxPackets", String((Number($("rxPackets").textContent) || 0) + 1));
-  setText("rxDecoder", "CRC32C valid");
   const sidHex = hex(frame.sessionId);
   if (frame.type === 5) {
     const parsed = parseManifest(frame.bytes, frame);
@@ -498,16 +677,19 @@ async function handleRxFrame(handle, frame) {
     if (receiveState) {
       if (receiveState.sidHex !== sidHex || !bytesEqual(receiveState.manifestId, manifestId)) return;
     } else {
+      const fountain = new LTDecoder(parsed.value.totalChunks, parsed.value.chunkSize,
+        frame.sessionId, parsed.value.size, parsed.value.equationCount);
       receiveState = {
         sidHex, manifestId, tag: frame.manifestTag, manifest: parsed.value,
-        expected: parsed.expected, chunks: new Array(parsed.value.totalChunks),
-        received: 0, uniqueBytes: 0, started: performance.now(), finSeen: false,
-        finishing: false,
+        expected: parsed.expected, fountain, uniqueBytes: 0,
+        started: performance.now(), finSeen: false, finishing: false,
       };
       setText("rxName", parsed.value.name);
       setText("rxSize", formatBytes(parsed.value.size));
       setText("rxSession", sidHex.slice(0, 12));
-      setStatus(receiveStatus, `Locked to ${parsed.value.name}. Receiving ${parsed.value.totalChunks} repeated data chunks…`, "good");
+      setText("rxProfile", "C0 BPSK control · R1 QPSK data");
+      setText("rxDecoder", "C0 manifest + CRC32C");
+      setStatus(receiveStatus, `Locked to ${parsed.value.name}. Solving ${parsed.value.totalChunks} source blocks from up to ${parsed.value.equationCount} fountain equations…`, "good");
     }
     return;
   }
@@ -515,46 +697,50 @@ async function handleRxFrame(handle, frame) {
   if (!state || state.sidHex !== sidHex || state.tag !== frame.manifestTag ||
       state.manifest.totalChunks !== frame.totalChunks) return;
   if (frame.type === 16) {
-    const index = frame.index;
-    if (!Number.isSafeInteger(index) || index < 0 || index >= state.chunks.length) throw new Error("Received chunk index is out of bounds.");
-    const expectedLength = Math.min(CHUNK_BYTES, state.manifest.size - index * CHUNK_BYTES);
-    if (!(frame.bytes instanceof Uint8Array) || frame.bytes.length !== expectedLength) throw new Error("Received chunk length does not match the manifest.");
-    if (state.chunks[index]) {
-      if (!bytesEqual(state.chunks[index], frame.bytes)) throw new Error("A repeated chunk conflicts with previously accepted bytes.");
-    } else {
-      state.chunks[index] = frame.bytes.slice();
-      state.received++;
-      state.uniqueBytes += frame.bytes.length;
-      const fraction = state.received / state.chunks.length;
-      setProgress(receiveProgress, receiveBar, Math.min(.99, fraction));
-      setText("rxRate", formatRate(state.uniqueBytes, Math.max(.1, (performance.now() - state.started) / 1000)));
-      setStatus(receiveStatus, `${state.manifest.name} · ${state.received}/${state.chunks.length} chunks recovered · CRC32C valid.`, "good");
-    }
+    if (frame.profileId !== 16 || frame.fountain !== true ||
+        !Number.isSafeInteger(frame.index) || frame.index < 0 || frame.index >= state.manifest.totalChunks ||
+        !Number.isSafeInteger(frame.sequence) || !(frame.bytes instanceof Uint8Array) ||
+        frame.bytes.length !== CHUNK_BYTES) throw new Error("Received DATA does not match the R1-QPSK fountain contract.");
+    state.fountain.addFrame(frame.sequence, frame.bytes);
+    state.uniqueBytes = Math.min(state.manifest.size, state.fountain.solvedCount * CHUNK_BYTES);
+    const fraction = state.fountain.solvedCount / state.fountain.k;
+    setProgress(receiveProgress, receiveBar, Math.min(.99, fraction));
+    setText("rxRate", formatRate(state.uniqueBytes, Math.max(.1, (performance.now() - state.started) / 1000)));
+    setText("rxProfile", "C0 BPSK control · R1 QPSK data");
+    setText("rxDecoder", `R1 QPSK · ${state.fountain.solvedCount}/${state.fountain.k} solved`);
+    setStatus(receiveStatus, `${state.manifest.name} · ${state.fountain.solvedCount}/${state.fountain.k} source blocks solved from ${state.fountain.framesNew}/${state.manifest.equationCount} CRC-valid equations.`, "good");
     await maybeFinish(handle, state);
   } else if (frame.type === 23) {
-    if (!bytesEqual(frame.manifestId, state.manifestId) || !bytesEqual(frame.sha256, state.expected) ||
-        frame.fileLength !== state.manifest.size) throw new Error("Final acoustic identity does not match the locked manifest.");
+    if (frame.profileId !== 1 || !bytesEqual(frame.manifestId, state.manifestId) ||
+        !bytesEqual(frame.sha256, state.expected) || frame.fileLength !== state.manifest.size) {
+      throw new Error("Final acoustic identity does not match the locked manifest.");
+    }
     state.finSeen = true;
+    if (!state.fountain.isComplete) {
+      setStatus(receiveStatus, `Final identity received, but ${state.fountain.k - state.fountain.solvedCount} source blocks remain unsolved. Download withheld.`, "error");
+    }
     await maybeFinish(handle, state);
   }
 }
 
 async function maybeFinish(handle, state) {
-  if (state.finishing || state.received !== state.chunks.length) return;
+  if (state.finishing || !state.fountain.isComplete) return;
   if (!state.finSeen) {
     setProgress(receiveProgress, receiveBar, .99);
-    setStatus(receiveStatus, "All chunks recovered. Waiting for the repeated final identity packet…", "good");
+    setStatus(receiveStatus, "All source blocks solved. Waiting for the repeated C0 final identity packet…", "good");
     return;
   }
   state.finishing = true;
   setProgress(receiveProgress, receiveBar, .99);
-  setStatus(receiveStatus, "All chunks recovered. Computing final SHA-256 locally…");
-  const bytes = new Uint8Array(state.manifest.size);
-  let at = 0;
-  for (const chunk of state.chunks) { bytes.set(chunk, at); at += chunk.length; }
+  setStatus(receiveStatus, "Fountain recovery complete. Computing final SHA-256 locally…");
+  const bytes = state.fountain.assemble();
+  if (!(bytes instanceof Uint8Array) || bytes.length !== state.manifest.size) {
+    throw new Error("Fountain reconstruction did not produce the declared file length.");
+  }
   const actual = await sha256(bytes);
   if (!bytesEqual(actual, state.expected)) throw new Error("SHA-256 mismatch. No download was created; recovered bytes were discarded.");
   verifiedBytesForTest = bytes.slice();
+  state.fountain.dispose();
   downloadUrl = URL.createObjectURL(new Blob([bytes], {type: state.manifest.type}));
   downloadLink.href = downloadUrl;
   downloadLink.download = state.manifest.name;
@@ -570,6 +756,7 @@ async function maybeFinish(handle, state) {
 async function failReceive(handle, error) {
   if (!activeHandle(handle)) return;
   resetDownload();
+  clearReceiveState();
   integrityResult.className = "integrity failed";
   integrityResult.textContent = "Integrity failed · download withheld";
   receiveProgress.classList.add("error");
@@ -584,6 +771,7 @@ function selectTab(mode) {
   sendTab.tabIndex = receive ? -1 : 0; receiveTab.tabIndex = receive ? 0 : -1;
   sendPanel.hidden = receive; receivePanel.hidden = !receive;
   stopActive();
+  clearReceiveState();
 }
 
 for (const tab of [sendTab, receiveTab]) {
@@ -607,12 +795,12 @@ sendFile.addEventListener("change", () => {
 startSendBtn.addEventListener("click", startSend);
 stopSendBtn.addEventListener("click", async () => { await stopActive(); setStatus(sendStatus, "Transfer stopped. Speaker output and modem resources are closed."); });
 receiveBtn.addEventListener("click", startReceive);
-stopReceiveBtn.addEventListener("click", async () => { await stopActive(); setStatus(receiveStatus, "Receiver stopped. Microphone tracks and modem resources are closed."); });
+stopReceiveBtn.addEventListener("click", async () => { await stopActive(); clearReceiveState(); setStatus(receiveStatus, "Receiver stopped. Microphone tracks and modem resources are closed; partial equations were discarded."); });
 resetReceiveBtn.addEventListener("click", async () => {
-  await stopActive(); receiveState = null; resetDownload(); receiveProgress.classList.remove("error");
+  await stopActive(); clearReceiveState(); resetDownload(); receiveProgress.classList.remove("error");
   setProgress(receiveProgress, receiveBar, 0); setStatus(receiveStatus, "Receiver reset. No partial payload remains in memory.");
 });
-window.addEventListener("pagehide", () => { generation++; if (active) teardown(active); resetDownload(); });
+window.addEventListener("pagehide", () => { generation++; if (active) teardown(active); clearReceiveState(); resetDownload(); });
 
 Suite.theme.init();
 processingRow("ec", "off", false);
@@ -627,7 +815,9 @@ async function feedDecodedFrame(frame) {
     if (activeHandle(handle)) await failReceive(handle, error);
   }
 }
-window.AcousticTransferTest = Object.freeze({MAX_FILE_BYTES, CHUNK_BYTES, safeFileName,
-  safeMediaType, bytesEqual, hex, fromHex, sha256, u32, makeManifest, parseManifest, feedDecodedFrame,
+window.AcousticTransferTest = Object.freeze({MAX_FILE_BYTES, CHUNK_BYTES, MAX_FOUNTAIN_FRAMES,
+  safeFileName, safeMediaType, bytesEqual, hex, fromHex, sha256, u32, fountainEquationCount,
+  fountainSessionSeed, solitonCdf, frameIndices, LTEncoder, LTDecoder,
+  makeManifest, parseManifest, feedDecodedFrame,
   getVerifiedBytes: () => verifiedBytesForTest ? verifiedBytesForTest.slice() : null});
 })();
