@@ -1,7 +1,13 @@
 # Acoustic Modem DSP Design
 
-Status: Stage A3 initial design; parameter lock is blocked by the feasibility gates
+Status: Gate R0 replacement DSP contract; physical parameter lock remains blocked
 Required baseline: robust audible control plus audible OFDM BPSK/QPSK data
+
+`LANE1_REPLACEMENT_CONTRACT.md` is normative for the cursor TX, exact 32-sample WOLA, ±80 Hz
+enabled acquisition boundary, dual-grid incremental receiver, ring retirement invariant,
+persistent LinkTracker, exact phase-accumulator channel, and evidence gates. Commit
+`0b2ff7ded57ea99210f06442759fda6c0a004e8c` remains quarantined; its batch receiver,
+whole-waveform TX, cubic SRO, APIs, and evidence must not be adopted.
 
 ## 1. Evidence posture
 
@@ -78,7 +84,7 @@ intermodulation, and multi-device evidence. Wired results do not support over-ai
 
 ## 4. Burst waveform
 
-All enabled OFDM profiles use the following initial structure:
+All enabled OFDM profiles use the following structure:
 
 ```text
 silence/turn guard determined by protocol state
@@ -88,7 +94,8 @@ silence/turn guard determined by protocol state
 → robust header copy A
 → robust header copy B
 → 8–320 payload OFDM symbols (bounded by frame bytes and 4 s)
-→ 5–10 ms raised-cosine/WOLA release ramp
+→ 32-sample WOLA at every OFDM symbol boundary
+→ at least 5 ms raised-cosine release ramp
 ```
 
 The short acquisition symbol has two identical `N/2` time halves and a deterministic PN sign
@@ -101,7 +108,7 @@ Header copies always use C0 carriers, BPSK, rate-1/2 FEC, the fixed whitening/in
 decode a variable body until the header copies meet the protocol rule. Control frames encode their
 body using C0 as well and are physically repeated according to the negotiated control repetition.
 
-The initial two-short/two-long preamble, two header copies, CP values, 8–320 payload-symbol range,
+The two-short/two-long preamble, two header copies, CP values, 8–320 payload-symbol range,
 and 4-second frame ceiling are testable starting bounds. False-alarm/miss distributions, room delay
 spread, reverse-link overhead, and mobile CPU may require disabling a profile or assigning a new
 one; they are not claimed as measured finals.
@@ -116,14 +123,32 @@ QPSK uses Gray mapping:
 BPSK maps `0 -> +1`, `1 -> -1`. Pilots use the profile's deterministic PN signs and never carry
 payload. W2 has no accepted 16-QAM mapping until its separate contract and vectors exist.
 
+### Exact C0/R1 WOLA
+
+C0 and R1 use `N=512`, CP `C=128`, and overlap `L=32`. For every OFDM symbol form
+`CP[C] || useful[N] || cyclicSuffix[L]`, where the suffix is the first 32 useful samples. For
+`r=0..31`:
+
+```text
+a[r] = sin(pi * (r + 0.5) / (2*L))^2
+```
+
+Multiply the first `L` samples by `a[r]` and the last `L` by `a[L-1-r]`. Successive
+extended symbols start `C+N=640` samples apart, overlap-adding the prior suffix with the next
+leading edge. The first leading edge and final suffix overlap with zero. The burst still has at
+least 5 ms onset/release ramps, target RMS at most 0.08, and scaled peak at most 0.50. Golden
+vectors cover overlap regions, first/last symbols, and every 4,096-sample pool boundary.
+
 ## 5. Acquisition and receiver chain
 
-The receiver is a burst receiver; it never assumes continuous sample alignment.
+The receiver is a true incremental burst receiver; it never assumes continuous sample alignment or
+rescans an ever-growing batch buffer.
 
 1. **Energy/noise gate:** maintain a bounded robust noise estimate from null bins and idle samples;
    do not start large decode work for every loud event.
-2. **Short-symbol correlation:** search the two 44.1/48 kHz grid hypotheses, detect repeated halves,
-   estimate coarse start and CFO, and rate-limit candidate decoders.
+2. **Short-symbol correlation:** run simultaneous independent 44.1/48 kHz hypothesis pipelines,
+   process each produced hypothesis sample once with rolling O(1)-per-sample repeated-half
+   correlation, estimate coarse start/CFO, and rate-limit candidates.
 3. **Long-symbol correlation:** choose the grid, refine timing/CFO, reject sequence mismatch, and
    establish a burst identity candidate.
 4. **Channel estimate:** divide known long-training carriers by received carriers, smooth only within
@@ -136,18 +161,47 @@ The receiver is a burst receiver; it never assumes continuous sample alignment.
    confidence. Erasures have zero confidence.
 8. **Deinterleave and soft Viterbi:** apply the exact protocol permutation/code; reject invalid tail,
    length, CRC, or confidence states.
-9. **Frame validation:** pass decoded bytes through the allocation-first parser order in
+9. **Frame validation:** pass decoded bytes through the allocation-first parser and stateful
+   validation order in
    `PROTOCOL.md`; a discontinuity, overrun, or underflow forces reacquisition.
 
 Coarse CFO comes from repeated-half phase. Fine CFO comes from long-training phase difference.
 Residual common phase and phase slope come from pilots. SRO is not “fixed” by periodically dropping
 samples without accounting; a fractional-delay resampler maintains a phase accumulator and reports
-its ratio/limits. Initial simulation range is ±300 ppm and the hard acquisition/reacquisition bound
-is ±1000 ppm. These are test ranges, not measured device limits.
+its ratio/limits. Enabled C0/R1 coarse acquisition accepts exactly `-80 <= CFO Hz <= 80`.
+±100 Hz is an out-of-contract failure/reacquisition test. Initial SRO simulation range is ±300 ppm
+and the hard acquisition/reacquisition bound is ±1000 ppm. These are test ranges, not measured
+device limits.
 
 Input/output devices may be independently clocked even when both contexts report 48 kHz. The
 receiver therefore reports grid rate, context rate, resampler ratio, estimated residual ppm, phase
 error, and sample discontinuities separately.
+
+### Incremental storage and retirement
+
+During discovery each grid has an 8,192-sample Float32 ring, a 512-sample rolling short-correlation
+window, 511-sample retained overlap, fine-timing margin ±256 samples, maximum C0/R1 symbol size 640,
+one candidate (two total), and at most four expensive candidate starts per second. A candidate
+incrementally consumes training/header/body and releases raw PCM after the required FFT window; it
+never pins a whole frame.
+
+After each push, all samples older than the 511-sample overlap retire unless an active bounded
+candidate owns them. Capacity never grows. Over any contiguous run after warm-up:
+
+```text
+cumulative hypothesis samples retired
+  >= cumulative hypothesis samples produced - 8192
+```
+
+On silence with no candidate, produced minus retired remains at most 1,151 (511+640). Accepting
+4,096 samples while retiring only 256 is a gate failure. Ring capacity produces one counted
+discontinuity, clears acquisition, and never triggers growth.
+
+An accepted link owns one `LinkTracker` keyed by session ID, epoch, remote transmitter role, grid,
+and profile. It persists phase accumulators, ratio, residual ppm/confidence, timing offset/rate,
+common phase, CFO, last pilot update/input frame, and discontinuity generation between symbols and
+bursts. TURN/ACK gaps do not reset it. Ownership changes, discontinuities, overflow, invalid clock
+sequence, or bounded confidence loss do. A nonzero-SRO fixture that reports ratio 1 fails.
 
 ## 6. FEC, interleaving, and maintainability
 
@@ -208,9 +262,10 @@ measured because latency, codecs, filtering, and route asymmetry can invalidate 
 ## 8. Bounded processing and metrics
 
 Worklet duties and pools are defined in `ARCHITECTURE.md`. DSP runs in one Worker with preallocated
-FFT tables, carrier maps, survivor storage, resampler buffers, and output blocks. Reconfiguration
-occurs only between bursts. No per-symbol object graph, array growth, unbounded candidate queue, or
-console logging is allowed.
+FFT tables, carrier maps, survivor storage, resampler buffers, and exactly 16 fixed output blocks.
+TX is a cursor that writes directly into returned pool blocks; it never allocates a whole waveform
+or slices PCM blocks. Reconfiguration occurs only between bursts. No per-symbol object graph, array
+growth, unbounded candidate queue, or console logging is allowed.
 
 Initial feasibility budgets:
 
@@ -271,6 +326,31 @@ rotated by `exp(i*2*pi*cfoHz*n/Fs)` before taking the real part. Tests pin an im
 quantized fingerprint so normal cross-engine floating-point tolerance cannot become an unbounded
 comparison. The same 17-tap kernel and explicit phase accumulator implement SRO.
 
+Channel validation runs before defaults, the identity fast path, PRNG creation, or allocation.
+Seed is an integer `0..0xffffffff`; requested zero maps to effective `0x6D2B79F5`. Grid is
+exactly 44,100 or 48,000. Input contains 1 through `4*gridRate` finite samples in [-4,4].
+Explicit nonfinite/undefined fields, unknown keys, invalid block operations, and falsy-default
+coercion fail. Legal zero remains zero.
+
+SRO sign and integration are exact:
+
+```text
+sroPpm = (receiverSampleRate - transmitterSampleRate) /
+         transmitterSampleRate * 1e6
+
+p = 0
+while p < inputLength:
+  t = inputLength == 1 ? 0 : clamp(p/(inputLength-1), 0, 1)
+  ppm = sroPpm + sroDriftPpm * (t - 0.5)
+  ratio = 1 + ppm/1e6
+  output.push(sinc17(input, p))
+  p = p + 1/ratio
+```
+
+Positive SRO produces more receiver samples. Both SRO terms zero emit exactly the input length at
+integer phases. Computation is Float64 until final Float32 output. Cubic interpolation and
+`input[n*instantaneousRatio]` are forbidden.
+
 Channel operations occur in this recorded order:
 
 1. static gain and deterministic frequency-response FIR;
@@ -285,6 +365,13 @@ Channel operations occur in this recorded order:
 
 Every versioned kernel has a golden impulse/output vector. Measured room responses are separate
 assets with provenance and held-out splits; synthetic and measured channels are never conflated.
+
+Drop/repeat indices are validated against the post-SRO block count, unique, in range, and mutually
+disjoint; silence positions are unique and in range. Records report requested/effective seed,
+grid/input/output lengths, versioned kernels, only paths actually executed, actual operation counts,
+final phase, peak, signal power, and noise RMS. They never assert that a path is independent.
+Independent Q30 coefficient and Q23 SRO impulse fingerprints are generated without product code;
+identity, fractional multipath, SRO, CFO, and combined paths have distinct vectors.
 
 ### Initial benchmark matrix
 

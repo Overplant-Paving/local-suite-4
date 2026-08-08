@@ -1,8 +1,14 @@
-# Acoustic Transfer Protocol v1
+# Acoustic Transfer Protocol 1.1
 
-Status: Stage A3 logical wire contract
-Wire version: major `1`, minor `0`
+Status: Gate R0 replacement logical wire contract
+Wire version: major `1`, minor `1`
 Byte order: network order (big-endian) for every multibyte integer
+
+`LANE1_REPLACEMENT_CONTRACT.md` is normative for the exhaustive exploit fixtures, internal APIs,
+Worker boundary, and R0–R8 gates. This document contains the controlling wire/manifest rules.
+Draft 1.0 is incompatible and fails closed. Commit
+`0b2ff7ded57ea99210f06442759fda6c0a004e8c` remains quarantined; none of its APIs or evidence may
+be merged, cherry-picked, or adopted.
 
 ## 1. Protocol boundary
 
@@ -68,7 +74,7 @@ CRC32C is error detection, not authentication.
 |---:|---:|---|---|
 | 0 | 4 | magic | ASCII `AM1F` (`41 4d 31 46`) |
 | 4 | 1 | major | `1` |
-| 5 | 1 | minor | `0` |
+| 5 | 1 | minor | `1` |
 | 6 | 1 | frame type | registered value below |
 | 7 | 1 | flags | only defined bits may be set |
 | 8 | 2 | header length | exactly `56` |
@@ -101,7 +107,7 @@ implementation limits; frame CRC; only then payload parsing or decoder/storage a
 | 2 | `MORE` | more fragments/pages follow |
 | 3 | `RESUME` | frame belongs to explicit resume reconciliation |
 | 4 | `FINAL` | final page/burst/control instance |
-| 5 | `ENCRYPTED` | reserved; unsupported in v1.0 and rejected |
+| 5 | `ENCRYPTED` | reserved; unsupported in 1.1 and rejected |
 | 6–7 | reserved | must be zero |
 
 Direction must match frame type and current turn. A flag never substitutes for the session ID,
@@ -154,8 +160,9 @@ Core error codes are stable:
 `ERROR` uses `ERROR_DETAIL`; its UTF-8 suffix is diagnostic only and is never parsed as protocol
 state. Unknown error codes are displayed as unknown peer errors and terminate the current state.
 
-Unknown frame types are rejected. Unknown higher minor-version types are skippable only if a future
-minor version explicitly marks them noncritical outside this fixed registry.
+Unknown frame types are rejected. Unknown majors and minors are rejected before payload parsing or
+candidate creation. A future minor is accepted only by an implementation that explicitly supports
+and advertises its complete frame, flag, TLV, and state registry.
 
 ### Type-specific header accounting
 
@@ -163,13 +170,45 @@ minor version explicitly marks them noncritical outside this fixed registry.
 |---|---|---|---|
 | `MANIFEST` | byte offset in canonical manifest | fragment byte length | manifest-declared count if known, else 0 |
 | `DATA` | chunk index | exactly 1 | exact canonical count |
-| `TURN` | first chunk considered in burst | logical DATA frames in burst | exact canonical count |
+| `TURN` | first actually OUTPUT_DRAINED DATA chunk | actually OUTPUT_DRAINED DATA frames, 1–16 and within negotiated burst | exact canonical count |
 | `ACK` | lowest non-durable chunk (`ackBase`) | extra range count | exact canonical count |
-| `RESUME_STATE` | receipt-page base chunk | ranges in this page | exact canonical count |
-| `FIN`/`FINAL_ACK` | exact durable/expected chunk count | 0 | exact canonical count |
+| `RESUME_STATE` | receipt-page base chunk | durable-bit popcount in this 512-bit page | exact canonical count |
+| `FIN`/`FINAL_ACK`/`FINAL_CONFIRM` | exact durable/expected chunk count | 0 | exact canonical count |
 | other | 0 unless its payload schema says otherwise | 0 | 0 before manifest, exact count after |
 
 Inconsistent duplicate accounting is a corrupt frame even when CRCs pass.
+
+### Exact direction, flag, and state matrix
+
+`FROM_RECEIVER` exactly identifies the original receiver as physical transmitter.
+`RETRANSMIT` is permitted only for a previously emitted byte-identical logical item with a new
+outer frame sequence. `MORE` and `FINAL` never coexist. No flag omitted from this table is valid.
+
+| Frame | Direction and required/base flags | Accounting | State |
+|---|---|---|---|
+| `HELLO` | sender; none, optional valid retransmit | all accounting 0 | sender discovery |
+| `ACCEPT` | receiver; `FROM_RECEIVER`, optional valid retransmit | all accounting 0 | selected-candidate negotiation |
+| `TRAIN` | either; `FROM_RECEIVER` iff receiver, optional valid retransmit | primary/item 0; negotiated window/total after manifest | calibration/profile transition |
+| `CAL_REPORT` | either; same direction rule as TRAIN, optional valid retransmit | same as TRAIN | reply for current calibration ID |
+| `MANIFEST` | sender; exactly `MORE` or `FINAL`, optional valid retransmit | byte offset, payload length, manifest count | manifest delivery |
+| `MANIFEST_ACK` | receiver; `FROM_RECEIVER|FINAL`, optional valid retransmit | primary/item 0; exact window/total | accepted complete manifest |
+| `DATA` | sender; none or valid retransmit | chunk index, item 1, exact window/total | sender DATA burst |
+| `TURN` | sender; none, optional valid retransmit | first/count of actually output-drained DATA; exact window/total | end of sender DATA burst |
+| `ACK` | receiver; `FROM_RECEIVER`, add `FINAL` iff complete, optional valid retransmit | global ackBase/rangeCount; exact window/total | current TURN response |
+| `PROFILE` | either; `FROM_RECEIVER` iff receiver, optional valid retransmit | primary/item 0; exact window/total | one authorized transition |
+| `PAUSE` | either; `FROM_RECEIVER` iff receiver, optional valid retransmit | primary/item 0; negotiated accounting when known | active session |
+| `RESUME_QUERY` | sender; `RESUME`, optional valid retransmit | primary/item 0; exact manifest window/total | resume negotiation |
+| `RESUME_STATE` | receiver; `FROM_RECEIVER|RESUME` plus exactly `MORE` or `FINAL`, optional valid retransmit | fixed-page base/popcount; exact window/total | accepted query reply |
+| `FIN` | sender; `FINAL`, optional valid retransmit | primary=total, item 0; exact window/total | all chunks acknowledged durable |
+| `FINAL_ACK` | receiver; `FROM_RECEIVER|FINAL`, optional valid retransmit | primary=total, item 0; exact window/total | verified transaction complete |
+| `FINAL_CONFIRM` | sender; `FINAL`, optional valid retransmit | primary=total, item 0; exact window/total | accepted FINAL_ACK |
+| `CANCEL` | either; `FROM_RECEIVER` iff receiver, optional valid retransmit | primary/item 0 | active session; best effort |
+| `ERROR` | either; `FROM_RECEIVER` iff receiver, optional valid retransmit | primary/item 0 | state-permitted bounded error |
+
+Stateless decoding checks version, exact payload/schema, flags, header accounting, CRCs, and limits.
+Stateful `Wire.validateFrame` then checks current role/turn, selected capabilities, full
+session/manifest, epoch, direction sequence, logical duplicate, and expected chunk length. Only a
+validated frame may become a reducer event.
 
 ## 4. Capability TLVs and negotiation
 
@@ -198,6 +237,14 @@ Duplicate singleton TLVs are rejected.
 | `0x0B` | `MANIFEST_ID` | full 32-byte ID, when known |
 | `0x0C` | `TURN_PARAMS` | tail guard and ACK timeout in milliseconds, two `u16` |
 | `0x0D` | `ERROR_DETAIL` | error code `u16`, then at most 96 valid UTF-8 bytes |
+| `0x0E` | `FORWARD_SELECTION` | grid rate `u32`, profile `u8`, FEC `u8`, control repetition `u8`, reserved `u8=0` |
+| `0x0F` | `REVERSE_SELECTION` | the same eight bytes |
+| `0x10` | `CALIBRATION_ID` | one nonzero `u32` |
+| `0x11` | `CAL_RESULT` | outcome `u8`, grid code `u8`, profile `u8`, FEC `u8`, tail guard `u16`, ACK timeout `u16`, discontinuities `u16`, reserved `u16=0` |
+
+`gridCode` is 1 for 44,100 Hz and 2 for 48,000 Hz; outcome is 0 fail or 1 pass. Control
+repetition is exactly 2. `REVERSE_SELECTION` is C0/K7_R12. The enabled baseline forward
+selection is R1/K7_R12.
 
 Type-specific payload ceilings override the normal TLV ceiling but never the 4096-byte frame ceiling:
 
@@ -207,25 +254,37 @@ Type-specific payload ceilings override the normal TLV ceiling but never the 409
 | `MANIFEST` fragment | 512 bytes |
 | `MANIFEST_ACK` | 40 bytes |
 | `DATA` | 2060 bytes (12-byte prefix plus 2048-byte chunk) |
-| `TURN` | 32 bytes |
+| `TURN` | exactly 0 bytes |
 | `ACK` | 96 bytes |
 | `RESUME_QUERY` | 1058 bytes (32-byte ID, 2-byte manifest length, up to 1024 manifest bytes) |
-| `RESUME_STATE` | 128 bytes |
+| `RESUME_STATE` | exactly 120 bytes |
 | `FIN` / `FINAL_ACK` / `FINAL_CONFIRM` | 80 bytes |
 
-`HELLO` repeats the sender's ranges, actual output context/grid rate, endpoint nonce, manifest ID
-when prepared, and public processing report. The receiver requires two valid HELLO frames with
-distinct frame sequences and the same session/capabilities before replacing another candidate.
+`HELLO` requires exactly `VERSION_RANGE`, `PROFILE_LIST`, `FEC_LIST`, `GRID_RATES`,
+`FILE_LIMIT`, `CHUNK_RANGE`, `WINDOW_RANGE`, `BURST_LIMITS`, `AUDIO_PROCESSING`,
+`ENDPOINT_NONCE`, `MANIFEST_ID`, and `TURN_PARAMS`. The receiver requires two valid HELLO
+frames with distinct sequences and identical session/capabilities before selection.
 
-In HELLO, list/range TLVs advertise capabilities. In ACCEPT, `PROFILE_LIST`, `FEC_LIST`, and
-`GRID_RATES` each contain exactly one selected value for that peer's transmit direction;
-`CHUNK_RANGE` and `WINDOW_RANGE` have equal minimum/maximum selected values. Each direction may have
-a different grid because the physical transmitter declares its own actual supported output grid.
+In HELLO, list/range TLVs advertise the original sender's forward transmitter. In ACCEPT,
+`FORWARD_SELECTION` chooses one advertised forward grid/profile/FEC and
+`REVERSE_SELECTION` declares the receiver's actual reverse C0 grid. The two directions may use
+different grids. `CHUNK_RANGE` and `WINDOW_RANGE` have equal selected endpoints.
 
-`ACCEPT` selects exactly one version, profile, FEC, grid rate per direction, file/chunk/window/burst
-limits, its endpoint nonce, and its processing report. Selected values must be intersections of
-advertised ranges. An empty intersection is terminal `INCOMPATIBLE_CAPABILITY`; neither peer
-silently substitutes open-loop or a network mode.
+`ACCEPT` requires exactly `VERSION_RANGE`, `FILE_LIMIT`, equal-endpoint `CHUNK_RANGE`,
+equal-endpoint `WINDOW_RANGE`, `BURST_LIMITS`, `AUDIO_PROCESSING`, `ENDPOINT_NONCE`,
+the echoed `MANIFEST_ID`, `TURN_PARAMS`, `FORWARD_SELECTION`, and
+`REVERSE_SELECTION`. Selected values are intersections of HELLO and local limits. An empty
+intersection is terminal `INCOMPATIBLE_CAPABILITY`; no open-loop or network substitute exists.
+
+`TRAIN` is exactly `CALIBRATION_ID`. `CAL_REPORT`, from either role only as the current
+calibration reply, is exactly `CALIBRATION_ID` followed by `CAL_RESULT`. `PROFILE` is exactly
+`CALIBRATION_ID`, both selection TLVs, and `TURN_PARAMS`. `PAUSE` and `CANCEL` are empty.
+`ERROR` contains exactly `ERROR_DETAIL`.
+
+Unknown critical control TLVs fail. HELLO and ACCEPT alone may contain unknown noncritical
+extensions after all required types in increasing order; the other exact-set controls allow none.
+Missing/duplicate fields, an unrelated manifest ID, or a selected value outside the advertised
+intersection fails before a state transition.
 
 Negotiation is not authenticated in v1. An active party can alter or downgrade it. The UI describes
 that limitation; v1 does not claim downgrade resistance.
@@ -297,8 +356,8 @@ The manifest is a canonical byte string, at most 1024 bytes:
 |---:|---:|---|
 | 0 | 4 | ASCII `AM1M` |
 | 4 | 1 | manifest major = 1 |
-| 5 | 1 | manifest minor = 0 |
-| 6 | 2 | flags; all zero in v1.0 |
+| 5 | 1 | manifest minor = 1 |
+| 6 | 2 | flags; all zero in 1.1 |
 | 8 | 2 | total manifest length |
 | 10 | 2 | chunk size |
 | 12 | 8 | original file length |
@@ -309,7 +368,9 @@ The manifest is a canonical byte string, at most 1024 bytes:
 | 59 | 1 | reserved zero |
 | 60 | variable | filename bytes, then media type, then optional manifest TLVs |
 
-`chunkCount` must equal `ceil(fileLength/chunkSize)`. Filename is NFC UTF-8 and at most 255 bytes.
+`fileLength` is exactly 1 through 16,777,216 bytes and `chunkCount` equals
+`ceil(fileLength/chunkSize)`; zero is rejected before hashing or session creation. Filename is NFC
+UTF-8 and at most 255 bytes.
 Media type is at most 127 printable ASCII bytes and advisory only. Optional manifest TLVs use the
 control TLV syntax, must fit the 1024-byte total, and follow strictly increasing TLV type order;
 duplicates are rejected. No creation time, local path, or device identity is included.
@@ -317,9 +378,25 @@ duplicates are rejected. No creation time, local path, or device identity is inc
 `manifestID = SHA-256(canonical manifest bytes)`. The four-byte header tag is its first four bytes
 interpreted big-endian and is never sufficient for resume or final verification.
 
-Sender sanitization does not make received metadata trusted. The receiver performs its own
-basename/control/bidi/reserved-name sanitation and defaults unsafe media types to
-`application/octet-stream`.
+The 1.1 manifest extension registry is empty. Extension type `0x00` and `0xFF` always fail;
+`0x01..0xEF` are public registry space and `0xF0..0xFE` are noncritical-only private use.
+Unknown critical extensions fail `INCOMPATIBLE_FEATURE`. Unknown noncritical extensions remain
+identity-bearing canonical bytes and are exposed without semantic effect; they cannot authorize
+profiles, FEC, encryption, interpretation, or allocation. The product encoder emits none.
+
+Sender sanitization does not make received metadata trusted. Both sides apply the exact
+`sanitizeFilename` algorithm in `LANE1_REPLACEMENT_CONTRACT.md` §3: NFC, basename for both
+separator styles, complete control/bidi stripping, dangerous-character replacement, whitespace
+and trailing-dot/space removal, empty/dot fallback, reserved-device prefixing, and code-point-safe
+255-byte UTF-8 truncation.
+
+The media field is advisory. It is lowercased only when it is a parameter-free valid token and is
+in this allowlist: `application/octet-stream`, `application/json`, `application/zip`,
+`image/avif`, `image/gif`, `image/jpeg`, `image/png`, `image/webp`, `audio/mpeg`,
+`audio/ogg`, `audio/wav`, `text/plain`, `video/mp4`, or `video/webm`. Every other value,
+including HTML, SVG, XML, JavaScript, multipart, message, and parameterized values, sanitizes to
+`application/octet-stream`. The download Blob is always `application/octet-stream`; metadata
+is text-only and never causes inline rendering.
 
 ### Manifest delivery
 
@@ -356,15 +433,30 @@ existing chunk mark the session suspect, retain the first durable value, and yie
 
 The sender selects only chunks inside `[sendBase, sendBase+windowSize)`, prioritizing explicit
 missing bits then unsent chunks. A burst ends at the first of negotiated frame count, negotiated
-audio-duration limit, pause/cancel, or window exhaustion, and always ends with `TURN`.
+audio-duration limit, pause/cancel, or window exhaustion. Planning, reading, encoding, queueing,
+PCM generation, and output start do not make DATA sent. Only an owned `OUTPUT_DRAINED` event does
+so, increments its transmission attempt, and makes it ACK-eligible.
+
+`TURN` is emitted only after at least one DATA in the burst is `OUTPUT_DRAINED`. Its payload is
+exactly empty; `primaryIndex` is the first drained DATA chunk and `itemCount` is the count of
+drained DATA frames, 1 through the negotiated maximum of at most 16. A failed or uncertain partial
+output is excluded and forces epoch invalidation/reacquisition rather than guessed accounting.
 
 Initial negotiation ranges are 1–16 DATA frames and 500–8000 ms, with a provisional 3000 ms target.
 One frame already started may finish beyond the duration target; no second frame may start. These
 are bounds, not goodput claims.
 
-After the final output sample, the receiver waits the calibrated speaker/room-tail guard (bounded
-100–1500 ms) before ACK transmission. It then sends the robust ACK twice. The original sender must
+One logical TURN attempt is two complete C0 AM1F frames. The first has a new sequence and no
+`RETRANSMIT`; the second has the next sequence and `RETRANSMIT`, with identical empty payload
+and accounting. After the second frame drains, the receiver waits the calibrated speaker/room-tail
+guard (bounded 100–1500 ms) before ACK transmission. It then sends the robust ACK as the same
+two-complete-frame logical attempt. The original sender must
 listen through ACK preamble/body and reverse tail before reacquiring its transmit turn.
+
+The two-complete-frame rule also applies to ACCEPT, MANIFEST_ACK, FIN, FINAL_ACK, and
+FINAL_CONFIRM. Each AM1F frame still contains two PHY header copies. Logical retries retain exact
+payload/accounting, use new frame sequences, add `RETRANSMIT`, and remain within the ten-attempt
+ceiling. Duplicate TURN resends the latest durable ACK without incrementing progress.
 
 This full cycle—output drain, ringing guard, reverse acquisition, ACK, reverse drain, and forward
 reacquisition—is included in all payload-goodput timing. Initial guard/timeout values are
@@ -388,7 +480,8 @@ range = start:u32 | length:u16 | flags:u8 | reserved:u8
 Bitmap bits are MSB-first within each byte. A one is ACK; a zero is compact NACK/unknown. Ranges are
 strictly increasing, nonoverlapping durable (`flags bit0=1`) runs beyond the bitmap; other flag bits
 and reserved bytes are zero. No range crosses `totalChunks`. `durableCount`, `ackBase`, bitmap, and
-ranges must be mutually possible or the ACK is corrupt. When complete, `ackBase=totalChunks`, the
+ranges must be mutually possible or the ACK is corrupt. Every chunk below `ackBase` is durable,
+and bitmap bit 0 is zero unless `ackBase=totalChunks`. When complete, `ackBase=totalChunks`, the
 bitmap/ranges are empty/zero, and `durableCount=totalChunks`.
 
 ACK payload is at most 96 bytes. Header `primaryIndex=ackBase` and `itemCount=rangeCount`.
@@ -415,24 +508,50 @@ terminal version-capacity error, not modular reuse.
 
 ## 8. Resume
 
-Resume is best-effort and origin-local. The receiver advertises only durably committed IndexedDB
-state. The sender reselects the source file and verifies its length and complete SHA-256 against the
-canonical manifest before resumed DATA.
+Resume is best-effort and origin-local. The sender first reselects and fully hashes the source. It
+uses a fresh nonzero session ID and a strictly higher stored attempt epoch. `RESUME_QUERY` is:
 
-1. Sender creates a fresh session ID, sets `RESUME`, increments the stored attempt epoch, and sends
-   `RESUME_QUERY` containing the full 32-byte manifest ID, manifest length `u16`, and the canonical
-   manifest.
-2. Receiver loads and validates the exact database schema/version, canonical manifest, chunk bounds,
-   and durable receipt pages. Mismatch/stale/corrupt state returns a machine error and never merges.
-3. Receiver sends one or more `RESUME_STATE` frames. Each payload begins with the 32-byte manifest ID
-   followed by the ACK record above. `primaryIndex` identifies that page's base and `MORE` marks all
-   but the final page.
-4. Sender reconciles all pages, rejects overlap/contradiction, and resumes only missing chunks in a
-   fresh epoch after calibration.
+```text
+manifestID[32] | manifestLength:u16 | canonical AM1M 1.1 bytes
+```
 
-Old session IDs, lower epochs, unknown manifests, expired state, and mismatched negotiated values are
-ignored or answered with bounded errors. Resume cannot cross `file://` and hosted origins through
-Settings backup.
+The receiver parses and hashes the canonical bytes and requires equality with the full payload ID,
+header tag, stored bytes/version, negotiated bounds, and current session/epoch before reading
+receipts.
+
+Each `RESUME_STATE` payload is exactly 120 bytes:
+
+| Offset | Size | Field |
+|---:|---:|---|
+| 0 | 32 | manifest ID |
+| 32 | 4 | nonzero snapshot revision |
+| 36 | 4 | page base |
+| 40 | 4 | global ackBase |
+| 44 | 4 | global durable count |
+| 48 | 2 | page ordinal |
+| 50 | 2 | page count |
+| 52 | 2 | bitmap bits, exactly 512 |
+| 54 | 2 | page durable popcount |
+| 56 | 64 | 512-bit bitmap, MSB-first |
+
+`pageCount=ceil(totalChunks/512)` (1–128), ordinal is `0..pageCount-1`, and
+`pageBase=ordinal*512`. Every page, including all-zero pages, is present. Tail bits are zero.
+The repeated manifest ID, revision, global count/base, page count, session, and epoch are identical.
+`ackBase` is the complete receipt set's first zero or `totalChunks`.
+
+Nonfinal pages use `FROM_RECEIVER|RESUME|MORE`; the final page uses
+`FROM_RECEIVER|RESUME|FINAL`; exact retries additionally use `RETRANSMIT`. Header
+`primaryIndex=pageBase` and `itemCount=pageDurableCount`.
+
+The receiver creates one immutable validated snapshot in a readonly transaction. The sender
+collects at most 8,192 receipt bytes into temporary state and does not mutate ARQ per page. Only
+after FINAL does it validate every ordinal/domain, order, duplicate, revision, popcount, ackBase,
+tail bit, flag, sequence, manifest/session/epoch/version/negotiation binding, and source identity.
+One transition then replaces the durable set and schedules missing chunks in the fresh epoch.
+Incomplete, conflicting, malformed, stale, or mismatched sets are discarded with the prior state
+byte-for-byte unchanged. Schema 1 state is rejected, never migrated.
+
+Resume cannot cross `file://` and hosted origins through Settings backup.
 
 ## 9. Final verification and completion
 
@@ -447,15 +566,28 @@ matches. It reconstructs the exact file length in chunk order, computes SHA-256 
 Crypto, and compares all 32 bytes. Until that completes, progress is below 100% and no download or
 copy action exists.
 
-On success, the receiver transactionally marks the session verified and writes a bounded tombstone,
-then sends `FINAL_ACK` containing the same 72 bytes plus `durableCount:u32` and
-`finalAckSequence:u32`. On mismatch it sends `ERROR(HASH_MISMATCH)`, exposes no download, preserves
-or deletes corrupt partials according to explicit user choice, and records zero completed-file
-goodput.
+On success, the reducer emits one `MARK_VERIFIED` effect. A single readwrite transaction
+revalidates schema 2, manifest/ID, chunk/durable accounting, lengths/CRCs/ordered byte total,
+expected digest, and receipt revision; marks the session verified; allocates the next nonwrapping
+`finalAckSequence`; writes the exact final record/tombstone with
+`confirmationSeen=false` and 24-hour expiry; and reaches transaction complete. Only that current
+generation completion authorizes `FINAL_ACK`.
 
-The sender marks remote delivery only after a valid FINAL_ACK, then repeats `FINAL_CONFIRM` so the
-receiver can stop answering duplicate FIN frames. A 24-hour tombstone can answer duplicate FIN after
-reload without retaining payload bytes.
+`FINAL_ACK` is exactly the FIN 72 bytes followed by `durableCount:u32` and
+`finalAckSequence:u32`, for 80 bytes total. Durable count equals total chunks. Retries/tombstone
+answers retain the exact payload and logical final sequence.
+
+`FINAL_CONFIRM` is exactly the byte-for-byte 80-byte FINAL_ACK accepted by the sender. Every
+manifest/hash/length/count/final-sequence/session/epoch/window/total binding must match. The sender
+marks remote SHA verification only after FINAL_ACK and marks confirmation sent only after both
+confirmation frames are `OUTPUT_DRAINED`.
+
+The receiver retries the FINAL_ACK pair at most ten logical attempts. A valid confirmation triggers
+an idempotent `MARK_CONFIRMED` transaction; transaction complete moves to `COMPLETE`.
+Exhaustion moves to `COMPLETE_CONFIRMATION_UNKNOWN`: verified/download-ready remains true but
+sender receipt is not claimed. An identical FIN addressed to a live verified record or unexpired
+tombstone returns the stored exact FINAL_ACK without rehashing. Duplicate exact confirmation is
+idempotent; conflicting confirmation cannot alter the tombstone.
 
 User-visible meanings are exact:
 
@@ -476,14 +608,15 @@ IDLE
  → CALIBRATION
  → DISCOVERY
  → NEGOTIATION
- → MANIFEST
+ → MANIFEST or RESUME_RECONCILE
  → DATA_BURST ↔ TURNAROUND ↔ ACK_WAIT
  → VERIFYING
  → FINALIZING
  → COMPLETE
 ```
 
-`PAUSED`, `SUSPENDED`, and `TERMINAL_FAILURE` are explicit states, not UI labels.
+`PAUSED`, `SUSPENDED`, `TERMINAL_FAILURE`, `FINAL_ACK_WAIT_CONFIRM`, and
+`COMPLETE_CONFIRMATION_UNKNOWN` are explicit states, not UI labels.
 
 | Event | Required transition/action |
 |---|---|
@@ -543,10 +676,12 @@ Major changes include byte order, fixed-header meaning, CRC convention, canonica
 epoch interpretation, encryption/authentication semantics, or incompatible state behavior. Peers
 with unknown major versions refuse the session.
 
-A minor version may add optional noncritical TLVs or profile IDs without changing v1.0 fields.
-Peers accept a higher minor only when every critical TLV, flag, frame type, profile, and FEC ID used
-is understood. Reserved bits never mean “ignore.” Stored sessions bind protocol major/minor and may
-not be silently migrated across incompatible meaning.
+This implementation accepts exactly wire 1.1 and manifest 1.1. HELLO advertises
+`01 01 01 01`; ACCEPT selects it exactly. Unknown major or minor fails before candidate creation
+or payload allocation, and every post-negotiation frame equals the selected tuple. A future minor
+is accepted only after its complete decoder/registries/transitions/vectors are implemented and
+advertised; understanding the fields observed in one frame is insufficient. Reserved bits never
+mean “ignore.” Stored sessions bind both exact versions and are never silently migrated.
 
 Before implementation is accepted, Lane 3 must produce independently generated, provenance-recorded
 known-answer vectors for:
@@ -558,7 +693,7 @@ known-answer vectors for:
 - convolutional encoder, termination, puncturing, soft-decode success/failure;
 - interleaver permutation/inversion;
 - every frame payload schema, malformed/truncated/over-limit cases;
-- selective-repeat ACK bit/range paging, duplicates, conflicts, stale epochs, and retry exhaustion;
-- resume reconciliation and final SHA-256 gating.
+- selective-repeat ACK bitmap/ranges, duplicates, conflicts, stale epochs, and retry exhaustion;
+- fixed 120-byte resume-page complete-set reconciliation and final SHA-256 gating.
 
 Round trips performed only by the product encoder/decoder are supplementary, not independent proof.

@@ -1,8 +1,13 @@
 # Acoustic Modem Implementation Plan and Lane Contracts
 
-Status: Stage B downstream contract aligned to the 2026-08-07 G1 disposition
-Entry commit: the documentation commit containing `G1_DISPOSITION.md`
-Current gate after that commit: G2 / Lane 1 production protocol, DSP, simulator, and Worker core
+Status: Gate R0 replacement-lane execution contract, 2026-08-07
+Entry commit: the reviewed documentation commit containing this R0 contract
+Current gate: R0; Lane 2 is blocked through accepted R8/API freeze
+
+`LANE1_REPLACEMENT_CONTRACT.md` is normative for exact byte/API tables, exploit fixtures,
+replacement evidence, and R0–R8 exits. It supersedes conflicting Stage B draft sequencing for Lane
+1/Lane 2. Commit `0b2ff7ded57ea99210f06442759fda6c0a004e8c` is quarantined and must not be
+merged, cherry-picked, or adopted for source, APIs, tests, fixtures, or evidence.
 
 ## 1. Execution rules
 
@@ -48,12 +53,13 @@ and authorization for ordered production work.
 | G1b capture controls/routes | Requested, supported, and effective EC/NS/AGC, channels, context/grid rates, permission errors, device loss, and route change on the target matrix | If processing cannot be disabled and C0/R1 fails, stop that platform/profile; never claim requested settings were granted. |
 | G1c reverse C0/turnaround | At least 1,000 representative 1 m quiet turns; ACK delivery ≥99% within two repetitions; p50/p95/p99 output-end-to-decodable-ACK, ringing tail, retries; typical round trip target ≤1.5 s | Increase training/repetition/guard within bounds. If still unreliable, stop selective-repeat product work; no open-loop fallback. |
 | G1d sample drift/real time | Seeded ±300 ppm; 10-minute physical run without slips/hash error; zero pool overflow; worklet p99 <20% observed quantum; Worker ≥2× real time; bounded main-thread/heap | Simplify/disable profiles or optimize bounded code. Worklet FFT/FEC and unbounded queues are forbidden fallbacks. |
-| G1e IndexedDB/memory | Atomic commit/ACK crash matrix; reload/resume; quota/corruption/eviction/private-mode/file-origin tests; bounded 16 MiB Web Crypto + Blob peak on minimum mobile device | If ACKed data can disappear through application logic, stop resume. If file-origin resume is unstable, do not silently make resume hosted-only. If memory misses, reduce file limit or review incremental SHA plan. |
+| G1e IndexedDB/memory | Atomic commit/ACK crash matrix; reload/resume; quota/corruption/eviction/private-mode/file-origin tests; bounded 16 MiB Web Crypto + Blob peak on minimum mobile device | If ACKed data can disappear through application logic, stop resume. If file-origin resume is unstable, do not silently make resume hosted-only. If memory misses, stop for a new file-limit or hash architecture/API/version/provenance review; no product incremental fallback is preauthorized. |
 | G1f PWA/cache/accessibility | Generated-page install/update with inlined size, no stale Optical artifact, keyboard/Stop/textual calibration path, bounded announcements | Reduce embedded diagnostics or scope. No CDN/external-module fallback. |
 
 `G1_DISPOSITION.md` records **G1 PARTIAL / software implementation may proceed**. The reviewed
 desktop Chromium direct-file data-URL Worklet path and narrow link/DSP software reference authorize
-G2 and the later ordered G3 lane. The direct-file Blob candidate remains STOP. Android, installed
+replacement R1–R8 and, only after its API freeze, the later Lane 2 work. The direct-file Blob
+candidate remains STOP. Android, installed
 device, physical audio, routing/loss, minimum-mobile memory, same-device acoustic, and two-device
 over-air remain unverified and block only their corresponding claims and release gates.
 
@@ -61,49 +67,50 @@ Parameter lock remains prohibited until the open criteria have passed. A stopped
 profile is removed from the support claim rather than waived. The suite's direct-file requirement
 cannot change inside an implementation lane.
 
-### G2 — Lane 1 core vertical slice
+### R0–R8 — replacement Lane 1 and API freeze
 
-This is the first authorized production lane from the clean commit containing
-`G1_DISPOSITION.md`. Selectively reimplement or adapt reviewed ideas under the production contracts;
-do not cherry-pick `spike/acoustic-g1-link`.
+The previous Lane 1 candidate is not a G2 input. Replacement work begins only from the clean R0
+documentation commit and follows this order:
 
-Implement frozen byte contracts, bounds, CRC32C, manifest, whitening, rate-1/2 FEC, interleaver,
-selective-repeat reducer, SHA adapter, FFT, C0/R1 profiles, acquisition, resampler, seeded simulator,
-and Worker entry. Fast/punctured/stretch profiles remain disabled.
+| Gate | Required work and exit |
+|---|---|
+| R0 — contract integration | Reconcile both independent review inputs into wire/manifest 1.1, exact message/TLV/metadata/resume/final rules, immutable APIs, schema 2, Worker/pool contract, incremental DSP/channel rules, and evidence boundaries. Tracked docs agree, diff is docs-only, and self-review finds no unresolved contract STOP. |
+| R1 — path/API skeleton | Create only authorized `protocol/`, `dsp/`, `sim/`, root `worker-entry.js`, named tests/fixtures/evidence paths. Freeze namespaces, function shapes, exact Worker schemas, READY, and unknown-kind behavior. No `assets/acoustic/core/` or `worker/`. |
+| R2 — independent primitives | Implement bounded bytes/CRC32C/Web Crypto adapter/whitening/K7-R1/2 soft Viterbi/interleave/FFT/profiles/preamble/PRNG. Independent standard, tie, soft-error, and failure vectors pass. Punctured/fast/stretch modes remain disabled. |
+| R3 — wire/manifest/resume | Implement AM1F/AM1M 1.1, exact per-type schema/flags/accounting, control intersections, metadata policy, ACK/TURN, 120-byte resume pages, and FIN family. Independent valid-CRC exploits, 1.0/1.2 rejection, boundary ±1, max-page atomic reconciliation, and no-throw/no-mutation negatives pass. |
+| R4 — immutable ARQ/reducer | Implement pure replacement values, OUTPUT_DRAINED accounting, transaction-complete `commitResult`, schema-2 snapshot reconciliation, complete sender/receiver transitions/effects, cancellation ownership, and verified/tombstone ordering. HELLO-through-FINAL_CONFIRM role traces and every race/forgery exploit pass. |
+| R5 — streaming PHY/channel | Implement cursor TX, exact 32-sample WOLA, dual-grid incremental ring RX, retirement invariant, incremental body decode, persistent LinkTracker/resampler, and exact 17-tap phase-accumulator channel/honest records. Silence/overflow reproduction, both grids, ±ppm tracking, ±80/±100 CFO boundary, WOLA and independent kernel fingerprints pass. |
+| R6 — Worker pump/pools | Implement actual `worker-entry.js`, READY, exact directions/auth tuple, fixed 16×4,096 TX/RX pools, exact ArrayBuffers, TX_RETURN/RX_RETURN credits, queue 16, cursor work, later-task yields, reset cancellation, SHA/simulator dispatch. Separate-Worker-realm detachment/reuse/backing/reset tests pass; no whole waveform or sliced PCM blocks. |
+| R7 — vertical slice/evidence | Run complete-control deterministic logical/streaming slices, including TURN delivery/loss, durable effects, FIN/FINAL_ACK/FINAL_CONFIRM and failed zero-goodput paths. Retain independent vectors, raw streams, derived aggregate, exact source/commit/tree binding, honest counts/labels, negative registry exits, clean owned diff, and unchanged build gate. |
+| R8 — two rereviews/API freeze | One independent review covers protocol/session/persistence and one covers DSP/streaming/Worker/channel. Both rerun original exploits. No critical, high, or medium finding remains. Integration owner merges, reruns tests/static gate, records a clean API-freeze commit, and confirms the quarantined commit was not merged. |
 
-Exit:
+Red exploit fixtures precede the product logic they validate and do not import product serializers,
+decoders, bitsets, kernels, or source registries. Product booleans and same-implementation
+round-trips are never independent oracles. A gate failure returns to its owning gate and invalidates
+later evidence.
 
-- exact independent protocol constants are consumable;
-- Lane 1 unit and simulation tests pass;
-- malformed dimensions cannot allocate;
-- R1 deterministic vertical slice reconstructs exact bounded fixtures and exercises failure paths;
-- API version/namespace and Worker schemas are frozen at `1`;
-- no DOM/Web Audio/IndexedDB dependency exists in pure modules.
+### Lane 2 browser/application vertical slice
 
-### G3 — Lane 2 browser/application vertical slice
+Lane 2 may begin only after every R0–R8 condition above is evidenced at one exact replacement
+commit, both independent rereviews explicitly accept it, and the serial integration owner records
+the clean API-freeze commit. No provisional branch or single review is sufficient.
 
-Begin only after G2 has been reviewed and integrated, then rebase onto that exact API-freeze commit.
-Implement source-mode page, controller, worklet/runtime, Worker client, IndexedDB store, bounded Web
-Crypto preparation/finalization, UI, diagnostics, and test adapters. The generated direct-file path
-must use the build-time data-URL AudioWorklet selected in `G1_DISPOSITION.md`, with no Blob module or
-runtime module-network fallback. First deliver one C0/R1 live path; no encryption,
-near-ultrasonic, 16-QAM, or WAV feature surface. Do not cherry-pick
-`spike/acoustic-g1-browser`.
+Lane 2 then rebases on that exact commit and implements the source-mode page, controller,
+AudioWorklet/runtime, Worker client, IndexedDB schema-2 store, bounded Web Crypto
+preparation/finalization, UI, diagnostics, and adapters. It uses the build-time data-URL Worklet,
+the exact Worker API/pools, and no Blob-module or runtime-module/network fallback. First scope is
+C0/R1 only; no encryption, near-ultrasonic, 16-QAM, or WAV surface.
 
-Exit:
+Exit requires permission/effective-setting, lifecycle, cancellation/generation, actual browser
+transfer ownership, fixed pools/backpressure, transaction-complete durable ACK, quota/corruption,
+atomic complete-set resume, final/tombstone ordering, hash, state wording, and accessibility tests.
+Local teardown wins every late-promise race. No unbounded buffer, raw-audio default, or false
+saved/authenticated/safe wording exists.
 
-- permission, effective settings, lifecycle, cancellation, pools/backpressure, durable-ACK,
-  quota/corruption, resume, final-hash, and state wording tests pass in source mode;
-- local teardown wins every late-promise race;
-- accessibility is keyboard/text complete;
-- no unbounded buffer, raw-audio default, or false “saved/authenticated/safe” wording exists.
-
-Adding `tools/audio.html` before shared integration will intentionally make the repository-wide
-manifest-sync gate red. Lane 2 must record that exact expected transition; it may not edit shared
-files to hide it. The integration owner first reviews Lane 2 together with integrated Lane 1. Only
-after that combined review may the serial owner add the shared bundle/generator/manifest/CSP/Settings
-and generated-page changes needed to restore the full green gate before G4 begins. Browser release
-integration is not authorized before that review.
+Adding `tools/audio.html` before shared integration intentionally makes manifest sync red. Lane 2
+records that exact transition and does not edit shared files. Only after combined review may the
+serial owner add bundle/generator/manifest/CSP/Settings/generated changes before G4. Browser release
+integration remains unauthorized before that review.
 
 ### G4 — Lane 3 independent validation, security, and documentation
 
@@ -188,7 +195,10 @@ tests/evidence/acoustic/g2-core/**
 ```
 
 Lane 1 must not edit application, worklet, browser persistence, build, manifest, workflow, root docs,
-independent vectors, generated files, or Optical files.
+independent vectors, generated files, or Optical files. It must not create
+`assets/acoustic/core/`, `assets/acoustic/worker/`, renamed Lane 1 tests, a
+`tests/evidence/acoustic/lane1/` tree, or a shared result document. Nothing from quarantined
+`0b2ff7d` is copied or aliased into these paths.
 
 ### Lane 2 — browser runtime, application, UI, persistence
 
@@ -320,9 +330,11 @@ AcousticV1App.Ui
 AcousticV1App.Page
 ```
 
-`api:1` Worker envelopes and public function results follow `ARCHITECTURE.md`. Any API-shape change
-after Lane 1 integration requires an explicit contract-delta note, Lane 2/Lane 3 rebase, and all
-tests rerun. Stringly typed ad hoc messages are rejected.
+`api:1` Worker envelopes, exact READY, request/event registries, authorization tuple,
+`TX_RETURN`/`RX_RETURN`, and public results follow `ARCHITECTURE.md` and
+`LANE1_REPLACEMENT_CONTRACT.md`. Any API-shape change after Lane 1 integration requires an
+explicit contract delta, both downstream rebases, and all affected tests/rereviews. Stringly typed
+ad hoc messages are rejected.
 
 `assets/acoustic/bundles.json` is created only after lane source lists stabilize and the combined
 Lane 1/Lane 2 review accepts the production source. The integration owner copies the exact ordered
@@ -341,9 +353,13 @@ There is no `window` shim hidden in production modules.
 
 ### Worker
 
-The Worker accepts only the versioned envelopes and transferred typed arrays. A deterministic test
-adapter captures returned buffer identities, queue depth, backpressure, discontinuities, and teardown.
-Unknown API/kind, malformed transfer, stale request ID, and late response are negative tests.
+The gate boots the exact ordered dependencies and real `worker-entry.js` in a separate Worker
+realm. Structured clone and transfer lists must externally demonstrate detachment, exact
+16,384-byte backing, all 16 IDs, `TX_RETURN`/`RX_RETURN` reuse, zero-credit suspension,
+bounded queue depth, stale authorization rejection, later-task reset cancellation, and no
+old-generation event after RESET. Same-realm core invocation is supplemental only. Lane 2 repeats
+clone-hostile preflight before `postMessage` because Worker-side rejection is too late to avoid
+clone cost.
 
 ### Application/runtime
 
@@ -368,12 +384,14 @@ out channels, and two-device hardware runs are separate required evidence.
 
 ## 6. Integration and rebase order
 
-1. **Contract base:** create Lane 1 from the clean commit containing `G1_DISPOSITION.md`. Record the
-   branch, worktree, base, and expected owned paths.
-2. **Lane 1:** implement and review G2. Only after review does the integration owner merge it, run
-   Lane 1 tests plus the unchanged repository static gate, and record the API-freeze commit.
-3. **Lane 2 update point:** create/rebase Lane 2 onto that exact reviewed API-freeze commit. Resolve
-   only Lane 2 files and deliver one reviewed G3 commit series.
+1. **Contract base:** create replacement Lane 1 only from the clean reviewed R0 documentation
+   commit. Record branch, worktree, base, expected owned paths, and quarantine exclusion.
+2. **Replacement Lane 1:** execute R1–R7. Then complete the two independent R8 rereviews, each
+   rerunning the original exploit classes. Only after both explicitly accept with no critical,
+   high, or medium finding does the integration owner merge it, rerun Lane 1 tests and the unchanged
+   static gate, confirm `0b2ff7d` is absent, and record the API-freeze commit.
+3. **Lane 2 update point:** only then create/rebase Lane 2 onto that exact reviewed API-freeze
+   commit. Resolve only Lane 2 files and deliver one reviewed Lane 2 commit series.
 4. **Combined review and integration:** review Lane 2 against integrated Lane 1 before merging it.
    After acceptance, the integration owner alone adds `bundles.json`, generator/manifest/CSP/Settings
    integration, and regenerated artifacts needed for a green generated page. Run focused source,
@@ -492,15 +510,15 @@ physical configuration.
 |---:|---|---|---|---|
 | 1 | Genuine no-network speaker-to-microphone transfer of arbitrary bytes within 1–16 MiB | `tools/audio.html`, controller/runtime, `PROTOCOL.md` manifest/DATA | built no-network gate; 1 MiB final-hash path | G5 logs + G6 two-device runs |
 | 2 | Self-contained generated page with correct `file://`, HTTPS, PWA, CSP, and subpath behavior | `bundles.json`, `build.py`, manifest, `ARCHITECTURE.md` §6 | `acoustic-built`, smoke, PWA, CSP negative fixture | G1a and G5 launch/network logs |
-| 3 | Deterministic bounded wire/parser/version contract | protocol modules, `PROTOCOL.md` §§2–5/11–12 | core + independent byte/malformed vectors | G2/G4 vector provenance and corpus summary |
-| 4 | Capability handshake, repeated manifest, half-duplex selective-repeat, compact durable ACK/NACK, bounded retry/fallback | ARQ/session modules, `PROTOCOL.md` §§4/6–8 | state traces for loss, duplicate, stale, retry, downgrade | G2 deterministic traces + G1c/G6 turnaround distributions |
-| 5 | Actual-rate audio operation, effective processing disclosure, deterministic lifecycle/teardown | profiles/resampler, audio runtime/worklet | 44.1/48 vectors; permission/device/suspend/route races | G1b/G1d matrix + G3/G4 lifecycle logs |
-| 6 | Robust audible C0 and R1; gated QPSK A2; complete acquisition/equalization/CFO/SRO/soft FEC chain | DSP/FEC files, `DSP_DESIGN.md` | DSP known answers, held-out simulator/prerecorded, worklet budget | G2/G4 labeled results; G6 only for physical claims |
-| 7 | Crash-safe best-effort resume and idempotence; ACK means durable commit | session store + ARQ, DB schema in `ARCHITECTURE.md` | crash at every transaction boundary, quota/corrupt/duplicate/resume | G1e/G3 transaction traces |
-| 8 | Exact final SHA-256 gate and honest received/verified/download/save states | bounded SHA adapter, controller/UI | 0/1/max files, corrupt final, cancel during hash, allocation failure | G3/G4 state screenshots/logs and hashes |
-| 9 | Enforced file/session/memory/parser/retry/log/audio bounds | constants, parser, pools, store, diagnostics | boundary ±1, hostile dimensions, queue/heap/cleanup | G2/G3 security and high-water reports |
+| 3 | Deterministic bounded wire/parser/version contract | protocol modules, `PROTOCOL.md` §§2–5/11–12 | core + independent byte/malformed vectors | R2–R3/G4 vector provenance and corpus summary |
+| 4 | Capability handshake, repeated manifest, half-duplex selective-repeat, compact durable ACK/NACK, bounded retry/fallback | ARQ/session modules, `PROTOCOL.md` §§4/6–8 | state traces for loss, duplicate, stale, retry, downgrade | R3–R4 deterministic traces + G1c/G6 turnaround distributions |
+| 5 | Actual-rate audio operation, effective processing disclosure, deterministic lifecycle/teardown | profiles/resampler, audio runtime/worklet | 44.1/48 vectors; permission/device/suspend/route races | G1b/G1d matrix + Lane 2/G4 lifecycle logs |
+| 6 | Robust audible C0 and R1; gated QPSK A2; complete acquisition/equalization/CFO/SRO/soft FEC chain | DSP/FEC files, `DSP_DESIGN.md` | DSP known answers, held-out simulator/prerecorded, worklet budget | R2/R5/G4 labeled results; G6 only for physical claims |
+| 7 | Crash-safe best-effort resume and idempotence; ACK means durable commit | session store + ARQ, DB schema in `ARCHITECTURE.md` | crash at every transaction boundary, quota/corrupt/duplicate/resume | G1e/R4/Lane 2 transaction traces |
+| 8 | Exact final SHA-256 gate and honest received/verified/download/save states | bounded SHA adapter, controller/UI | 0/1/max files, corrupt final, cancel during hash, allocation failure | R4/Lane 2/G4 state logs and hashes |
+| 9 | Enforced file/session/memory/parser/retry/log/audio bounds | constants, parser, pools, store, diagnostics | boundary ±1, hostile dimensions, queue/heap/cleanup | R3–R6/Lane 2 security and high-water reports |
 | 10 | Explicit plaintext threat/privacy model and accessible safe controls | UI plus threat/accessibility docs | injection/replay semantics, metadata sanitation, keyboard/live-region/Stop | G4 security/accessibility review |
-| 11 | Honest performance accounting and evidence separation; no over-air claim without hardware | simulator/benchmark, `DSP_DESIGN.md` §§8–10 | metrics formula checks, failure=zero goodput, label validation | G2 sim, G4 held-out, G6 physical separately |
+| 11 | Honest performance accounting and evidence separation; no over-air claim without hardware | simulator/benchmark, `DSP_DESIGN.md` §§8–10 | metrics formula checks, failure=zero goodput, label validation | R5–R7 simulation, G4 held-out, G6 physical separately |
 | 12 | Local Suite regression, scoped license/provenance, Settings disclosure, and clean release workflow | shared integration files + provenance/docs | static/full focused/Optical/smoke/PWA suite | G5 transcripts, dependency/license diff, clean candidate |
 
 No criterion can be accepted solely by a same-implementation round trip or a UI screenshot.

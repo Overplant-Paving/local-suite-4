@@ -4,6 +4,10 @@ Assessment date: 2026-08-07
 Repository state assessed: `feat/acoustic-modem-codex` at `70d55ff22d67019d14f46d3ccdf7446d706709e3`
 Product baseline assessed: Local Suite v4.3.1 at `725e5863429fc2b7b41f5f6ab797ee0d67f66023`
 
+Gate R0 note: this assessment remains repository context. For replacement Lane 1, the later
+`LANE1_REPLACEMENT_CONTRACT.md` controls wire/manifest 1.1, schema 2, exact APIs, and the
+whole-buffer-only product SHA strategy.
+
 ## Decision and evidence boundary
 
 The repository is a suitable clean base for acoustic feasibility work. It contains no acoustic
@@ -149,8 +153,8 @@ smaller buffer with Web Crypto, and release sender preparation buffers before st
 receiver assembles at most 16 MiB from durable chunks into one exact buffer for final SHA-256, then
 creates a download only after success. This is a correctness decision, not a peak-memory claim;
 browser-internal digest and Blob copies still require a memory feasibility gate. If that gate fails,
-the fallback is a separately reviewed incremental SHA-256 implementation with standard and
-independent vectors—not an unbounded Web Crypto call or an increased file limit.
+work stops for a new file-limit or hash architecture, API, protocol/version, provenance, and
+independent-vector review. No incremental product fallback or increased limit is preauthorized.
 
 ## Tests and evidence workflow
 

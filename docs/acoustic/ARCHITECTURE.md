@@ -1,7 +1,13 @@
 # Acoustic Modem Architecture Contract
 
-Status: Stage A3 contract aligned to the 2026-08-07 G1 disposition
-Current gate: Stage B / G2 Lane 1; see `G1_DISPOSITION.md` and `IMPLEMENTATION_PLAN.md`
+Status: Gate R0 replacement architecture contract, 2026-08-07
+Current gate: R0; replacement Lane 1 follows R1–R8 and Lane 2 remains blocked
+
+`LANE1_REPLACEMENT_CONTRACT.md` is normative for the exact AM1F/AM1M 1.1 byte tables, immutable
+ARQ/session APIs, Worker schemas and pools, streaming DSP invariants, evidence rules, and R0–R8
+gates. It supersedes incompatible Stage A draft language. Commit
+`0b2ff7ded57ea99210f06442759fda6c0a004e8c` and all of its APIs, source layout, tests, and evidence
+remain quarantined and must not be merged, cherry-picked, or adopted.
 
 ## 1. Scope and invariants
 
@@ -28,11 +34,14 @@ authentication are deferred. Unsupported security flags fail closed.
 
 ### Frozen contracts
 
-- Protocol v1 byte order, frame fields, bounds, state semantics, CRC32C convention, manifest
+- Protocol 1.1 byte order, frame fields, bounds, state semantics, CRC32C convention, manifest
   identity, durable ACK meaning, duplicate handling, and final SHA-256 gate are specified in
-  `PROTOCOL.md`.
+  `PROTOCOL.md` and `LANE1_REPLACEMENT_CONTRACT.md`.
 - Layer boundaries and the APIs in this document are stable for downstream lanes.
-- The initial file limit is 16 MiB; the hash strategy uses bounded whole-buffer Web Crypto.
+- Accepted file content is exactly 1 byte through 16 MiB. Zero is rejected before hash/session
+  creation; any future zero-byte support requires a new negotiated version.
+- The hash strategy is the bounded whole-buffer Web Crypto adapter only; no product incremental SHA
+  implementation or fallback is authorized.
 - The runtime uses one AudioWorklet for bounded audio I/O, one dedicated Worker for protocol/DSP,
   transferred fixed-size buffers, and no shared memory.
 - The source uses ordered classic scripts and one global namespace, then is deterministically
@@ -43,6 +52,8 @@ authentication are deferred. Unsupported security flags fail closed.
 - Settings JSON backup excludes acoustic IndexedDB sessions and must say so.
 - Baseline FEC is an owned constraint-length-7 convolutional code with soft Viterbi decoding; no
   external modem runtime or outer Reed–Solomon code is part of v1.
+- Acoustic persistence and reducer snapshots use schema 2. Schema 1 acoustic records fail closed
+  and are offered for deletion rather than migrated or inferred.
 
 ### Still provisional after G1
 
@@ -55,8 +66,9 @@ authentication are deferred. Unsupported security flags fail closed.
 - the 16 MiB limit itself if bounded digest/Blob memory fails on minimum hardware;
 - any payload-goodput, reliability, distance, safe-volume, or compatibility statement.
 
-A provisional parameter may be tightened or disabled without changing the logical API. A change to
-frozen on-wire meaning requires a protocol version change.
+A provisional parameter may be tightened or disabled without changing the logical API. This Gate
+R0 commit is the one-time incompatible pre-release move from draft 1.0 to exact 1.1. After the Lane
+2 API freeze, a change to frozen on-wire meaning requires a protocol version change.
 
 ## 3. Layer boundaries
 
@@ -83,37 +95,63 @@ misuse may throw during construction.
 ```text
 AcousticV1.Bytes.read/write methods(bytes, offset, value) -> bounded result
 AcousticV1.Crc32c.digest(bytes, seed?) -> uint32
-AcousticV1.Sha256.digestBounded(buffer, maxBytes) -> Promise<Result<32-byte digest>>
+AcousticV1.Sha256.provider(subtleCrypto) -> Result<HashProvider>
+HashProvider.digestBounded(exactBuffer, maxBytes) -> Promise<Result<32-byte digest>>
+AcousticV1.Sha256.digestBounded(exactBuffer, maxBytes, provider)
+  -> Promise<Result<32-byte digest>>
 
 AcousticV1.Wire.encodeFrame(frame, limits) -> Result<Uint8Array>
-AcousticV1.Wire.decodeFrame(bytes, limits) -> Result<DecodedFrame>
+AcousticV1.Wire.decodeFrame(exactBytes, limits) -> Result<DecodedFrame>
+AcousticV1.Wire.validateFrame(decodedFrame, context) -> Result<ValidatedFrame>
 AcousticV1.Manifest.encode(record, limits) -> Result<Uint8Array>
-AcousticV1.Manifest.parse(bytes, limits) -> Result<Manifest>
-AcousticV1.Manifest.id(canonicalBytes) -> Promise<32-byte SHA-256>
+AcousticV1.Manifest.parse(exactBytes, limits) -> Result<ManifestRecord>
+AcousticV1.Manifest.id(canonicalBytes, hashProvider)
+  -> Promise<Result<32-byte SHA-256>>
+AcousticV1.Manifest.sanitizeFilename(text) -> Result<string>
+AcousticV1.Manifest.sanitizeMediaType(text) -> string
 
-AcousticV1.ArqSender.create(config, snapshot?) -> ArqSender
-ArqSender.nextBurst(audioNow, budget) -> FrameIntent[]
-ArqSender.acceptAck(ack, audioNow) -> Transition[]
-ArqSender.onTimeout(audioNow) -> Transition[]
-ArqSender.snapshot() -> PersistableSenderState
+AcousticV1.Arq.Sender.create(config, snapshot?) -> Result<Sender>
+Sender.planBurst(audioNow, budget) -> Result<BurstPlan>
+Sender.sourceResult(planId, chunkIndex, result) -> Result<SenderStep>
+Sender.outputDrained(planId, drainedRecords, audioFrame) -> Result<SenderStep>
+Sender.acceptAck(validatedAck, audioNow) -> Result<SenderStep>
+Sender.onTimeout(audioNow) -> Result<SenderStep>
+Sender.applyResume(completeResumeSet) -> Result<SenderStep>
+Sender.snapshot() -> PersistableSenderStateV2
 
-AcousticV1.ArqReceiver.create(config, snapshot?) -> ArqReceiver
-ArqReceiver.classifyChunk(meta) -> new | exactDuplicate | conflict | outOfRange
-ArqReceiver.commitResult(chunkIndex, durableResult) -> Transition[]
-ArqReceiver.makeAck(maxPayloadBytes) -> AckRecord
-ArqReceiver.snapshot() -> PersistableReceiverState
+AcousticV1.Arq.Receiver.create(config, snapshot?) -> Result<Receiver>
+Receiver.classifyChunk(meta) -> Result<new | exactDuplicate | conflict | outOfRange>
+Receiver.commitResult(chunkIndex, commitToken, durableResult) -> Result<ReceiverStep>
+Receiver.makeAck(maxPayloadBytes) -> Result<AckRecord>
+Receiver.makeResumeSnapshot(snapshotRevision) -> Result<ResumePage[]>
+Receiver.snapshot() -> Result<PersistableReceiverStateV2>
 
+AcousticV1.Session.initial({role, controllerGeneration, limits, clockOrigin}) -> Result<State>
 AcousticV1.Session.reduce(state, event) -> {state, effects[]}
+AcousticV1.Session.snapshot(state) -> Result<PersistableSessionStateV2>
+AcousticV1.Session.restore(snapshot, exactManifestContext) -> Result<State>
 AcousticV1.Profiles.plan(profileId, gridSampleRate) -> Result<CarrierPlan>
-AcousticV1.PhyTx.encode(intent, plan, outputPool) -> Result<PcmDescriptor[]>
-AcousticV1.PhyRx.push(block, absoluteFrame, discontinuities) -> FrameEvent[] | MetricEvent[]
+AcousticV1.PhyTx.begin(validatedIntent, plan, scratch) -> Result<TxCursor>
+TxCursor.totalSamples() -> u32
+TxCursor.pull(exactFloat32Block) -> Result<{sampleLength, final, metadata?}>
+TxCursor.cancel() -> void
+AcousticV1.PhyRx.create({contextSampleRate, discoveryGrids, limits})
+  -> Result<StreamReceiver>
+StreamReceiver.configureLink(binding) -> Result<StreamReceiver>
+StreamReceiver.push(blockDescriptor) -> Result<{receiver, events, retiredThrough, metrics}>
+StreamReceiver.resetEpoch(binding) -> Result<StreamReceiver>
 AcousticV1.Channel.run(seed, config, inputPcm) -> {pcm, record}
 ```
 
-The session reducer is the sole owner of state transitions. Effects such as `TRANSMIT`,
-`STORE_CHUNK`, `LOAD_RESUME`, `REQUEST_PERMISSION`, `START_HASH`, and `STOP_AUDIO` are executed by
-the browser controller and returned as new events. This makes cancel, late-promise, timeout, and
-resume races deterministic in tests.
+ARQ objects are immutable values and never contain source, storage, timer, or Promise callbacks.
+Planning does not reserve ACK eligibility or increment an attempt. Only an owned
+`OUTPUT_DRAINED` event does so. `commitResult` is the only route to a durable receiver bit, and
+its token binds generation, session, epoch, manifest, chunk, length, CRC, and effect ID.
+
+The session reducer is the sole owner of state transitions. Its exact effect registry and lifecycle
+are in `LANE1_REPLACEMENT_CONTRACT.md` §9. Every effect/result is generation- and effect-owned;
+cancel, reset, suspension, epoch change, or terminal state revokes ownership before any late
+continuation can change state.
 
 ### Browser adapters
 
@@ -133,6 +171,7 @@ SessionStore.preflight(requiredBytes) -> Promise<Result<QuotaReport>>
 SessionStore.commitChunk(manifestId, chunk, receiptDelta) -> Promise<Result<CommitReceipt>>
 SessionStore.loadResume(manifestId) -> Promise<Result<ResumeSnapshot>>
 SessionStore.markVerified(manifestId, hash, receipt) -> Promise<Result>
+SessionStore.markConfirmed(manifestId, finalRecord) -> Promise<Result>
 SessionStore.list() / delete(manifestId) / cleanup(policy) -> Promise<Result>
 ```
 
@@ -156,20 +195,32 @@ created by the page entry. It exposes constants, pure constructors, injected clo
 storage adapters, event snapshots, and teardown counters; it does not bypass verification or make
 private payload bytes available to ordinary UI code.
 
-Worker envelope:
+Worker envelopes:
 
 ```text
-{api:1, id:uint32, kind:string, payload:bounded-record}
-{api:1, id:uint32, ok:boolean, kind:string, payload?|error?}
+request  = {api:1, id:u32_nonzero, kind:RequestKind, payload:ExactRecord}
+response = {api:1, id:same, kind:same, ok:true, payload:ExactRecord}
+         | {api:1, id:same, kind:same, ok:false, error:{code,detail?}}
+event    = {api:1, id:0, kind:EventKind, payload:ExactRecord}
 ```
 
-Permitted main-to-Worker kinds are `INIT`, `RESET`, `RX_BLOCK`, `TX_INTENT`, `HASH_BUFFER`, and
-`SIM_RUN`. Worker-to-main asynchronous kinds are `READY`, `TX_PCM`, `RX_FRAME`, `SESSION_EVENT`,
-`METRICS`, `BACKPRESSURE`, and `FATAL`. Unknown kinds and API versions return a bounded error.
+Permitted main-to-Worker kinds are exactly `INIT`, `CONFIGURE`, `RESET`, `RX_BLOCK`,
+`TX_INTENT`, `TX_RETURN`, `HASH_BUFFER`, and `SIM_RUN`. Worker-to-main asynchronous kinds are
+exactly `READY`, `TX_PCM`, `RX_RETURN`, `RX_FRAME`, `SESSION_EVENT`, `METRICS`,
+`BACKPRESSURE`, and `FATAL`. `METRIC` does not exist and `METRICS` is never a request.
 
-`RX_BLOCK` and `TX_PCM` transfer, rather than clone, typed-array buffers. A returned-buffer message
-puts each buffer back in its fixed pool. No message contains DOM objects, `File`, IndexedDB handles,
-or arbitrary object graphs.
+`READY` is the first and only boot event and reports Worker API 1, wire/manifest 1.1, 4,096
+samples per block, 16 TX and 16 RX buffers, and queue maximum 16. Active requests bind exact
+generation, 16-byte session ID, epoch, forward profile, and reverse C0 profile. `INIT` is
+initial-only; `RESET` strictly advances generation, terminalizes that Worker, and is followed by
+termination.
+
+PCM messages transfer a bare exact 16,384-byte `ArrayBuffer`, never a typed view, offset,
+oversized backing, alias, or shared memory. Each direction has IDs 0–15. `TX_RETURN` and
+`RX_RETURN` are explicit ownership transfers; a seventeenth outstanding TX buffer is impossible.
+With zero credits cursor generation suspends. The exact schemas, authorization tuple, pool ledger,
+queue, and task-yield cancellation checkpoints are normative in
+`LANE1_REPLACEMENT_CONTRACT.md` §10.
 
 ## 6. Exact planned source organization and deterministic embedding
 
@@ -346,17 +397,18 @@ the user's choice. A best-effort acoustic `CANCEL` cannot delay local teardown.
 ## 8. Persistence contract
 
 Database name: `local-suite-v4-acoustic`
-IndexedDB schema version: `1`
+IndexedDB schema version: `2`
 
 | Store | Key | Required value |
 |---|---|---|
-| `sessions` | manifest ID as 64 lowercase hex characters | schema, manifest bytes, protocol version, status, chunk/window limits, durable counts, epoch, timestamps, error state |
+| `sessions` | manifest ID as 64 lowercase hex characters | schema 2, exact manifest/version/negotiation, sequence and receipt revision, status, durable counts, epoch, timestamps, final/error state |
 | `chunks` | `[manifestId, chunkIndex]` | exact length, CRC32C, `ArrayBuffer` bytes |
 | `receipts` | `[manifestId, page]` | 1024-bit durable-chunk bitmap, page version |
 | `tombstones` | manifest ID | verified hash, final receipt sequence, completed/expiry timestamps; no payload bytes |
 
 The database name and every key are validated because IndexedDB is origin-wide, not path-isolated,
-on a shared Pages origin. Records are untrusted input after every read.
+on a shared Pages origin. Records are untrusted input after every read. Schema 1 acoustic records
+are rejected and offered for deletion; they are never inferred, migrated, or merged.
 
 New chunk insertion uses one `readwrite` transaction spanning `sessions`, `chunks`, and `receipts`.
 It validates manifest/session identity, range, exact expected length, and CRC before write. An exact
@@ -365,10 +417,11 @@ the same index preserve the original, mark the session `suspect`, and produce a 
 never overwritten silently. ACK reflects only transaction-complete receipt bits.
 
 Resume uses the full 32-byte manifest ID. The sender must reselect and rehash the `File`; persistent
-file handles are not assumed. A resume creates a fresh random session ID and higher epoch, pages the
-durable receipt map, ignores old-session frames, and continues only after manifest identity and
-bounds match exactly. Corrupt, wrong-version, stale, or mismatched records never merge with a live
-session.
+file handles are not assumed. A resume creates a fresh random session ID and higher epoch and uses
+the complete fixed 120-byte/512-bit page set in `PROTOCOL.md`. Pages are collected into temporary
+state and applied once only after full identity, ordering, revision, popcount, ackBase, and bounds
+reconciliation. Corrupt, incomplete, wrong-version, stale, or mismatched records never mutate or
+merge with a live session.
 
 Limits are four incomplete sessions and 64 MiB aggregate acoustic payload bytes per origin, further
 reduced by `navigator.storage.estimate()` with at least 32 MiB or 20% of reported quota (whichever is
@@ -388,7 +441,7 @@ correct the Settings prose before release.
 
 ## 9. Hash, memory, and allocation contract
 
-Web Crypto has no standard incremental digest. Baseline v1 therefore uses
+Web Crypto has no standard incremental digest. Protocol 1.1 therefore uses
 `crypto.subtle.digest("SHA-256", exactBuffer)` only after enforcing the 16 MiB limit:
 
 - sender preparation reads at most 16 MiB, computes SHA-256, then releases that buffer before DATA;
@@ -446,12 +499,17 @@ modem runtime dependency. Any copied code, table, vector, WASM, or recording req
 provenance, hash, transitive license review, reproducible derivation, and scoped notices before
 integration. Standards may define behavior but do not substitute for implementation provenance.
 
-## 11. Release boundary
+## 11. Replacement and release boundary
 
-`G1_DISPOSITION.md` authorizes ordered Stage-B Lane 1 and Lane 2 production source/test work under
-the exclusive ownership and gates in `IMPLEMENTATION_PLAN.md`. It does not authorize either spike
-to be cherry-picked or authorize shared manifest, build, workflow, generated, or release edits
-before the production lanes are integrated and jointly reviewed. Release remains blocked until
-generated-page CSP/launch tests, deterministic protocol/DSP tests, crash-safe resume, the full Local
-Suite regression suite, scoped provenance review, and a reproducible two-device physical matrix all
-pass from the exact candidate commit.
+The next authorized source action after this documentation gate is replacement Lane 1 R1. It must
+proceed through R7 at the authorized paths and then receive two independent accepted R8 rereviews:
+one for protocol/session/persistence and one for DSP/streaming/Worker/channel. Both rerun the
+original exploits, and no critical, high, or medium finding may remain. Only after integration,
+static rerun, explicit quarantine check, and a recorded clean API-freeze commit may Lane 2 begin.
+
+No spike or quarantined Lane 1 commit may be cherry-picked, and no shared manifest, build, workflow,
+generated, or release edit is authorized by R0. Release remains blocked until generated-page
+CSP/launch tests, browser schema-2 persistence and lifecycle evidence, deterministic independent
+protocol/DSP tests, the full Local Suite regression suite, scoped provenance review, and a
+reproducible exact-candidate two-device physical matrix all pass. R0 supplies no physical,
+browser-real-time, production-ready, release, or deployment claim.

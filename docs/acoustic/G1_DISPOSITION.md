@@ -4,6 +4,19 @@ Status: accepted disposition, 2026-08-07
 Disposition base: `15191f6cb1aa1171b55c03a8f13749d895c1f3f6`
 Overall gate: **G1 PARTIAL; software implementation may proceed**
 
+## Gate R0 addendum
+
+The later Lane 1 candidate at `0b2ff7ded57ea99210f06442759fda6c0a004e8c` failed independent
+protocol and DSP review and is quarantined. It is not one of the accepted G1 spike revisions above
+and does not amend their narrow evidence labels. Do not merge, cherry-pick, or adopt that candidate,
+its `core/` or `worker/` layout, APIs, tests, fixtures, or evidence.
+
+Replacement Lane 1 is controlled by `LANE1_REPLACEMENT_CONTRACT.md` and the Gate R0 edits to
+`ARCHITECTURE.md`, `PROTOCOL.md`, `DSP_DESIGN.md`, and `IMPLEMENTATION_PLAN.md`. Wire and
+manifest version 1.1, persistence schema 2, and R0–R8 now supersede conflicting draft 1.0/G2
+language. Lane 2 remains blocked until two independent R8 rereviews accept the exact replacement
+commit and the integration owner records the clean API freeze.
+
 ## 1. Decision and authority
 
 G1 is not a full pass. The reviewed browser/platform evidence establishes a usable desktop
