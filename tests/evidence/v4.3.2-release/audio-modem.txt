@@ -1,0 +1,22 @@
+ok   44100 Hz C0-BPSK manifest wire encode
+ok   44100 Hz C0-BPSK manifest waveform encode
+ok   44100 Hz C0-BPSK manifest decode after 6144-sample pre-roll
+ok   44100 Hz C0-BPSK manifest identity
+ok   44100 Hz C0-BPSK manifest exact payload
+ok   44100 Hz R1-BPSK DATA wire encode
+ok   44100 Hz R1-BPSK DATA waveform encode
+ok   44100 Hz R1-BPSK DATA decode after 6144-sample pre-roll
+ok   44100 Hz R1-BPSK DATA identity
+ok   44100 Hz R1-BPSK DATA exact payload
+ok   48000 Hz C0-BPSK manifest wire encode
+ok   48000 Hz C0-BPSK manifest waveform encode
+ok   48000 Hz C0-BPSK manifest decode after 6144-sample pre-roll
+ok   48000 Hz C0-BPSK manifest identity
+ok   48000 Hz C0-BPSK manifest exact payload
+ok   48000 Hz R1-BPSK DATA wire encode
+ok   48000 Hz R1-BPSK DATA waveform encode
+ok   48000 Hz R1-BPSK DATA decode after 6144-sample pre-roll
+ok   48000 Hz R1-BPSK DATA identity
+ok   48000 Hz R1-BPSK DATA exact payload
+
+audio modem: PASS

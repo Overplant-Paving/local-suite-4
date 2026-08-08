@@ -24,7 +24,8 @@ an explicit address or coordinate instead of a city/ZIP centroid. The flood page
 
 Adding this card changed the v4.0 manifest from 100 to 101 tools and generated HTML from 101 to 102
 pages. The later v4.2 Optical Transfer release raised the contract to 102 tools and 103 generated
-pages; v4.3.0 and v4.3.1 retain that count. `build.py` enforces the current exact release identity count.
+pages; v4.3.0 and v4.3.1 retain that count. v4.3.2 adds Audio Transfer as the 103rd tool and
+generates 104 pages. `build.py` enforces the current exact release identity count.
 
 ## 2. Outcome and non-goals
 

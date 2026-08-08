@@ -1,0 +1,18 @@
+GATE release-tool-count   pass
+GATE source-text-integrity pass
+GATE manifest-files-sync  pass
+GATE markers              pass
+GATE dist-staleness       pass
+GATE no-inline-handlers   pass
+GATE csp                  pass
+GATE escaping-heuristic   pass
+GATE catalog-crosscheck   pass
+GATE settings-signup-sync pass
+GATE key-hygiene          pass
+GATE no-example-urls      pass
+GATE pwa-sync             pass
+NEGATIVE TESTS          pass (all fatal gates seen to fail on fixtures)
+
+manifest: 103 tools + hub  (71 v1 migrations, 32 suite-native)  by network: {'offline': 42, 'cors-open': 48, 'keyed': 10, 'blocked': 3}  flagged: 30
+
+--check: all fatal gates green

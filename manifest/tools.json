@@ -2146,6 +2146,26 @@
         "mediaSrc": ["blob:", "mediastream:"],
         "workerSrc": ["blob:"]
       }
+    },
+    {
+      "id": "audio",
+      "file": "audio.html",
+      "name": "Audio Transfer",
+      "cat": "beta",
+      "cx": "L",
+      "desc": "Send files speaker-to-microphone with C0/R1 audible OFDM, BPSK fountain data, and SHA-256 verified recovery.",
+      "network": "offline",
+      "key": null,
+      "endpoints": [],
+      "storage": ["suite.theme"],
+      "cacheTtlMin": null,
+      "since": "v4.3.2",
+      "flags": ["microphone-secure-context", "audible-output", "large-inline-asset"],
+      "cspExtra": {
+        "scriptSrc": ["data:"],
+        "mediaSrc": ["mediastream:"],
+        "workerSrc": ["blob:"]
+      }
     }
   ]
 }

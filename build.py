@@ -41,19 +41,25 @@ VENDOR_SCRIPT_RE = re.compile(
 OPTICAL_WORKER_MARKER_RE = re.compile(
     r'/\* @suite:optical-worker \*/""/\* /@suite:optical-worker \*/'
 )
+ACOUSTIC_WORKER_MARKER_RE = re.compile(
+    r'/\* @suite:acoustic-worker \*/""/\* /@suite:acoustic-worker \*/'
+)
+ACOUSTIC_WORKLET_DATA_MARKER_RE = re.compile(
+    r'/\* @suite:acoustic-worklet-data-url \*/""/\* /@suite:acoustic-worklet-data-url \*/'
+)
 HUB_MARKER_RE = re.compile(r'/\* @suite:tools \*/.*?/\* /@suite:tools \*/', re.S)
 SCRIPT_BODY_RE = re.compile(r'<script(?:\s[^>]*)?>(.*?)</script>', re.S)
 VIEWPORT_RE = re.compile(r'<meta name="viewport"[^>]*>')
 CSP_META_RE = re.compile(r'<meta http-equiv="Content-Security-Policy" content="([^"]*)">')
 
 NETWORK_CLASSES = ("offline", "cors-open", "keyed", "blocked")
-RELEASE_TOOL_COUNT = 102
+RELEASE_TOOL_COUNT = 103  # v4.3.2: 102 established tools + Audio Transfer beta
 
 # Per-tool CSP additions are deliberately limited to non-network browser schemes
 # needed by self-contained local tools. Network hosts must remain visible in the
 # manifest's endpoints/scriptEndpoints fields and the catalog cross-check.
 CSP_EXTRA_ALLOW = {
-    "scriptSrc": {"'wasm-unsafe-eval'"},
+    "scriptSrc": {"'wasm-unsafe-eval'", "data:"},
     "connectSrc": {"data:", "blob:"},
     "imgSrc": {"blob:"},
     "mediaSrc": {"blob:", "mediastream:"},
@@ -179,6 +185,42 @@ def inline_optical_worker(name, html):
         count=1,
     )
 
+def inline_acoustic_runtime(name, html):
+    """Embed the production modem Worker and exact AudioWorklet data URL in audio.html."""
+    has_worker = ACOUSTIC_WORKER_MARKER_RE.search(html)
+    has_worklet = ACOUSTIC_WORKLET_DATA_MARKER_RE.search(html)
+    if not has_worker and not has_worklet:
+        return html
+    if name != "audio.html" or not has_worker or not has_worklet:
+        raise SystemExit("audio.html must contain both acoustic runtime markers")
+    core = read(ROOT / "assets" / "acoustic" / "app" / "modem-core.js")
+    worker = read(ROOT / "assets" / "acoustic" / "app" / "modem-worker.js")
+    import_line = 'importScripts("./modem-core.js");'
+    if worker.count(import_line) != 1:
+        raise SystemExit("audio.html: modem Worker core import changed")
+    worker = core + "\n" + worker.replace(import_line, "", 1)
+    worker_literal = json.dumps(
+        worker, ensure_ascii=False, separators=(",", ":")
+    ).replace("</", "<\\/")
+    worklet = (
+        ROOT / "assets" / "acoustic" / "worklet" / "audio-io.js"
+    ).read_bytes()
+    worklet_url = (
+        "data:text/javascript;base64," + base64.b64encode(worklet).decode()
+    )
+    html = ACOUSTIC_WORKER_MARKER_RE.sub(
+        lambda _m: "/* @suite:acoustic-worker */" + worker_literal +
+        "/* /@suite:acoustic-worker */",
+        html,
+        count=1,
+    )
+    return ACOUSTIC_WORKLET_DATA_MARKER_RE.sub(
+        lambda _m: "/* @suite:acoustic-worklet-data-url */" +
+        json.dumps(worklet_url) + "/* /@suite:acoustic-worklet-data-url */",
+        html,
+        count=1,
+    )
+
 def render_tool(name, source, core_css, core_js, manifest_tools):
     """Source tool -> self-contained dist file: inline core, header comment, hub data, CSP."""
     if not LINK_RE.search(source) or not SCRIPT_TAG_RE.search(source):
@@ -188,6 +230,7 @@ def render_tool(name, source, core_css, core_js, manifest_tools):
     html = inline_assets(name, html)
     html = inline_vendor_scripts(name, html)
     html = inline_optical_worker(name, html)
+    html = inline_acoustic_runtime(name, html)
 
     if name == HUB:
         if not HUB_MARKER_RE.search(html):
