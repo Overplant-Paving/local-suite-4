@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Audio Transfer · Local Suite</title>
+<link rel="stylesheet" href="../core/suite.css" data-suite-inline>
+<style>
+  :root { --warn: #8a5a16; --bad: #a83b2e; --good: #2f6f51; --signal: #d8a840; }
+  @media (prefers-color-scheme: dark) { :root { --warn: #e0a44f; --bad: #ee8171; --good: #72c999; --signal: #f0c95f; } }
+  :root[data-theme="light"] { --warn: #8a5a16; --bad: #a83b2e; --good: #2f6f51; --signal: #d8a840; }
+  :root[data-theme="dark"] { --warn: #e0a44f; --bad: #ee8171; --good: #72c999; --signal: #f0c95f; }
+  body { padding: 1.4rem 1.25rem 4rem; }
+  .wrap { max-width: 1040px; margin: 0 auto; }
+  .topbar { display: flex; align-items: center; gap: .8rem; }
+  .spacer { flex: 1; }
+  .topbar .theme-btn { float: none; }
+  header h1 { font-size: clamp(1.75rem, 5vw, 2.5rem); letter-spacing: -.035em; margin-top: 1rem; }
+  header .tag { color: var(--muted); margin-top: .35rem; max-width: 54rem; line-height: 1.55; }
+  .warning { margin: 1rem 0; padding: .85rem 1rem; border: 1px solid color-mix(in srgb, var(--warn) 45%, var(--line)); border-left: 4px solid var(--warn); border-radius: 10px; background: color-mix(in srgb, var(--warn) 9%, var(--card)); line-height: 1.5; font-size: .92rem; }
+  .warning strong { color: var(--warn); }
+  .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; margin: 1.1rem 0; }
+  .tab, .primary, .secondary { min-height: 44px; border-radius: 10px; padding: .65rem 1rem; font: inherit; font-weight: 650; cursor: pointer; }
+  .tab { border: 1px solid var(--line); color: var(--muted); background: var(--card); }
+  .tab[aria-selected="true"] { border-color: var(--accent); color: var(--bg); background: var(--accent); }
+  .panel[hidden], [hidden] { display: none !important; }
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, .86fr); gap: 1rem; align-items: start; }
+  .card { padding: 1rem; display: block; }
+  .card h2 { font-size: 1.08rem; margin-bottom: .3rem; }
+  .hint, .status { color: var(--muted); font-size: .88rem; line-height: 1.5; }
+  .status { min-height: 2.75rem; margin-top: .75rem; padding: .65rem .75rem; background: var(--bg); border-radius: 8px; overflow-wrap: anywhere; }
+  .status.error { color: var(--bad); border-left: 3px solid var(--bad); }
+  .status.good { color: var(--good); border-left: 3px solid var(--good); }
+  label.field { display: block; color: var(--muted); font-size: .83rem; margin-top: .85rem; }
+  input[type="file"] { width: 100%; margin-top: .3rem; padding: .62rem .68rem; border: 1px solid var(--line); border-radius: 9px; color: var(--ink); background: var(--bg); font: inherit; }
+  .actions { display: flex; flex-wrap: wrap; gap: .55rem; margin-top: .85rem; }
+  .primary { border: 1px solid var(--accent); color: var(--bg); background: var(--accent); }
+  .secondary { border: 1px solid var(--line); color: var(--ink); background: var(--card); }
+  button:disabled { cursor: not-allowed; opacity: .55; }
+  .progress-wrap { margin-top: .9rem; }
+  .progress-label { display: flex; justify-content: space-between; gap: 1rem; color: var(--muted); font-size: .78rem; font-variant-numeric: tabular-nums; }
+  .progress { height: 11px; border-radius: 999px; overflow: hidden; background: color-mix(in srgb, var(--muted) 22%, transparent); margin-top: .35rem; }
+  .progress > div { height: 100%; width: 0; background: #58aca2; transition: width .16s linear; }
+  .progress.error > div { background: var(--bad); }
+  .metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; margin-top: .8rem; }
+  .metric { padding: .55rem; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); min-width: 0; }
+  .metric b { display: block; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+  .metric span { color: var(--muted); font-size: .7rem; }
+  .metric.wide { grid-column: span 2; }
+  .states { display: flex; flex-wrap: wrap; gap: .45rem; margin-top: .8rem; }
+  .state { border: 1px solid var(--line); border-radius: 999px; padding: .25rem .62rem; color: var(--muted); font-size: .76rem; }
+  .state::before { content: ""; display: inline-block; width: .5rem; height: .5rem; margin-right: .35rem; border-radius: 50%; background: var(--line); }
+  .state.on { color: var(--ink); border-color: color-mix(in srgb, var(--good) 50%, var(--line)); }
+  .state.on::before { background: var(--good); box-shadow: 0 0 0 3px color-mix(in srgb, var(--good) 18%, transparent); }
+  .signal { height: 9px; border-radius: 999px; overflow: hidden; background: color-mix(in srgb, var(--muted) 20%, transparent); margin-top: .8rem; }
+  .signal > div { width: 0; height: 100%; background: linear-gradient(90deg, var(--good), var(--signal), var(--bad)); transition: width .12s linear; }
+  .processing { width: 100%; border-collapse: collapse; margin-top: .8rem; font-size: .78rem; }
+  .processing th, .processing td { padding: .45rem .35rem; text-align: left; border-bottom: 1px solid var(--line); }
+  .processing th { color: var(--muted); font-weight: 600; }
+  .processing td:not(:first-child), .processing th:not(:first-child) { text-align: center; }
+  .hash { font: .72rem/1.45 ui-monospace, SFMono-Regular, Consolas, monospace; overflow-wrap: anywhere; }
+  .integrity { margin-top: .8rem; padding: .7rem .75rem; border: 1px solid var(--line); border-radius: 9px; background: var(--bg); font-size: .82rem; overflow-wrap: anywhere; }
+  .integrity.verified { color: var(--good); border-color: color-mix(in srgb, var(--good) 60%, var(--line)); }
+  .integrity.failed { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 60%, var(--line)); }
+  .download { display: inline-flex; align-items: center; min-height: 44px; margin-top: .7rem; padding: .6rem .85rem; border-radius: 9px; background: var(--accent); color: var(--bg); text-decoration: none; font-weight: 650; }
+  details { margin-top: .9rem; }
+  summary { color: var(--accent); cursor: pointer; font-weight: 650; }
+  details p { margin-top: .5rem; }
+  footer { margin-top: 2rem; line-height: 1.55; color: var(--muted); font-size: .84rem; }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 440px) { body { padding-inline: .75rem; } .metrics { grid-template-columns: 1fr 1fr; } .metric.wide { grid-column: span 2; } }
+  @media (prefers-reduced-motion: reduce) { .progress > div, .signal > div { transition: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="index.html">← suite</a>
+    <div class="spacer"></div>
+    <button class="theme-btn" id="themeBtn" type="button" title="Toggle light/dark">◐ theme</button>
+  </div>
+  <header>
+    <h1>Audio Transfer</h1>
+    <p class="tag">Move a small file from one browser’s speaker through the air to another browser’s microphone. Filename, size, session identity, CRC32C-protected chunks, and SHA-256 all travel acoustically—there is no payload upload, relay, pairing server, account, or network data path.</p>
+  </header>
+
+  <div class="warning" role="note"><strong>Audible transmission:</strong> this tool intentionally plays a modem-like 1.5–5.5 kHz signal. Start at a comfortable device volume, keep speakers away from ears, and stop if the sound is uncomfortable. The waveform targets conservative 0.08 RMS / 0.50 peak before the page’s output gain. Acoustic v1 is plaintext: anyone in earshot with a compatible receiver may recover the file.</div>
+
+  <div class="tabs" role="tablist" aria-label="Audio Transfer mode">
+    <button class="tab" id="sendTab" type="button" role="tab" aria-selected="true" aria-controls="sendPanel">Send</button>
+    <button class="tab" id="receiveTab" type="button" role="tab" aria-selected="false" aria-controls="receivePanel" tabindex="-1">Receive</button>
+  </div>
+
+  <section class="panel" id="sendPanel" role="tabpanel" aria-labelledby="sendTab">
+    <div class="grid">
+      <div class="card">
+        <h2>Send through the speaker</h2>
+        <p class="hint">Files may contain any binary bytes and are limited to 64 KB. The sender emits the manifest five times, every 256-byte data chunk twice in opposite orders, and the final identity three times so isolated packet loss does not require a return channel.</p>
+        <label class="field" for="sendFile">File · 64 KB maximum
+          <input id="sendFile" type="file">
+        </label>
+        <div class="actions">
+          <button class="primary" id="startSendBtn" type="button" disabled>Start Transfer</button>
+          <button class="secondary" id="stopSendBtn" type="button" hidden>■ Stop</button>
+        </div>
+        <div class="status" id="sendStatus" role="status" aria-live="polite">Choose a file to send.</div>
+        <div class="progress-wrap">
+          <div class="progress-label"><span>Audible packet schedule</span><span id="sendPacket">0 / 0</span></div>
+          <div class="progress" id="sendProgress" role="progressbar" aria-label="Sender packet progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="sendBar"></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Transfer details</h2>
+        <div class="metrics">
+          <div class="metric wide"><b id="sendName">—</b><span>safe filename</span></div>
+          <div class="metric"><b id="sendSize">—</b><span>file size</span></div>
+          <div class="metric"><b id="sendRate">—</b><span>actual air payload</span></div>
+          <div class="metric"><b id="sendSampleRate">—</b><span>observed context rate</span></div>
+          <div class="metric"><b id="sendSession">—</b><span>session</span></div>
+        </div>
+        <p class="hint" style="margin-top:.8rem">SHA-256</p>
+        <p class="hash" id="sendSha">—</p>
+        <details>
+          <summary>What the speaker sends</summary>
+          <p class="hint">Audible C0 OFDM uses a deterministic preamble, BPSK carriers, pilots, a K=7 rate-1/2 convolutional code, interleaving, duplicated protected headers, and CRC32C. Each physical packet is bounded to four seconds. Output and capture run in an AudioWorklet at the observed 44.1 or 48 kHz context rate.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" id="receivePanel" role="tabpanel" aria-labelledby="receiveTab" hidden>
+    <div class="grid">
+      <div class="card">
+        <h2>Receive from the microphone</h2>
+        <p class="hint">Receive asks only for microphone permission. Hosted HTTPS is the reliable mobile path; installing or revisiting the Local Suite PWA once keeps this page available offline on that secure origin.</p>
+        <div class="actions">
+          <button class="primary" id="receiveBtn" type="button">Receive</button>
+          <button class="secondary" id="stopReceiveBtn" type="button" hidden>■ Stop</button>
+          <button class="secondary" id="resetReceiveBtn" type="button">Reset receiver</button>
+        </div>
+        <div class="status" id="receiveStatus" role="status" aria-live="polite">Ready. Start Receive before starting the sending speaker.</div>
+        <div class="states" aria-label="Receiver state">
+          <span class="state" id="stateListening">listening</span>
+          <span class="state" id="stateSignal">signal</span>
+          <span class="state" id="stateLocked">locked + CRC</span>
+        </div>
+        <div class="signal" aria-hidden="true"><div id="signalBar"></div></div>
+        <p class="hint" id="rxLevel">−60.0 dBFS · peak 0.000</p>
+        <div class="progress-wrap">
+          <div class="progress-label"><span>CRC-valid acoustic packets</span><span id="rxPackets">0</span></div>
+          <div class="progress" id="receiveProgress" role="progressbar" aria-label="Receiver verified recovery progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="receiveBar"></div></div>
+        </div>
+        <div class="integrity idle" id="integrityResult" aria-live="polite">No file has been verified.</div>
+        <a class="download" id="downloadLink" hidden>Download File</a>
+      </div>
+      <div class="card">
+        <h2>Live receiver details</h2>
+        <div class="metrics">
+          <div class="metric wide"><b id="rxName">—</b><span>acoustic filename</span></div>
+          <div class="metric"><b id="rxSize">—</b><span>declared size</span></div>
+          <div class="metric"><b id="rxRate">—</b><span>unique verified bytes</span></div>
+          <div class="metric"><b id="rxSampleRate">—</b><span>observed context rate</span></div>
+          <div class="metric"><b id="rxSession">—</b><span>locked session</span></div>
+          <div class="metric"><b id="rxDecoder">idle</b><span>decoder</span></div>
+          <div class="metric"><b id="rxQueue">0 / 6</b><span>bounded DSP queue</span></div>
+          <div class="metric"><b id="rxDrops">0</b><span>capture drops</span></div>
+          <div class="metric"><b id="rxDevice">—</b><span>microphone</span></div>
+          <div class="metric"><b id="rxChannels">—</b><span>input channels</span></div>
+        </div>
+
+        <table class="processing" aria-label="Requested, browser-supported, and effective microphone processing">
+          <thead><tr><th>Processing</th><th>Requested</th><th>Supported</th><th>Effective</th></tr></thead>
+          <tbody>
+            <tr><td>Echo cancellation</td><td id="ecRequested">off</td><td id="ecSupported">—</td><td id="ecEffective">—</td></tr>
+            <tr><td>Noise suppression</td><td id="nsRequested">off</td><td id="nsSupported">—</td><td id="nsEffective">—</td></tr>
+            <tr><td>Auto gain control</td><td id="agcRequested">off</td><td id="agcSupported">—</td><td id="agcEffective">—</td></tr>
+          </tbody>
+        </table>
+        <p class="hint">Browsers and operating systems may keep processing enabled despite an off request. Effective values come from the selected track’s actual settings, not assumptions.</p>
+        <details>
+          <summary>Integrity and privacy boundary</summary>
+          <p class="hint">A receiver locks to one nonzero 128-bit session and one SHA-256 manifest identity. CRC32C-invalid packets never enter reconstruction; conflicting duplicates fail the transfer. Progress reaches 100% and the download link appears only after every declared byte is present, the repeated final identity agrees, and Web Crypto reproduces the acoustically declared SHA-256.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <footer>Local processing only. No payload, metadata, microphone sample, or transfer progress is sent to a server or stored persistently. AudioWorklet, modem Worker, microphone tracks, AudioContext, queues, temporary URLs, and stale callbacks are stopped or revoked on Stop, Reset, tab changes, completion, and page exit.</footer>
+</div>
+
+<script src="../core/suite.js" data-suite-inline></script>
+<script src="../assets/acoustic/app/audio-runtime.js" data-suite-vendor></script>
+</body>
+</html>

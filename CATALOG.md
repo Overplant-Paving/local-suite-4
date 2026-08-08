@@ -538,6 +538,14 @@ File or UTF-8 text → an endless animated QR stream; a second device's camera r
 - **Provenance:** Decimen Optical Transfer snapshot `ed4cbcf558b80913fcba2e91193f71801f8e919c` (MIT); full architecture and third-party notices in `OPTICAL-TRANSFER.md` and `assets/optical/PROVENANCE.md`.
 - **Complexity:** L · **File:** `optical.html` · **Local:** sender `file://` ✅; mobile receiver hosted HTTPS/PWA offline ✅
 
+### 10.2b Audio Transfer
+File → speaker → air → microphone → verified file download. The production page uses audible C0 OFDM at the observed 44.1 or 48 kHz AudioContext rate, BPSK carriers and pilots, K=7 rate-1/2 convolutional FEC, interleaving, duplicated headers, and CRC32C. A bounded one-way schedule repeats the acoustic manifest five times, every 256-byte data chunk twice in opposite orders, and the final identity three times. The receiver reconstructs arbitrary binary bytes only within the declared 64 KB limit and creates no download until Web Crypto reproduces the acoustically carried SHA-256.
+- **Data:** none; file bytes, metadata, speaker samples, and microphone samples stay in the two browsers. No payload network or relay path exists.
+- **Permission:** microphone on Receive only. Sender emits an intentionally audible 1.5–5.5 kHz modem signal with a conservative waveform level and visible warning. Hosted HTTPS/PWA is the supported mobile receive path.
+- **Limits/defaults:** 1 byte–64 KB files; 256-byte chunks; bounded 2-pass data repetition; audible C0 profile; observed 44,100/48,000 Hz contexts.
+- **Security:** plaintext and unauthenticated. Session identity, CRC32C, exact lengths, duplicate-conflict checks, final identity, and SHA-256 detect accidental corruption; they do not provide secrecy or sender authentication.
+- **Complexity:** L · **File:** `audio.html` · **Local:** hosted HTTPS/PWA offline ✅; generated direct-file sender uses embedded modem resources where browser audio output is permitted
+
 ### 10.3 Text Toolbox
 Word/char count, case conversion, sort/dedupe lines, diff two texts, SHA-256 hash (WebCrypto), URL/Base64 encode-decode.
 - **Complexity:** S · **Suggested file:** `text.html`
