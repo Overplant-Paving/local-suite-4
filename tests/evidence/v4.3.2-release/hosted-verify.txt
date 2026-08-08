@@ -1,14 +1,15 @@
-Local Suite v4.3.2 hosted verification
+Local Suite v4.3.2 final hosted verification
 
-Initial deployed main commit: 1868fddf562e09e6eabbd2f29816d69ded522d7a
-Successful Pages run: https://github.com/Overplant-Paving/local-suite-4/actions/runs/31276598456
+Tagged main commit: b3832319ef9ad31b939cc1778745e8dbdb402b18
+Successful final Pages run: https://github.com/Overplant-Paving/local-suite-4/actions/runs/31277474029
+Release: https://github.com/Overplant-Paving/local-suite-4/releases/tag/v4.3.2
 Hosted suite: https://overplant-paving.github.io/local-suite-4/
 Hosted Audio Transfer: https://overplant-paving.github.io/local-suite-4/audio.html
 
 Byte-for-byte hosted/local SHA-256 matches:
 6f84ad42f7b3a0af0df58702ac20e550ed28b5528caf0979921224f53f8997e0  index.html
-6694c68b55b7a5d14032ad48983cc36aabfa8546a97d00ac4238ba8dd0dc6748  audio.html
-e8f7b5899e78fea1e8b4d4d1dda7b7d97e772a574c3d1ed2d43488ac5717fe05  sw.js
+1ff72feff86e4fb8d5df0cb6a7939e68947c840e7a47aa04c11f6087d04bc178  audio.html
+993ae9b3e5f0d9ba65c4faf8004576841ac0bd9534a35db978cce2ec70cc7788  sw.js
 b8026cd897c7ef01eb80d9c43f8bbdc066b9320d9ebbb116345ca87dda492b10  manifest.webmanifest
 9a4d5b4480b6759f561200ba4db234628432e51305b2d063153fe1b867dd7e76  icons/icon-192.png
 
@@ -23,3 +24,9 @@ Fresh hosted Chromium verification:
 - Hub horizontal overflow: false.
 - Audio page horizontal overflow: false.
 - Console/page errors: none.
+
+Corrective recovery verification:
+- Finite fountain schedule is systematic for the first k equations.
+- The first parity equation covers all k source blocks.
+- Browser matrix passes 143 deterministic no-loss cases through k=2048 / 1 MiB.
+- Browser matrix passes 143 one-systematic-packet-loss cases through k=2048 / 1 MiB.

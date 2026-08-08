@@ -29,10 +29,10 @@ Target: exactly 103 manifest tools plus the generated hub (104 generated HTML pa
 ## Publication
 
 - [x] Merge verified v4.3.2 changes to `main` and push.
-- [x] GitHub Pages verification/deployment workflow succeeds — run `31276598456`.
+- [x] Final GitHub Pages verification/deployment workflow succeeds — run `31277474029`.
 - [x] Hosted hub exposes Beta Tools and links Audio Transfer.
 - [x] Hosted core artifacts match committed `dist/` bytes.
-- [ ] Tag and publish `v4.3.2` release after hosted verification.
+- [x] Tag and publish `v4.3.2` release after hosted verification.
 
 ## Evidence files
 
