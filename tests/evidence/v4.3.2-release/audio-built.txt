@@ -1,0 +1,16 @@
+ok   hub exposes the new Beta Tools category
+ok   Audio Transfer is a separate Beta Tools card
+ok   page exposes bounded transfer helpers
+ok   Send creates observed-rate AudioContext and audible packet
+ok   Receive opens microphone and reports effective processing
+ok   Receive reports real listening state
+ok   decoded packets reconstruct exact SHA-gated download
+ok   SHA-256 mismatch withholds download
+ok   browser exercise has no CSP violations
+ok   browser exercise has no console/page errors
+ok   page remains responsive without horizontal overflow
+ok   generated direct-file sender starts embedded Worker and data-URL AudioWorklet
+ok   direct-file sender makes no HTTP(S) request
+ok   direct-file sender has no console/page errors
+
+audio: PASS

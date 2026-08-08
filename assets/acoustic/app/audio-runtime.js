@@ -2,13 +2,13 @@
 
 (() => {
 const MAX_FILE_BYTES = 1024 * 1024;
-const CHUNK_BYTES = 1024;
-const INITIAL_MANIFEST_COPIES = 3;
+const CHUNK_BYTES = 512;
+const INITIAL_MANIFEST_COPIES = 5;
 const MID_MANIFEST_COPIES = 2;
-const FIN_COPIES = 5;
+const FIN_COPIES = 7;
 const FOUNTAIN_OVERHEAD = .35;
 const FOUNTAIN_EXTRA_EQUATIONS = 2;
-const MAX_FOUNTAIN_FRAMES = 1536;
+const MAX_FOUNTAIN_FRAMES = 3072;
 const MAX_FOUNTAIN_STORAGE_BYTES = 8 * 1024 * 1024;
 const INTER_PACKET_GAP_MS = 600;
 const MAX_RX_PENDING = 6;
@@ -105,7 +105,7 @@ function fountainEquationCount(k) {
   if (!Number.isInteger(k) || k < 1 || k > Math.ceil(MAX_FILE_BYTES / CHUNK_BYTES)) {
     throw new RangeError("Invalid fountain source block count.");
   }
-  const count = Math.ceil(k * (1 + FOUNTAIN_OVERHEAD)) + FOUNTAIN_EXTRA_EQUATIONS;
+  const count = Math.max(8, Math.ceil(k * (1 + FOUNTAIN_OVERHEAD)) + FOUNTAIN_EXTRA_EQUATIONS);
   if (count > MAX_FOUNTAIN_FRAMES) throw new RangeError("Fountain equation limit exceeded.");
   return count;
 }
@@ -508,7 +508,7 @@ function makeManifest(file, fileBytes, digestBytes, sid) {
   do {
     value = {v: 2, name, type: safeMediaType(file.type), size: fileBytes.length,
       sha256: hex(digestBytes), chunkSize: CHUNK_BYTES,
-      totalChunks, equationCount, dataProfile: "R1-QPSK",
+      totalChunks, equationCount, dataProfile: "R1-BPSK",
       fountain: "lt-rsd-v1", session: hex(sid)};
     bytes = encoder.encode(JSON.stringify(value));
     if (bytes.length <= 512) return {value, bytes};
@@ -556,9 +556,9 @@ async function startSend() {
         fountain: isData, repeat, sequence: sequence++,
         sessionId: sid, manifestTag, totalChunks, manifestId, sha256: digestBytes,
         fileLength: fileBytes.length};
-      setStatus(sendStatus, `Encoding ${isData ? `fountain equation ${index + 1}/${equationCount} · R1 QPSK` : `${packetKind} · C0 BPSK`}… Keep the sending speaker near the receiving microphone.`);
+      setStatus(sendStatus, `Encoding ${isData ? `fountain equation ${index + 1}/${equationCount} · R1 BPSK` : `${packetKind} · C0 BPSK`}… Keep the sending speaker near the receiving microphone.`);
       const encoded = await encodePacket(handle, packet);
-      setText("sendProfile", "C0 BPSK control · R1 QPSK data");
+      setText("sendProfile", "C0 BPSK control · R1 BPSK data");
       setText("sendPacket", `${complete + 1} / ${totalPackets} · ${(encoded.metadata.durationSeconds).toFixed(2)} s`);
       await playWaveform(handle, encoded.waveform);
       complete++;
@@ -608,7 +608,7 @@ async function startReceive() {
   setProgress(receiveProgress, receiveBar, 0);
   setText("rxName", "—"); setText("rxSize", "—"); setText("rxSession", "—");
   setText("rxRate", "—"); setText("rxPackets", "0"); setText("rxDrops", "0");
-  setText("rxProfile", "C0 BPSK + R1 QPSK");
+  setText("rxProfile", "C0 BPSK + R1 BPSK");
   setText("rxDecoder", "idle"); setText("rxQueue", `0 / ${MAX_RX_PENDING}`);
   const media = navigator.mediaDevices;
   if (!media || typeof media.getUserMedia !== "function") {
@@ -657,7 +657,7 @@ function parseManifest(bytes, frame) {
       value.chunkSize !== CHUNK_BYTES || !Number.isSafeInteger(value.totalChunks) ||
       value.totalChunks !== Math.ceil(value.size / CHUNK_BYTES) || value.totalChunks !== frame.totalChunks ||
       !Number.isSafeInteger(value.equationCount) || value.equationCount !== fountainEquationCount(value.totalChunks) ||
-      value.dataProfile !== "R1-QPSK" || value.fountain !== "lt-rsd-v1" || frame.profileId !== 1) {
+      value.dataProfile !== "R1-BPSK" || value.fountain !== "lt-rsd-v1" || frame.profileId !== 1) {
     throw new Error("Acoustic manifest limits or coding contract are invalid.");
   }
   const expected = fromHex(value.sha256, 32);
@@ -687,7 +687,7 @@ async function handleRxFrame(handle, frame) {
       setText("rxName", parsed.value.name);
       setText("rxSize", formatBytes(parsed.value.size));
       setText("rxSession", sidHex.slice(0, 12));
-      setText("rxProfile", "C0 BPSK control · R1 QPSK data");
+      setText("rxProfile", "C0 BPSK control · R1 BPSK data");
       setText("rxDecoder", "C0 manifest + CRC32C");
       setStatus(receiveStatus, `Locked to ${parsed.value.name}. Solving ${parsed.value.totalChunks} source blocks from up to ${parsed.value.equationCount} fountain equations…`, "good");
     }
@@ -700,14 +700,14 @@ async function handleRxFrame(handle, frame) {
     if (frame.profileId !== 16 || frame.fountain !== true ||
         !Number.isSafeInteger(frame.index) || frame.index < 0 || frame.index >= state.manifest.totalChunks ||
         !Number.isSafeInteger(frame.sequence) || !(frame.bytes instanceof Uint8Array) ||
-        frame.bytes.length !== CHUNK_BYTES) throw new Error("Received DATA does not match the R1-QPSK fountain contract.");
+        frame.bytes.length !== CHUNK_BYTES) throw new Error("Received DATA does not match the R1-BPSK fountain contract.");
     state.fountain.addFrame(frame.sequence, frame.bytes);
     state.uniqueBytes = Math.min(state.manifest.size, state.fountain.solvedCount * CHUNK_BYTES);
     const fraction = state.fountain.solvedCount / state.fountain.k;
     setProgress(receiveProgress, receiveBar, Math.min(.99, fraction));
     setText("rxRate", formatRate(state.uniqueBytes, Math.max(.1, (performance.now() - state.started) / 1000)));
-    setText("rxProfile", "C0 BPSK control · R1 QPSK data");
-    setText("rxDecoder", `R1 QPSK · ${state.fountain.solvedCount}/${state.fountain.k} solved`);
+    setText("rxProfile", "C0 BPSK control · R1 BPSK data");
+    setText("rxDecoder", `R1 BPSK · ${state.fountain.solvedCount}/${state.fountain.k} solved`);
     setStatus(receiveStatus, `${state.manifest.name} · ${state.fountain.solvedCount}/${state.fountain.k} source blocks solved from ${state.fountain.framesNew}/${state.manifest.equationCount} CRC-valid equations.`, "good");
     await maybeFinish(handle, state);
   } else if (frame.type === 23) {

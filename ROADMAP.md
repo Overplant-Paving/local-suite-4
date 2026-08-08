@@ -240,6 +240,13 @@ release checklist executed · tag pushed.
 
 ## V4 work
 
+- [x] **Local Suite v4.3.2 — Audio Transfer beta, 2026-08-08.** Added Audio Transfer as the 103rd
+  manifest tool and placed it in the new **Beta Tools** hub category. The self-contained page sends
+  arbitrary binary files speaker-to-microphone using audible C0/R1 BPSK OFDM, bounded deterministic
+  robust-soliton fountain equations, CRC32C, repeated identity packets, and SHA-256-gated download.
+  Hosted/PWA receive uses microphone permission; sender payload bytes never use a network or relay.
+  Gates: `node tests/audio-built.mjs`; explicit same-room hardware gate: `node tests/audio-physical.mjs`.
+
 - [x] **Local Suite v4.3.1 — Optical Transfer hardening, 2026-08-06.** Corrected desktop and
   responsive QR geometry with stage-relative square sizing; stopped hidden sender work; reset
   receiver state on mode changes; made verification, invalid UTF-8, and failure progress accurate;

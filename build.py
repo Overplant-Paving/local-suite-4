@@ -53,7 +53,7 @@ VIEWPORT_RE = re.compile(r'<meta name="viewport"[^>]*>')
 CSP_META_RE = re.compile(r'<meta http-equiv="Content-Security-Policy" content="([^"]*)">')
 
 NETWORK_CLASSES = ("offline", "cors-open", "keyed", "blocked")
-RELEASE_TOOL_COUNT = 103
+RELEASE_TOOL_COUNT = 103  # v4.3.2: 102 established tools + Audio Transfer beta
 
 # Per-tool CSP additions are deliberately limited to non-network browser schemes
 # needed by self-contained local tools. Network hosts must remain visible in the

@@ -84,7 +84,7 @@
     <p class="tag">Move a file from one browser’s speaker through the air to another browser’s microphone. Filename, size, session identity, fountain equations, and SHA-256 all travel acoustically—there is no payload upload, relay, pairing server, account, or network data path.</p>
   </header>
 
-  <div class="warning" role="note"><strong>Audible transmission:</strong> this tool intentionally plays a modem-like 1.2–7.2 kHz signal. Start at a comfortable device volume, keep speakers away from ears, and stop if the sound is uncomfortable. The waveform targets conservative 0.08 RMS / 0.50 peak before the page’s output gain. Acoustic v2 is plaintext: anyone in earshot with a compatible receiver may recover the file.</div>
+  <div class="warning" role="note"><strong>Audible transmission:</strong> this tool intentionally plays a modem-like 1.5–6.5 kHz signal. Start at a comfortable device volume, keep speakers away from ears, and stop if the sound is uncomfortable. The waveform targets conservative 0.12 RMS / 0.50 peak before the page’s output gain. Acoustic v2 is plaintext: anyone in earshot with a compatible receiver may recover the file.</div>
 
   <div class="tabs" role="tablist" aria-label="Audio Transfer mode">
     <button class="tab" id="sendTab" type="button" role="tab" aria-selected="true" aria-controls="sendPanel">Send</button>
@@ -95,7 +95,7 @@
     <div class="grid">
       <div class="card">
         <h2>Send through the speaker</h2>
-        <p class="hint">Files may contain any binary bytes and are limited to 1 MiB. Control packets use robust C0 BPSK. File data becomes 1,024-byte source blocks and a finite R1 QPSK robust-soliton fountain with about 35% equation overhead, so the receiver can recover from missing equations without a return channel.</p>
+        <p class="hint">Files may contain any binary bytes and are limited to 1 MiB. Control packets use robust C0 BPSK. File data becomes 512-byte source blocks and a finite R1 BPSK robust-soliton fountain with about 35% equation overhead, so the receiver can recover from missing equations without a return channel.</p>
         <label class="field" for="sendFile">File · 1 MiB maximum
           <input id="sendFile" type="file">
         </label>
@@ -115,7 +115,7 @@
           <div class="metric wide"><b id="sendName">—</b><span>safe filename</span></div>
           <div class="metric"><b id="sendSize">—</b><span>file size</span></div>
           <div class="metric"><b id="sendRate">—</b><span>actual acoustic payload rate</span></div>
-          <div class="metric wide"><b id="sendProfile">C0 BPSK + R1 QPSK</b><span>control + data profiles</span></div>
+          <div class="metric wide"><b id="sendProfile">C0 BPSK + R1 BPSK</b><span>control + data profiles</span></div>
           <div class="metric"><b id="sendSampleRate">—</b><span>observed context rate</span></div>
           <div class="metric"><b id="sendSession">—</b><span>session</span></div>
         </div>
@@ -123,7 +123,7 @@
         <p class="hash" id="sendSha">—</p>
         <details>
           <summary>What the speaker sends</summary>
-          <p class="hint">Manifest and final packets use audible C0 OFDM with BPSK. DATA uses wider audible R1 OFDM with QPSK. Both retain deterministic preambles, training, pilots, K=7 rate-1/2 convolutional coding with soft Viterbi decode, interleaving, duplicated C0 protected headers, and CRC32C. Every physical packet remains below four seconds at the observed 44.1 or 48 kHz context rate.</p>
+          <p class="hint">Manifest and final packets use audible C0 OFDM with BPSK. DATA uses wider audible R1 OFDM with BPSK. Both retain deterministic preambles, training, pilots, K=7 rate-1/2 convolutional coding with soft Viterbi decode, interleaving, duplicated C0 protected headers, and CRC32C. Every physical packet remains below four seconds at the observed 44.1 or 48 kHz context rate.</p>
         </details>
       </div>
     </div>
@@ -164,7 +164,7 @@
           <div class="metric"><b id="rxSession">—</b><span>locked session</span></div>
           <div class="metric"><b id="rxDecoder">idle</b><span>decoder</span></div>
           <div class="metric"><b id="rxQueue">0 / 6</b><span>bounded DSP queue</span></div>
-          <div class="metric wide"><b id="rxProfile">C0 BPSK + R1 QPSK</b><span>bounded dual-profile acquisition</span></div>
+          <div class="metric wide"><b id="rxProfile">C0 BPSK + R1 BPSK</b><span>bounded dual-profile acquisition</span></div>
           <div class="metric"><b id="rxDrops">0</b><span>capture drops</span></div>
           <div class="metric"><b id="rxDevice">—</b><span>microphone</span></div>
           <div class="metric"><b id="rxChannels">—</b><span>input channels</span></div>

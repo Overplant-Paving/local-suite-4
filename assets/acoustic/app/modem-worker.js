@@ -109,7 +109,7 @@ self.onmessage = event => {
       if (!created.ok) throw created;
       receiver = created.value;
       postMessage({kind: "READY", generation: rxGeneration, sampleRate,
-        profiles: ["C0-BPSK", "R1-QPSK"]});
+        profiles: ["C0-BPSK", "R1-BPSK"]});
       return;
     }
     if (!sampleRate) throw new Error("worker is not initialized");

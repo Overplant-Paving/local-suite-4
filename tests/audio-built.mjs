@@ -24,17 +24,23 @@ await page.addInitScript(() => {
   document.addEventListener("securitypolicyviolation", event =>
     window.__csp.push(`${event.violatedDirective}:${event.blockedURI}`));
 });
+await page.goto("http://127.0.0.1:8765/index.html");
+check("hub exposes the new Beta Tools category", await page.locator("h2", {hasText: "Beta Tools"}).count() === 1);
+check("Audio Transfer is a separate Beta Tools card", await page.evaluate(() => {
+  const heading = [...document.querySelectorAll("h2")].find(node => node.textContent.includes("Beta Tools"));
+  return heading?.closest("section")?.querySelector('a[href="audio.html"]')?.textContent.includes("Audio Transfer") === true;
+}));
 await page.goto("http://127.0.0.1:8765/audio.html");
 await page.waitForTimeout(300);
 check("page exposes bounded transfer helpers", await page.evaluate(() =>
-  window.AcousticTransferTest?.MAX_FILE_BYTES === 1048576 && window.AcousticTransferTest?.CHUNK_BYTES === 1024 &&
-  window.AcousticTransferTest?.MAX_FOUNTAIN_FRAMES === 1536));
+  window.AcousticTransferTest?.MAX_FILE_BYTES === 1048576 && window.AcousticTransferTest?.CHUNK_BYTES === 512 &&
+  window.AcousticTransferTest?.MAX_FOUNTAIN_FRAMES === 3072));
 
 await page.locator("#sendFile").setInputFiles({name: "one.bin", mimeType: "application/octet-stream", buffer: Buffer.from([0xa5])});
 await page.locator("#startSendBtn").click();
 await page.waitForFunction(() => document.getElementById("sendSampleRate").textContent.includes("Hz"), null, {timeout: 15000});
 await page.waitForFunction(() => !document.getElementById("sendPacket").textContent.startsWith("0 /"), null, {timeout: 15000});
-check("Send creates observed-rate AudioContext and audible packet", await page.locator("#sendPacket").textContent().then(text => /1 \/ 14/.test(text)), await page.locator("#sendPacket").textContent());
+check("Send creates observed-rate AudioContext and audible packet", await page.locator("#sendPacket").textContent().then(text => /1 \/ 22/.test(text)), await page.locator("#sendPacket").textContent());
 await page.locator("#stopSendBtn").click();
 await page.waitForFunction(() => document.getElementById("stopSendBtn").hidden, null, {timeout: 5000});
 

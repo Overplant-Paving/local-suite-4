@@ -1,12 +1,12 @@
 # Local Suite 4
 
-This is **Local Suite v4**, built on the verified v2/v3 single-file architecture. **v4.3.1** contains
-**102 manifest tools** (103 generated pages) and hardens Optical Transfer with stage-relative square
-QR rendering, deterministic sender/receiver teardown, bounded equation memory, accurate completion
-states, safer reduced-motion pacing, current camera metrics, and stronger rendered-layout tests.
+This is **Local Suite v4**, built on the verified v2/v3 single-file architecture. **v4.3.2** contains
+**103 manifest tools** (104 generated pages). It adds Audio Transfer as a separate tool in the new
+**Beta Tools** category while retaining the v4.3.1 Optical Transfer hardening.
 
-Current release: **v4.3.1** (2026-08-06). Release evidence is archived under
-`tests/evidence/v4.3.1-release/`; v4.3.0 evidence remains under `tests/evidence/v4.3-release/`,
+Current version: **v4.3.2** (2026-08-08). Audio Transfer is gated by `tests/audio-built.mjs` and the
+explicit hardware-only `tests/audio-physical.mjs`; prior release evidence is archived under
+`tests/evidence/v4.3.1-release/`, while v4.3.0 evidence remains under `tests/evidence/v4.3-release/`,
 v4.2.0 evidence under `tests/evidence/v4.2-release/`, v4.0.0 evidence under
 `tests/evidence/v4-release/`, and v3.0.0 evidence under `tests/evidence/v3-release/`.
 
@@ -30,13 +30,18 @@ distortion, stops hidden sender work, makes verification and mode-switch state d
 rejects impossible QR tuning before streaming, refreshes live camera settings safely, bounds
 equation buffers to 32 MiB, clarifies integrity versus authenticity, and respects reduced motion.
 
+**v4.3.2 adds Audio Transfer** as the 103rd tool and introduces the **Beta Tools** hub category.
+It transfers arbitrary binary files from speaker to microphone using bounded audible OFDM packets,
+fountain-coded BPSK data, fail-closed CRC checks, and SHA-256-gated reconstruction. The payload has
+no network or relay path; microphone capture requires a secure hosted/PWA context on mobile.
+
 **To use the suite: open [`dist/index.html`](dist/index.html).** Everything in `dist/` is
 built and self-contained — double-click any file there. The `tools/` folder holds the
 *sources*, which don't link up until `python3 build.py` runs.
 
 ## What Local Suite is
 
-A family of 102 **single-file HTML tools** — weather station, earthquake monitor, flight tracker,
+A family of 103 **single-file HTML tools** — weather station, earthquake monitor, flight tracker,
 calculator workbench, recipe box, periodic table, DNS lookup, arcade — plus a hub page that maps
 them all, with favorites and recently-used quick access. The philosophy (unchanged in v4):
 
