@@ -1,0 +1,59 @@
+{
+  "checkedAt": "2026-08-09T18:04:31.785Z",
+  "artifactCommit": "14d89da0c1c30f6759a32274a70580a655713066",
+  "base": "https://overplant-paving.github.io/local-suite-4/",
+  "hub": {
+    "title": "Local Suite · Command Center",
+    "betaHeading": "🧪 Beta Tools 3 tools",
+    "betaCards": [
+      {
+        "href": "audio.html",
+        "text": "Audio Transfer"
+      },
+      {
+        "href": "chromalink.html",
+        "text": "ChromaLink"
+      },
+      {
+        "href": "optical-beta.html",
+        "text": "Optical Transfer Beta"
+      }
+    ],
+    "opticalBetaInBeta": true,
+    "stableOpticalSection": "🧰 Utilities & Toys 23 tools",
+    "stableOpticalPresent": true,
+    "headerText": "◐ theme Local Suite · Command Center A suite of single-file HTML tools: information and utilities from free public data — no tracking, no ads, no accounts. Every tool works opened straight from disk. Full build specs live in CATALOG.md.",
+    "horizontalOverflow": false
+  },
+  "beta": {
+    "title": "Optical Transfer Beta · Local Suite",
+    "heading": "Optical Transfer Beta",
+    "fpsOptions": [
+      30,
+      60,
+      90,
+      120
+    ],
+    "fpsDefault": 30,
+    "hasUnreportedMarker": true,
+    "hasSerializedSettingsQueue": true,
+    "horizontalOverflow": false
+  },
+  "stable": {
+    "title": "Optical Transfer · Local Suite",
+    "heading": "Optical Transfer",
+    "fpsOptions": [
+      30,
+      60
+    ]
+  },
+  "mobileBeta": {
+    "title": "Optical Transfer Beta · Local Suite",
+    "clientWidth": 390,
+    "scrollWidth": 390,
+    "horizontalOverflow": false
+  },
+  "errors": [],
+  "failedRequests": [],
+  "pass": true
+}

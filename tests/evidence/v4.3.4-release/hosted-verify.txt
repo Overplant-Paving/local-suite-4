@@ -1,0 +1,34 @@
+Local Suite v4.3.4 hosted byte verification
+UTC: 2026-08-09T18:00:12Z
+Artifact commit: 14d89da0c1c30f6759a32274a70580a655713066
+Pages run: 31327625912 https://github.com/Overplant-Paving/local-suite-4/actions/runs/31327625912
+
+== index.html ==
+HTTP 200 final=https://overplant-paving.github.io/local-suite-4/index.html?v434=1786298412
+hosted ad989228c377d1ca2c5577481bb161003b6eb63e83d2cad854e21442ab003e4e  /tmp/local-suite-v434-hosted/index.html
+local  ad989228c377d1ca2c5577481bb161003b6eb63e83d2cad854e21442ab003e4e  dist/index.html
+byte-identical: yes
+
+== optical-beta.html ==
+HTTP 200 final=https://overplant-paving.github.io/local-suite-4/optical-beta.html?v434=1786298412
+hosted 89cb67143b4a5db0f33e0beb95ad364a9f4efe6923919c5e1a21384e32384196  /tmp/local-suite-v434-hosted/optical-beta.html
+local  89cb67143b4a5db0f33e0beb95ad364a9f4efe6923919c5e1a21384e32384196  dist/optical-beta.html
+byte-identical: yes
+
+== optical.html ==
+HTTP 200 final=https://overplant-paving.github.io/local-suite-4/optical.html?v434=1786298412
+hosted 4d5d3d2b607f7e3012a21cb795bd6b52ce51b65c26d09e4cf62d5ab0613268dc  /tmp/local-suite-v434-hosted/optical.html
+local  4d5d3d2b607f7e3012a21cb795bd6b52ce51b65c26d09e4cf62d5ab0613268dc  dist/optical.html
+byte-identical: yes
+
+== sw.js ==
+HTTP 200 final=https://overplant-paving.github.io/local-suite-4/sw.js?v434=1786298412
+hosted a1880509128d65636453c8a497ab3eb6d1ba68d5fa30a1f7e702d0eb8486ab51  /tmp/local-suite-v434-hosted/sw.js
+local  a1880509128d65636453c8a497ab3eb6d1ba68d5fa30a1f7e702d0eb8486ab51  dist/sw.js
+byte-identical: yes
+
+== manifest.webmanifest ==
+HTTP 200 final=https://overplant-paving.github.io/local-suite-4/manifest.webmanifest?v434=1786298412
+hosted b8026cd897c7ef01eb80d9c43f8bbdc066b9320d9ebbb116345ca87dda492b10  /tmp/local-suite-v434-hosted/manifest.webmanifest
+local  b8026cd897c7ef01eb80d9c43f8bbdc066b9320d9ebbb116345ca87dda492b10  dist/manifest.webmanifest
+byte-identical: yes

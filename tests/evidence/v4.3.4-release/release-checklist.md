@@ -31,10 +31,10 @@ Target: exactly 105 manifest tools plus the generated hub (106 generated HTML pa
 
 ## Publication
 
-- [ ] Artifact-bearing v4.3.4 commit pushed to `main`.
-- [ ] GitHub Pages verification/deployment succeeds for the artifact-bearing commit.
-- [ ] Hosted `index.html`, `optical-beta.html`, `optical.html`, `sw.js`, and `manifest.webmanifest` match committed `dist/` bytes.
-- [ ] Hosted browser renders Optical Transfer Beta under Beta Tools with 30/60/90/120 FPS options and stable Optical Transfer still present.
+- [x] Artifact-bearing v4.3.4 commit `14d89da0c1c30f6759a32274a70580a655713066` pushed to `main`.
+- [x] GitHub Pages verification/deployment succeeded: run `31327625912` — https://github.com/Overplant-Paving/local-suite-4/actions/runs/31327625912.
+- [x] Hosted `index.html`, `optical-beta.html`, `optical.html`, `sw.js`, and `manifest.webmanifest` match committed `dist/` bytes (`hosted-verify.txt`).
+- [x] Fresh hosted browser renders Optical Transfer Beta under Beta Tools with 30/60/90/120 FPS options and stable Optical Transfer still present (`hosted-browser.json`, hosted screenshots/review).
 - [ ] Hosted evidence committed and pushed; final Pages deployment SHA equals final `origin/main`.
 - [ ] Annotated `v4.3.4` tag and GitHub Release published.
 
@@ -50,3 +50,7 @@ Target: exactly 105 manifest tools plus the generated hub (106 generated HTML pa
 - `screenshot-review.md`
 - `hosted-verify.txt` (added after artifact deployment)
 - `hosted-browser.json` (added after artifact deployment)
+- `hosted-hub.png`
+- `hosted-optical-beta.png`
+- `hosted-optical-beta-mobile.png`
+- `hosted-screenshot-review.md`
