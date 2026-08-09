@@ -1,7 +1,7 @@
 # Local Suite 4 — development instructions
 
 Local Suite 4 is the continuation of the verified v2/v3 single-file suite. It contains
-104 manifest tools plus a generated hub (105 generated pages). The source is in `tools/`;
+105 manifest tools plus a generated hub (106 generated pages). The source is in `tools/`;
 committed, self-contained output is in `dist/`.
 
 ## Read first
@@ -30,9 +30,16 @@ checkout; do not claim otherwise. Existing migration evidence remains under `tes
 - API keys are user-owned local data. Never commit, print, or place them in URLs when a provider
   supports header authentication.
 
-## Current project state (v4.3.3, 2026-08-09)
+## Current project state (v4.3.4, 2026-08-09)
 
-- **v4.3.3 is the current release (2026-08-09).** It contains 104 tools plus the hub (105
+- **v4.3.4 is the current release (2026-08-09).** It adds Optical Transfer Beta as the 105th
+  manifest tool and third Beta Tools card. The separate page offers 90/120 FPS receiver camera
+  requests, truthful delivered-setting reporting, and serialized live constraints. Stable
+  `optical.html`, its built artifact, documentation, and focused gate remain byte-for-byte
+  unchanged. The release contains 105 tools plus the hub (106 generated HTML pages), precaches
+  110 entries, and wires `tests/optical-beta-built.mjs` beside the stable gate in Pages CI.
+  Release evidence lives under `tests/evidence/v4.3.4-release/`.
+- **v4.3.3 was released and deployed on 2026-08-09.** It contains 104 tools plus the hub (105
   generated HTML pages) and adds ChromaLink as the second Beta Tools entry: phone-to-phone
   optical transfer via 8-color animated frames and RaptorQ fountain decoding through the camera.
   Source: strict TypeScript/Vite subproject `chromalink/` (npm confined there);
@@ -83,11 +90,11 @@ checkout; do not claim otherwise. Existing migration evidence remains under `tes
   art inlined from the owned repos via `data-suite-asset`), and 26 new offline/keyless tools.
 - GitHub repository: https://github.com/Overplant-Paving/local-suite-4
 - Hosted suite: https://overplant-paving.github.io/local-suite-4/
-- Current release evidence and the final checklist live under `tests/evidence/v4.3.3-release/`;
+- Current release evidence and the final checklist live under `tests/evidence/v4.3.4-release/`;
   ChromaLink implementation evidence lives under `tests/evidence/chromalink/`.
 - The headed Chromium gate verifies a real `beforeinstallprompt` event, zero manifest and
   installability errors, service-worker control, same-origin manifest icons under CSP, and the
-  `suite-v4-` precache. Full build, PWA, update, and 105-page smoke gates remain mandatory for
+  `suite-v4-` precache. Full build, PWA, update, and 106-page smoke gates remain mandatory for
   future releases.
 
 ## Distribution model

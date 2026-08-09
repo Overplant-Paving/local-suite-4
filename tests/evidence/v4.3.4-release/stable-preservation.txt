@@ -1,0 +1,20 @@
+Stable Optical Transfer preservation evidence
+UTC: 2026-08-09T17:44:22Z
+
+tools/optical.html
+HEAD    5d5819ad7a0d2420da4f215e435479ef268a8e269d535b36229d40b4d77b324b  -
+working 5d5819ad7a0d2420da4f215e435479ef268a8e269d535b36229d40b4d77b324b  tools/optical.html
+
+dist/optical.html
+HEAD    4d5d3d2b607f7e3012a21cb795bd6b52ce51b65c26d09e4cf62d5ab0613268dc  -
+working 4d5d3d2b607f7e3012a21cb795bd6b52ce51b65c26d09e4cf62d5ab0613268dc  dist/optical.html
+
+tests/optical-built.mjs
+HEAD    b816d5bbde73cb80cf6fa36d74dd25d8626273024a72526dfedebc2167436257  -
+working b816d5bbde73cb80cf6fa36d74dd25d8626273024a72526dfedebc2167436257  tests/optical-built.mjs
+
+OPTICAL-TRANSFER.md
+HEAD    6f28067cdf1669d56311100c7037389e1ddf4066ee910d7530bfbc64d4128ec5  -
+working 6f28067cdf1669d56311100c7037389e1ddf4066ee910d7530bfbc64d4128ec5  OPTICAL-TRANSFER.md
+
+All stable artifacts match HEAD byte-for-byte.

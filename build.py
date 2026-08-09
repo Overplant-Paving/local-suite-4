@@ -53,7 +53,7 @@ VIEWPORT_RE = re.compile(r'<meta name="viewport"[^>]*>')
 CSP_META_RE = re.compile(r'<meta http-equiv="Content-Security-Policy" content="([^"]*)">')
 
 NETWORK_CLASSES = ("offline", "cors-open", "keyed", "blocked")
-RELEASE_TOOL_COUNT = 104  # v4.3.3: v4.3.2's 103 tools + the ChromaLink beta
+RELEASE_TOOL_COUNT = 105  # v4.3.4: v4.3.3's 104 tools + Optical Transfer Beta
 
 # Per-tool CSP additions are deliberately limited to non-network browser schemes
 # needed by self-contained local tools. Network hosts must remain visible in the
@@ -161,11 +161,11 @@ def inline_vendor_scripts(name, html):
     return VENDOR_SCRIPT_RE.sub(repl, html)
 
 def inline_optical_worker(name, html):
-    """Embed the pinned ZXing worker and WASM in optical.html."""
+    """Embed the pinned ZXing worker and WASM in Optical Transfer variants."""
     if not OPTICAL_WORKER_MARKER_RE.search(html):
         return html
-    if name != "optical.html":
-        raise SystemExit(f"{name}: optical worker marker is only valid in optical.html")
+    if name not in {"optical.html", "optical-beta.html"}:
+        raise SystemExit(f"{name}: optical worker marker is only valid in Optical Transfer pages")
     worker_path = ROOT / "assets" / "optical" / "zxing-worker.js"
     wasm_path = ROOT / "assets" / "optical" / "zxing_reader.wasm"
     worker = read(worker_path)
@@ -177,7 +177,7 @@ def inline_optical_worker(name, html):
         count=1,
     )
     if count != 1:
-        raise SystemExit("optical.html: pinned ZXing worker WASM locator changed")
+        raise SystemExit(f"{name}: pinned ZXing worker WASM locator changed")
     literal = json.dumps(worker, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
     return OPTICAL_WORKER_MARKER_RE.sub(
         lambda _m: "/* @suite:optical-worker */" + literal + "/* /@suite:optical-worker */",

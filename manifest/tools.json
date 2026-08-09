@@ -2186,6 +2186,28 @@
         "mediaSrc": ["mediastream:", "blob:"],
         "workerSrc": ["blob:"]
       }
+    },
+    {
+      "id": "optical-beta",
+      "file": "optical-beta.html",
+      "name": "Optical Transfer Beta",
+      "cat": "beta",
+      "cx": "L",
+      "desc": "Test 90/120 FPS camera requests for fountain-coded QR transfer while retaining the stable Optical Transfer tool.",
+      "network": "offline",
+      "key": null,
+      "endpoints": [],
+      "storage": ["suite.theme"],
+      "cacheTtlMin": null,
+      "since": "v4.3.4",
+      "flags": ["camera-secure-context", "large-inline-asset"],
+      "cspExtra": {
+        "scriptSrc": ["'wasm-unsafe-eval'"],
+        "connectSrc": ["data:"],
+        "imgSrc": ["blob:"],
+        "mediaSrc": ["blob:", "mediastream:"],
+        "workerSrc": ["blob:"]
+      }
     }
   ]
 }

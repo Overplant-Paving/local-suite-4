@@ -538,6 +538,13 @@ File or UTF-8 text → an endless animated QR stream; a second device's camera r
 - **Provenance:** Decimen Optical Transfer snapshot `ed4cbcf558b80913fcba2e91193f71801f8e919c` (MIT); full architecture and third-party notices in `OPTICAL-TRANSFER.md` and `assets/optical/PROVENANCE.md`.
 - **Complexity:** L · **File:** `optical.html` · **Local:** sender `file://` ✅; mobile receiver hosted HTTPS/PWA offline ✅
 
+### 10.2a.1 Optical Transfer Beta
+A separate Beta Tools variant of Optical Transfer with the same DCF2/LT wire format, payload bounds, pinned QR/ZXing assets, and security model. Receive tuning adds 90 and 120 FPS camera requests while keeping 30 FPS as the compatibility-safe default. Camera mode reports delivered `getSettings()` values (or `FPS unreported`), and serialized live constraints ensure rapid changes settle on the newest selection.
+- **Stable boundary:** `optical.html`, its built artifact, focused test, documentation, and wire format remain byte-for-byte unchanged.
+- **Permission/claim boundary:** camera on Receive only; 60/90/120 FPS are device-dependent requests, not throughput guarantees, and may trade delivered resolution.
+- **Verification:** dedicated focused gate retains stable protocol/security/lifecycle coverage and adds capped/omitted FPS plus out-of-order live-setting regressions.
+- **Complexity:** L · **File:** `optical-beta.html` · **Category:** Beta Tools · **Local:** sender `file://` ✅; mobile receiver hosted HTTPS/PWA offline ✅
+
 ### 10.2b Audio Transfer
 File → speaker → air → microphone → verified file download. The production page keeps manifest/final control on audible C0 BPSK OFDM and sends DATA on wider audible R1 BPSK OFDM at the observed 44.1 or 48 kHz AudioContext rate. Both use pilots/training, K=7 rate-1/2 convolutional FEC with soft Viterbi decode, interleaving, duplicated protected headers, and CRC32C. File data is split into 512-byte source blocks and sent as a finite systematic robust-soliton/XOR fountain with about 35% equation overhead; the systematic schedule guarantees no-loss reconstruction and a whole-file parity equation covers any one missing systematic packet. The bounded incremental receiver reconstructs arbitrary binary bytes within the declared 1 MiB limit and creates no download until the repeated final identity and Web Crypto SHA-256 both agree.
 - **Data:** none; file bytes, metadata, speaker samples, and microphone samples stay in the two browsers. No payload network or relay path exists.

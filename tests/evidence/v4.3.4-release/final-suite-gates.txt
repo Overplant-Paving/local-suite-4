@@ -1,0 +1,406 @@
+Local Suite v4.3.4 final suite gates
+UTC: 2026-08-09T17:39:52Z
+
+== python3 build.py ==
+built dist/air.html (51803 bytes)
+built dist/airport.html (64762 bytes)
+built dist/alerts.html (49905 bytes)
+built dist/almanac.html (58674 bytes)
+built dist/apod.html (46852 bytes)
+built dist/arcade.html (394129 bytes)
+built dist/art.html (61632 bytes)
+built dist/asteroids.html (52196 bytes)
+built dist/audio.html (177545 bytes)
+built dist/body.html (47768 bytes)
+built dist/books.html (48545 bytes)
+built dist/budget.html (51268 bytes)
+built dist/calc.html (70705 bytes)
+built dist/checklists.html (51143 bytes)
+built dist/chromalink.html (433850 bytes)
+built dist/cite.html (58008 bytes)
+built dist/color.html (56636 bytes)
+built dist/congress.html (53284 bytes)
+built dist/convert.html (47332 bytes)
+built dist/currency.html (46791 bytes)
+built dist/dataviewer.html (55719 bytes)
+built dist/dates.html (47698 bytes)
+built dist/daylight.html (55249 bytes)
+built dist/dictionary.html (44061 bytes)
+built dist/discussion.html (49585 bytes)
+built dist/dns.html (51795 bytes)
+built dist/drought.html (47630 bytes)
+built dist/elevation.html (59708 bytes)
+built dist/emergency.html (51314 bytes)
+built dist/factbook.html (58536 bytes)
+built dist/fedregister.html (44974 bytes)
+built dist/flashcards.html (53224 bytes)
+built dist/flight.html (69368 bytes)
+built dist/flood.html (108404 bytes)
+built dist/focus.html (49929 bytes)
+built dist/foodrecalls.html (44754 bytes)
+built dist/fuellog.html (65622 bytes)
+built dist/gas.html (47785 bytes)
+built dist/geo.html (52809 bytes)
+built dist/hash.html (50079 bytes)
+built dist/healthlog.html (56135 bytes)
+built dist/holidays.html (47740 bytes)
+built dist/ics.html (52425 bytes)
+built dist/illness.html (50745 bytes)
+built dist/image.html (47972 bytes)
+built dist/index.html (95981 bytes)
+built dist/inflation.html (55279 bytes)
+built dist/iss.html (50569 bytes)
+built dist/jobs.html (50301 bytes)
+built dist/launches.html (46947 bytes)
+built dist/loan.html (55342 bytes)
+built dist/marine.html (52927 bytes)
+built dist/markets.html (45368 bytes)
+built dist/medicine.html (46883 bytes)
+built dist/metronome.html (48444 bytes)
+built dist/nasaimages.html (53322 bytes)
+built dist/nearby.html (54719 bytes)
+built dist/network.html (48773 bytes)
+built dist/normals.html (60670 bytes)
+built dist/notes.html (48752 bytes)
+built dist/nutrition.html (49553 bytes)
+built dist/optical-beta.html (1404077 bytes)
+built dist/optical.html (1403115 bytes)
+built dist/overhead.html (54962 bytes)
+built dist/paper.html (49048 bytes)
+built dist/parks.html (81480 bytes)
+built dist/passes.html (72209 bytes)
+built dist/password.html (108959 bytes)
+built dist/periodic.html (57855 bytes)
+built dist/printables.html (49202 bytes)
+built dist/qr.html (56318 bytes)
+built dist/quakes.html (51048 bytes)
+built dist/radar.html (52358 bytes)
+built dist/random.html (51966 bytes)
+built dist/recalls.html (53841 bytes)
+built dist/recipes.html (52073 bytes)
+built dist/rhymes.html (44198 bytes)
+built dist/rivers.html (49569 bytes)
+built dist/savings.html (46594 bytes)
+built dist/settings.html (95623 bytes)
+built dist/skyevents.html (49536 bytes)
+built dist/snow.html (51731 bytes)
+built dist/sound.html (48654 bytes)
+built dist/spaceweather.html (51402 bytes)
+built dist/spending.html (47027 bytes)
+built dist/text.html (52113 bytes)
+built dist/tides.html (56857 bytes)
+built dist/timers.html (49703 bytes)
+built dist/transit.html (52862 bytes)
+built dist/treasury.html (48219 bytes)
+built dist/tripcost.html (51937 bytes)
+built dist/tropical.html (51925 bytes)
+built dist/typing.html (44609 bytes)
+built dist/volcano.html (49399 bytes)
+built dist/voting.html (47196 bytes)
+built dist/wayback.html (49564 bytes)
+built dist/weather.html (69755 bytes)
+built dist/weatherhistory.html (58544 bytes)
+built dist/wiki.html (49186 bytes)
+built dist/wildfire.html (47689 bytes)
+built dist/wildlife.html (54685 bytes)
+built dist/word.html (80042 bytes)
+built dist/worldbank.html (49318 bytes)
+built dist/worldclock.html (51589 bytes)
+built dist/yields.html (48852 bytes)
+built dist/zip.html (57033 bytes)
+pwa: sw.js (suite-v4-9051f492b38b, 110 precached) + manifest.webmanifest + 3 icons
+106 file(s) built.
+
+== python3 build.py --check ==
+GATE release-tool-count   pass
+GATE source-text-integrity pass
+GATE manifest-files-sync  pass
+GATE markers              pass
+GATE dist-staleness       pass
+GATE no-inline-handlers   pass
+GATE csp                  pass
+GATE escaping-heuristic   pass
+GATE catalog-crosscheck   pass
+GATE settings-signup-sync pass
+GATE key-hygiene          pass
+GATE no-example-urls      pass
+GATE pwa-sync             pass
+NEGATIVE TESTS          pass (all fatal gates seen to fail on fixtures)
+
+manifest: 105 tools + hub  (71 v1 migrations, 34 suite-native)  by network: {'offline': 44, 'cors-open': 48, 'keyed': 10, 'blocked': 3}  flagged: 32
+
+--check: all fatal gates green
+
+== node tests/optical-built.mjs ==
+ok   built page exposes the deterministic protocol API
+ok   page load makes no HTTP(S) request
+ok   page boot has no console/page errors
+ok   page boot has no CSP violations
+ok   20-byte little-endian frame golden vector
+ok   frame golden vector parses exactly
+ok   deterministic log golden vector
+ok   robust-soliton CDF fingerprints
+ok   fountain block-subset golden vector
+ok   30% dropped frames recover exactly
+ok   duplicate frames are ignored without corruption
+ok   shuffled/out-of-order frames recover exactly
+ok   changed payload fails SHA-256
+ok   malformed/hostile frame headers are rejected before allocation
+ok   malformed container magic and lengths are rejected
+ok   gzip inflation stops at the declared ceiling
+ok   unsolved unique equations stop at a bounded memory ceiling
+ok   maximum-payload equation buffers are bounded to the explicit byte budget
+ok   received filename sanitization handles paths, bidi, invalid and reserved names
+ok   one stray valid frame cannot replace an active session
+ok   two distinct frames replace and isolate the session
+ok   UI Send flow packs locally and enables streaming
+ok   UI Send flow renders a real animated QR frame
+ok   desktop-composited QR remains exactly square
+ok   animated stream has an explicit pause control
+ok   rendered QR decodes through the real ZXing worker to a valid fountain frame
+ok   receiver exposes a download only after SHA-256 integrity verification
+ok   corrupt recovered bytes create no download or completed progress
+ok   invalid UTF-8 snippets fail without completed progress
+ok   receiver reset invalidates an in-flight verification
+ok   mode switch invalidates an in-flight verification
+ok   embedded ZXing worker and data-URI WASM warm under generated CSP
+ok   worker warm-up makes no HTTP(S) request
+ok   Receive reports unavailable camera / secure-context state
+ok   Receive permission denial is explicit and retryable
+ok   maximum-density QR remains square through a live resize to the 760/761px breakpoint
+ok   switching to Receive invalidates hidden sender work
+ok   impossible 2,953-byte ECC M tuning is rejected before streaming
+ok   reduced-motion preference limits the high-contrast stream to 2 FPS
+ok   camera stop tears down tracks, workers, and Blob lifecycle slots
+ok   Optical Transfer has no 390px mobile horizontal overflow
+ok   late camera-setting resolution cannot update torn-down UI state
+ok   late camera permission resolution cannot outlive a mode switch
+ok   generated artifact is self-contained
+ok   PWA app-shell cache includes optical.html
+ok   generated CSP scopes WASM/data/blob allowances
+ok   mobile HTTPS and PWA offline caveat is visible
+ok   confidentiality warning is explicit
+ok   integrity wording does not imply sender authenticity
+ok   vendored Optical assets match recorded provenance hashes
+
+optical: PASS
+
+== node tests/optical-beta-built.mjs ==
+ok   built page exposes the deterministic protocol API
+ok   page load makes no HTTP(S) request
+ok   page boot has no console/page errors
+ok   page boot has no CSP violations
+ok   Receive offers high-frame-rate camera requests through 120 FPS
+ok   Receive keeps 30 FPS as the compatibility-safe default
+ok   20-byte little-endian frame golden vector
+ok   frame golden vector parses exactly
+ok   deterministic log golden vector
+ok   robust-soliton CDF fingerprints
+ok   fountain block-subset golden vector
+ok   30% dropped frames recover exactly
+ok   duplicate frames are ignored without corruption
+ok   shuffled/out-of-order frames recover exactly
+ok   changed payload fails SHA-256
+ok   malformed/hostile frame headers are rejected before allocation
+ok   malformed container magic and lengths are rejected
+ok   gzip inflation stops at the declared ceiling
+ok   unsolved unique equations stop at a bounded memory ceiling
+ok   maximum-payload equation buffers are bounded to the explicit byte budget
+ok   received filename sanitization handles paths, bidi, invalid and reserved names
+ok   one stray valid frame cannot replace an active session
+ok   two distinct frames replace and isolate the session
+ok   UI Send flow packs locally and enables streaming
+ok   UI Send flow renders a real animated QR frame
+ok   desktop-composited QR remains exactly square
+ok   animated stream has an explicit pause control
+ok   rendered QR decodes through the real ZXing worker to a valid fountain frame
+ok   receiver exposes a download only after SHA-256 integrity verification
+ok   corrupt recovered bytes create no download or completed progress
+ok   invalid UTF-8 snippets fail without completed progress
+ok   receiver reset invalidates an in-flight verification
+ok   mode switch invalidates an in-flight verification
+ok   embedded ZXing worker and data-URI WASM warm under generated CSP
+ok   worker warm-up makes no HTTP(S) request
+ok   Receive reports unavailable camera / secure-context state
+ok   Receive permission denial is explicit and retryable
+ok   maximum-density QR remains square through a live resize to the 760/761px breakpoint
+ok   switching to Receive invalidates hidden sender work
+ok   impossible 2,953-byte ECC M tuning is rejected before streaming
+ok   reduced-motion preference limits the high-contrast stream to 2 FPS
+ok   camera mode reports a device-capped FPS instead of the higher request
+ok   camera mode does not invent an FPS when the track omits it
+ok   camera stop tears down tracks, workers, and Blob lifecycle slots
+ok   camera startup requests the selected 90 FPS mode
+ok   live camera tuning requests the selected 120 FPS mode
+ok   Optical Transfer Beta has no 390px mobile horizontal overflow
+ok   overlapping live FPS changes settle on the newest requested camera mode
+ok   late camera-setting resolution cannot update torn-down UI state
+ok   late camera permission resolution cannot outlive a mode switch
+ok   generated artifact is self-contained
+ok   Optical Transfer Beta is a separate Beta Tools manifest entry
+ok   built page identifies itself as Optical Transfer Beta
+ok   PWA app-shell cache includes optical-beta.html
+ok   generated CSP scopes WASM/data/blob allowances
+ok   mobile HTTPS and PWA offline caveat is visible
+ok   confidentiality warning is explicit
+ok   integrity wording does not imply sender authenticity
+ok   vendored Optical assets match recorded provenance hashes
+ok   generated hub renders Optical Transfer Beta inside Beta Tools
+
+optical beta: PASS
+
+== node tests/smoke.mjs ==
+installed Chrome not found; using Playwright Chromium for local smoke verification
+ok   air.html
+ok   airport.html
+ok   alerts.html
+ok   almanac.html
+ok   apod.html
+ok   arcade.html
+ok   art.html
+ok   asteroids.html
+ok   audio.html
+ok   body.html
+ok   books.html
+ok   budget.html
+ok   calc.html
+ok   checklists.html
+ok   chromalink.html
+ok   cite.html
+ok   color.html
+ok   congress.html
+ok   convert.html
+ok   currency.html
+ok   dataviewer.html
+ok   dates.html
+ok   daylight.html
+ok   dictionary.html
+ok   discussion.html
+ok   dns.html
+ok   drought.html
+ok   elevation.html
+ok   emergency.html
+ok   factbook.html
+ok   fedregister.html
+ok   flashcards.html
+ok   flight.html
+ok   flood.html
+ok   focus.html
+ok   foodrecalls.html
+ok   fuellog.html
+ok   gas.html
+ok   geo.html
+ok   hash.html
+ok   healthlog.html
+ok   holidays.html
+ok   ics.html
+ok   illness.html
+ok   image.html
+ok   index.html
+ok   inflation.html
+ok   iss.html
+ok   jobs.html
+ok   launches.html
+ok   loan.html
+ok   marine.html
+ok   markets.html
+ok   medicine.html
+ok   metronome.html
+ok   nasaimages.html
+ok   nearby.html
+ok   network.html
+ok   normals.html
+ok   notes.html
+ok   nutrition.html
+ok   optical-beta.html
+ok   optical.html
+ok   overhead.html
+ok   paper.html
+ok   parks.html
+ok   passes.html
+ok   password.html
+ok   periodic.html
+ok   printables.html
+ok   qr.html
+ok   quakes.html
+ok   radar.html
+ok   random.html
+ok   recalls.html
+ok   recipes.html
+ok   rhymes.html
+ok   rivers.html
+ok   savings.html
+ok   settings.html
+ok   skyevents.html
+ok   snow.html
+ok   sound.html
+ok   spaceweather.html
+ok   spending.html
+ok   text.html
+ok   tides.html
+ok   timers.html
+ok   transit.html
+ok   treasury.html
+ok   tripcost.html
+ok   tropical.html
+ok   typing.html
+ok   volcano.html
+ok   voting.html
+ok   wayback.html
+ok   weather.html
+ok   weatherhistory.html
+ok   wiki.html
+ok   wildfire.html
+ok   wildlife.html
+ok   word.html
+ok   worldbank.html
+ok   worldclock.html
+ok   yields.html
+ok   zip.html
+
+smoke: 106/106 green
+
+== node tests/pwa-verify.mjs coexist ==
+sw ready; caches: ["suite-v3-coexistence-fixture","suite-v4-9051f492b38b"] (expected suite-v4-9051f492b38b)
+coexistence state after v4 activation: {"keys":["suite-v3-coexistence-fixture","suite-v4-9051f492b38b"],"currentEntries":110,"v3Body":"v3 offline shell","obsoleteV4Present":false}
+V3/V4 CACHE COEXISTENCE OK
+
+== node tests/pwa-verify.mjs install ==
+sw ready; caches: ["suite-v4-9051f492b38b"] (expected suite-v4-9051f492b38b)
+precache entries: 110 (expected 110)
+app manifest url: http://127.0.0.1:8031/manifest.webmanifest; parse errors: []
+installability errors: []
+origin hint: fresh-profile visible=true, with suite.* storage visible=false
+offline shell ok: index.html — "Local Suite · Command Center"
+offline shell ok: convert.html — "Unit & Kitchen Converter · Local Suite"
+offline shell ok: password.html — "Password & Passphrase Generator · Local Suite"
+offline shell ok: timers.html — "Timers · Local Suite"
+offline shell ok: weather.html — "Weather Station · Local Suite"
+offline shell ok: quakes.html — "Earthquake Monitor · Local Suite"
+offline shell ok: apod.html — "Astronomy Picture of the Day · Local Suite"
+offline shell ok: jobs.html — "Jobs & Unemployment Snapshot · Local Suite"
+offline shell ok: airport.html — "Airport & Flight-Weather Board · Local Suite"
+offline function: password.html generated "q&U$pk]c8_^Eoexp$oI4…" (len shown truncated)
+INSTALL/OFFLINE VERIFICATION OK
+
+== post-update release restoration ==
+GATE release-tool-count   pass
+GATE source-text-integrity pass
+GATE manifest-files-sync  pass
+GATE markers              pass
+GATE dist-staleness       pass
+GATE no-inline-handlers   pass
+GATE csp                  pass
+GATE escaping-heuristic   pass
+GATE catalog-crosscheck   pass
+GATE settings-signup-sync pass
+GATE key-hygiene          pass
+GATE no-example-urls      pass
+GATE pwa-sync             pass
+NEGATIVE TESTS          pass (all fatal gates seen to fail on fixtures)
+
+manifest: 105 tools + hub  (71 v1 migrations, 34 suite-native)  by network: {'offline': 44, 'cors-open': 48, 'keyed': 10, 'blocked': 3}  flagged: 32
+
+--check: all fatal gates green
+git diff --check: clean
+PWA update canary: removed

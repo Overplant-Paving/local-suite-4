@@ -240,6 +240,12 @@ release checklist executed · tag pushed.
 
 ## V4 work
 
+- [x] **Local Suite v4.3.4 — Optical Transfer Beta, 2026-08-09.** Adds a separate 105th manifest tool in Beta Tools
+  (106 generated pages; PWA precache 110 entries) while leaving stable Optical Transfer intact.
+  The beta receiver can request 30/60/90/120 camera FPS, reports capped or unreported delivered
+  settings truthfully, serializes rapid live constraint changes, reuses the pinned DCF2/LT and
+  ZXing assets without wire-format changes, and has a dedicated built-page gate wired into Pages.
+
 - [x] **Local Suite v4.3.3 — ChromaLink beta, 2026-08-09.** Adds ChromaLink as the 104th manifest
   tool in Beta Tools (105 generated pages; PWA precache 109 entries):
   phone-to-phone file transfer where the sender animates 8-color 2D frames and the receiver
