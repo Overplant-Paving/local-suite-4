@@ -1,0 +1,6 @@
+=== curl smoke 2026-08-09T07:38:14Z — vite preview of chromalink/dist ===
+GET / -> 200, 436 bytes
+asset ref: assets/index-BPoM2r0L.js
+GET /assets/index-BPoM2r0L.js -> 200, 347863 bytes
+GET /assets/index-ByBRGBex.css -> 200, 2743 bytes
+page contains #chromalink-app root: 1

@@ -1,15 +1,23 @@
 # Local Suite 4
 
-This is **Local Suite v4**, built on the verified v2/v3 single-file architecture. **v4.3.2** contains
-**103 manifest tools** (104 generated pages). It adds Audio Transfer as a separate tool in the new
-**Beta Tools** category while retaining the v4.3.1 Optical Transfer hardening.
+This is **Local Suite v4**, built on the verified v2/v3 single-file architecture. **v4.3.3** contains
+**104 manifest tools** (105 generated pages). It adds **ChromaLink** as the second Beta Tools entry
+while retaining Audio Transfer and the v4.3.1 Optical Transfer hardening unchanged.
 
-Current release: **v4.3.2** (2026-08-08). Audio Transfer is gated by `tests/audio-modem.mjs`,
-`tests/audio-built.mjs`, and the explicit hardware-only `tests/audio-physical.mjs`; release evidence
-is archived under `tests/evidence/v4.3.2-release/`, while v4.3.1 evidence remains under
-`tests/evidence/v4.3.1-release/` and v4.3.0 evidence under `tests/evidence/v4.3-release/`,
-v4.2.0 evidence under `tests/evidence/v4.2-release/`, v4.0.0 evidence under
-`tests/evidence/v4-release/`, and v3.0.0 evidence under `tests/evidence/v3-release/`.
+**v4.3.3 adds ChromaLink** as the 104th manifest tool — phone-to-phone file transfer via 8-color
+animated frames read by the camera, with RaptorQ fountain recovery and SHA-256-gated
+reconstruction. See [CHROMALINK.md](CHROMALINK.md); the TypeScript/Vite source lives in
+`chromalink/`, and `dist/chromalink.html` is generated. Its synthetic and browser gates are green
+(82 Vitest tests, 58 built-page checks), but two-device physical over-air performance remains an
+unverified beta claim until a documented hardware matrix exists.
+
+Current release: **v4.3.3** (2026-08-09). ChromaLink is gated by the `chromalink/` Vitest suite
+and `tests/chromalink-built.mjs` (wired into the Pages workflow); release evidence is archived
+under `tests/evidence/v4.3.3-release/`, with detailed implementation evidence under
+`tests/evidence/chromalink/`. Earlier release evidence remains under
+`tests/evidence/v4.3.2-release/`, `tests/evidence/v4.3.1-release/`, `tests/evidence/v4.3-release/`
+(v4.3.0), `tests/evidence/v4.2-release/`, `tests/evidence/v4-release/` (v4.0.0), and
+`tests/evidence/v3-release/` (v3.0.0).
 
 **v4.1.0 was released and deployed on 2026-07-31.** It added **Flood Risk & Conditions**
 (`flood.html`) as the 101st tool: one exact, explicitly confirmed U.S. point is screened against
@@ -38,13 +46,20 @@ no network or relay path; microphone capture requires a secure hosted/PWA contex
 Software, generated-page, and deterministic digital-loopback gates pass; two-device physical
 over-air compatibility, reliability, range, and goodput remain unverified beta claims.
 
+**v4.3.3 adds ChromaLink** as the 104th tool, the second Beta Tools card. The sender animates
+8-color N×N frames (60/100/140 grids) on its screen; the receiver decodes them through the
+camera with RaptorQ (RFC 6330) fountain recovery, GF(256) Reed–Solomon frame protection,
+fail-closed CRC checks, and SHA-256-gated reconstruction. Payload bytes never touch a network.
+The installable PWA precaches 109 entries. As with Audio Transfer, the physical claim boundary is
+explicit: synthetic and browser gates pass, but real two-phone over-air performance is unverified.
+
 **To use the suite: open [`dist/index.html`](dist/index.html).** Everything in `dist/` is
 built and self-contained — double-click any file there. The `tools/` folder holds the
 *sources*, which don't link up until `python3 build.py` runs.
 
 ## What Local Suite is
 
-A family of 103 **single-file HTML tools** — weather station, earthquake monitor, flight tracker,
+A family of 104 **single-file HTML tools** — weather station, earthquake monitor, flight tracker,
 calculator workbench, recipe box, periodic table, DNS lookup, arcade — plus a hub page that maps
 them all, with favorites and recently-used quick access. The philosophy (unchanged in v4):
 

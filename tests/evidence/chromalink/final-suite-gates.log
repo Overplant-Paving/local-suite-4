@@ -1,0 +1,192 @@
+=== ChromaLink final Local Suite gates (review-fix pass), 2026-08-09T10:59:03Z ===
+
+--- python3 build.py ---
+built dist/zip.html (57033 bytes)
+pwa: sw.js (suite-v4-15f5bd61e159, 109 precached) + manifest.webmanifest + 3 icons
+105 file(s) built.
+
+--- python3 build.py --check ---
+manifest: 104 tools + hub  (71 v1 migrations, 33 suite-native)  by network: {'offline': 43, 'cors-open': 48, 'keyed': 10, 'blocked': 3}  flagged: 31
+
+--check: all fatal gates green
+
+--- node tests/chromalink-built.mjs ---
+ok   built page carries the exact search status string
+ok   built page carries the exact first-mismatch corruption string
+ok   built page carries the unlocked-mismatch fresh-sync string
+ok   built page carries the exact camera-permission string
+ok   chooser shows the two full-width mode buttons
+ok   suite theme toggle flips
+ok   sender mounts after fountain init (wasm under CSP)
+ok   stream shows the exact propping/brightness hint
+ok   frame counter advances while streaming
+ok   quiet zone renders exact white
+ok   canvas is square with integer device pixels
+ok   frames actually change on the canvas
+ok   grid/fps selects are locked while streaming
+ok   stop tears the stage down
+ok   selects unlock after stop
+ok   desktop run made no HTTP(S) request
+ok   desktop run had no console/page errors
+ok   desktop run had no CSP violations
+ok   denied camera shows the exact permission message
+ok   denied camera offers a retry control
+ok   denied-camera path has no unexpected errors
+ok   fake camera reaches the worker-driven search state
+ok   no-finder scene shows the exact search status after 1 s
+ok   desktop receive: overlay guide exists
+ok   desktop receive: guide is square
+ok   desktop receive: guide side is 70% of the shorter viewport edge
+ok   desktop receive: guide is centered on the camera stage
+ok   repeated Reset never opens a concurrent camera
+ok   receive loop keeps running after repeated Reset
+ok   fake-camera run had no console/page errors
+ok   worker + camera run under CSP with no violations
+ok   a Retry storm opens at most one camera request at a time
+ok   retry-storm run has no unexpected errors
+ok   getUserMedia resolving after pagehide stops the track (no leak)
+ok   pagehide race run had no console/page errors
+ok   wake lock granted after Stop is released, not attached to stale state
+ok   wake-lock race run had no console/page errors
+ok   a failure after the stage is appended removes the stage
+ok   controls unlock after the failed start
+ok   the failed start reports a visible error status
+ok   stage-failure run has no unexpected errors
+ok   mobile chooser buttons fill their column
+ok   mobile page has no horizontal scroll
+ok   mobile boot had no console/page errors
+ok   mobile no-finder scene shows the exact search status after 1 s
+ok   mobile receive: overlay guide exists
+ok   mobile receive: guide is square
+ok   mobile receive: guide side is 70% of the shorter viewport edge
+ok   mobile receive: guide is centered on the camera stage
+ok   mobile receive run had no console/page errors
+
+all ChromaLink built-page checks passed
+
+--- node tests/optical-built.mjs ---
+ok   confidentiality warning is explicit
+ok   integrity wording does not imply sender authenticity
+ok   vendored Optical assets match recorded provenance hashes
+
+optical: PASS
+
+--- node tests/audio-modem.mjs ---
+ok   48000 Hz R1-BPSK DATA decode after 6144-sample pre-roll
+ok   48000 Hz R1-BPSK DATA identity
+ok   48000 Hz R1-BPSK DATA exact payload
+
+audio modem: PASS
+
+--- node tests/audio-built.mjs ---
+ok   generated direct-file sender starts embedded Worker and data-URL AudioWorklet
+ok   direct-file sender makes no HTTP(S) request
+ok   direct-file sender has no console/page errors
+
+audio: PASS
+
+--- node tests/smoke.mjs ---
+smoke: 105/105 green (full log: final-smoke.log)
+
+--- git diff --check ---
+clean
+
+=== ChromaLink final Local Suite gates (final hardening pass), 2026-08-09T11:30:46Z ===
+--- python3 build.py ---
+pwa: sw.js (suite-v4-c78b1a253df7, 109 precached) + manifest.webmanifest + 3 icons
+105 file(s) built.
+--- python3 build.py --check ---
+manifest: 104 tools + hub  (71 v1 migrations, 33 suite-native)  by network: {'offline': 43, 'cors-open': 48, 'keyed': 10, 'blocked': 3}  flagged: 31
+
+--check: all fatal gates green
+exit 0
+--- node tests/chromalink-built.mjs ---
+ok   built page carries the exact search status string
+ok   built page carries the exact first-mismatch corruption string
+ok   built page carries the unlocked-mismatch fresh-sync string
+ok   built page carries the exact camera-permission string
+ok   chooser shows the two full-width mode buttons
+ok   suite theme toggle flips
+ok   sender mounts after fountain init (wasm under CSP)
+ok   stream shows the exact propping/brightness hint
+ok   frame counter advances while streaming
+ok   quiet zone renders exact white
+ok   canvas is square with integer device pixels
+ok   frames actually change on the canvas
+ok   grid/fps selects are locked while streaming
+ok   stop tears the stage down
+ok   selects unlock after stop
+ok   desktop run made no HTTP(S) request
+ok   desktop run had no console/page errors
+ok   desktop run had no CSP violations
+ok   denied camera shows the exact permission message
+ok   denied camera offers a retry control
+ok   denied-camera path has no unexpected errors
+ok   fake camera reaches the worker-driven search state
+ok   no-finder scene shows the exact search status after 1 s
+ok   desktop receive: overlay guide exists
+ok   desktop receive: guide is square
+ok   desktop receive: guide side is 70% of the shorter viewport edge
+ok   desktop receive: guide is centered on the camera stage
+ok   repeated Reset never opens a concurrent camera
+ok   receive loop keeps running after repeated Reset
+ok   fake-camera run had no console/page errors
+ok   worker + camera run under CSP with no violations
+ok   a Retry storm opens at most one camera request at a time
+ok   retry-storm run has no unexpected errors
+ok   getUserMedia resolving after pagehide stops the track (no leak)
+ok   pagehide race run had no console/page errors
+ok   wake lock granted after Stop is released, not attached to stale state
+ok   wake-lock race run had no console/page errors
+ok   a failure after the stage is appended removes the stage
+ok   controls unlock after the failed start
+ok   the failed start reports a visible error status
+ok   stage-failure run has no unexpected errors
+ok   Start arms for a valid selection
+ok   Start is disabled while a stream is active
+ok   Start re-arms after Stop with the valid file still selected
+ok   start-validity run had no console/page errors
+ok   empty start-time read keeps Start disabled for that selection
+ok   a newly selected file re-arms Start after the failed read
+ok   the fresh selection streams normally after the failed read
+ok   empty-read run had no console/page errors
+ok   mobile chooser buttons fill their column
+ok   mobile page has no horizontal scroll
+ok   mobile boot had no console/page errors
+ok   mobile no-finder scene shows the exact search status after 1 s
+ok   mobile receive: overlay guide exists
+ok   mobile receive: guide is square
+ok   mobile receive: guide side is 70% of the shorter viewport edge
+ok   mobile receive: guide is centered on the camera stage
+ok   mobile receive run had no console/page errors
+
+all ChromaLink built-page checks passed
+exit 0
+--- node tests/optical-built.mjs ---
+ok   integrity wording does not imply sender authenticity
+ok   vendored Optical assets match recorded provenance hashes
+
+optical: PASS
+exit 0
+--- node tests/audio-modem.mjs ---
+ok   48000 Hz R1-BPSK DATA identity
+ok   48000 Hz R1-BPSK DATA exact payload
+
+audio modem: PASS
+exit 0
+--- node tests/audio-built.mjs ---
+ok   direct-file sender makes no HTTP(S) request
+ok   direct-file sender has no console/page errors
+
+audio: PASS
+exit 0
+--- node tests/smoke.mjs ---
+ok   yields.html
+ok   zip.html
+
+smoke: 105/105 green
+exit 0
+--- git diff --check ---
+clean (exit 0)
+--- git diff --check (re-run after evidence/doc refresh) ---
+clean (exit 0)

@@ -1,0 +1,21 @@
+=== ChromaLink vision tuning ladder (spec: sample 50->40, bias -7->-10, tolerance 45->55) ===
+baseline (0.25/-7/45), 30-frame probe: N60 24/30, N100 22/30 (gates need 98%/95%)
+step1 sampleHalf 0.25->0.20: N60 24/30, N100 22/30 (no change)
+step2 bias -7->-10: N60 24/30, N100 22/30 (no change)
+step3 tolerance 45->55: N60 26/30, N100 22/30 (helped N60)
+post-ladder structural work (not knob tuning): structural finder verification & scoring,
+corner/edge tracing at capture resolution, leave-one-out anchor subsets, template alignment
+with separator ring, dual/triple detection scales (240/320 fallback), candidate-list decoding,
+errors-and-erasures RS, per-band purity offsets, BR corner sweep incl. calibration-free rescue.
+FINAL official gates (seeds 0xa100/0xa060, mixed beacon parity): N100 95.0% (>=95 PASS),
+N60 99.0% (>=98 PASS). Blur radius 3 rejected at native-scale capture (sharpness sigma metric).
+
+=== 2026-08-09 review-fix pass: gate path change (no threshold change) ===
+The official distortion gates now run the production receive path
+(lib/receive-pipeline: staged 160->240->320 scales escalating only on decode
+failure) instead of decode-everything-at-every-scale. Floors unchanged
+(N100 >=95%, N60 >=98%). Results on the fixed official seeds after the
+payloadId=packet[0..4] protocol-consistency fix (new random draw):
+N100 99.0% (>=95 PASS), N60 98.0% (>=98 PASS).
+Blur gate reworked honestly through the normal 720px capture path — see
+blur-measurements.log for the sharpness/decode table and rationale.

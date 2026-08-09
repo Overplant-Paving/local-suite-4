@@ -38,6 +38,7 @@ jobs:
       - run: node tests/optical-built.mjs
       - run: node tests/audio-modem.mjs
       - run: node tests/audio-built.mjs
+      - run: node tests/chromalink-built.mjs
       - run: node tests/smoke.mjs
       - run: node tests/pwa-verify.mjs coexist
   deploy:

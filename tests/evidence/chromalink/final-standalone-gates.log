@@ -1,0 +1,69 @@
+=== ChromaLink final standalone gates (review-fix pass), 2026-08-09T10:58:10Z ===
+
+--- npm ci ---
+  run `npm fund` for details
+
+found 0 vulnerabilities
+
+--- npx tsc --noEmit ---
+exit 0
+
+--- npx vitest run (full) ---
+vision gate N100: 99.0%
+vision gate N60: 98.0%
+e2e: K=364 emitted=475 (budget 492) decoded=364 unique=364
+ Test Files  12 passed (12)
+      Tests  79 passed (79)
+
+--- npm run build ---
+dist/index.html                   0.43 kB │ gzip:   0.29 kB
+dist/assets/index-B-jLHWSR.css    3.02 kB │ gzip:   1.08 kB
+dist/assets/index-D1lJwMi3.js   397.51 kB │ gzip: 190.51 kB
+
+✓ built in 104ms
+
+--- export determinism: two build+export cycles ---
+export-suite: wrote tools/chromalink.html (403097 bytes; bundle assets/index-D1lJwMi3.js, css assets/index-B-jLHWSR.css)
+export-suite: wrote tools/chromalink.html (403097 bytes; bundle assets/index-D1lJwMi3.js, css assets/index-B-jLHWSR.css)
+hash1=44244e1434bd1d10176d9b76cb0b8c6092c5f86ae6e759bd859a9526be67fb06
+hash2=44244e1434bd1d10176d9b76cb0b8c6092c5f86ae6e759bd859a9526be67fb06
+deterministic: IDENTICAL
+
+--- no absolute cwd leaked into bundle ---
+clean
+
+=== ChromaLink final standalone gates (final hardening pass), 2026-08-09T11:27:57Z ===
+
+--- npm ci ---
+  run `npm fund` for details
+
+found 0 vulnerabilities
+
+--- npx tsc --noEmit ---
+exit 0
+
+--- npx vitest run (full) ---
+ Test Files  13 passed (13)
+      Tests  82 passed (82)
+vision gate N100: 99.0%
+vision gate N60: 98.0%
+e2e: K=364 emitted=475 (budget 492) decoded=364 unique=364
+(rates captured via --disableConsoleIntercept rerun of vision + e2e files, 8/8 passed)
+
+--- npm run build ---
+dist/index.html                   0.43 kB │ gzip:   0.28 kB
+dist/assets/index-B-jLHWSR.css    3.02 kB │ gzip:   1.08 kB
+dist/assets/index-BLCkit7o.js   397.68 kB │ gzip: 190.61 kB
+✓ built in 84ms
+
+--- export determinism: two build+export cycles ---
+> node scripts/export-suite.mjs
+export-suite: wrote tools/chromalink.html (403266 bytes; bundle assets/index-BLCkit7o.js, css assets/index-B-jLHWSR.css)
+> node scripts/export-suite.mjs
+export-suite: wrote tools/chromalink.html (403266 bytes; bundle assets/index-BLCkit7o.js, css assets/index-B-jLHWSR.css)
+hash1=af37d5bee9f306bcebaef8223d55788aebedac8c0e0a1713f514f778c1863793
+hash2=af37d5bee9f306bcebaef8223d55788aebedac8c0e0a1713f514f778c1863793
+deterministic: IDENTICAL
+
+--- no absolute cwd leaked into bundle ---
+clean

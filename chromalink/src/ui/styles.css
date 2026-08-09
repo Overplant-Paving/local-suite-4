@@ -1,0 +1,218 @@
+/* ChromaLink UI. Every selector is scoped under #chromalink-app (or .cl-*)
+   so the same stylesheet is safe inside the Local Suite page. */
+
+#chromalink-app {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--ink, #1d232a);
+  max-width: 100%;
+}
+
+#chromalink-app * {
+  box-sizing: border-box;
+}
+
+.cl-chooser {
+  display: grid;
+  gap: 0.8rem;
+  margin: 1.2rem auto;
+  max-width: 30rem;
+}
+
+.cl-mode-btn {
+  width: 100%;
+  min-height: 4.2rem;
+  font: inherit;
+  font-size: 1.25rem;
+  font-weight: 700;
+  border-radius: 12px;
+  border: 1px solid var(--line, #c9cfd6);
+  background: var(--card, #ffffff);
+  color: inherit;
+  cursor: pointer;
+}
+
+.cl-mode-btn:focus-visible {
+  outline: 3px solid var(--accent, #2f6f6a);
+  outline-offset: 2px;
+}
+
+.cl-loading,
+.cl-error {
+  margin: 1.2rem auto;
+  max-width: 30rem;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.cl-error {
+  color: var(--alert, #a83b2e);
+}
+
+.cl-reload-btn,
+.cl-btn {
+  min-height: 44px;
+  padding: 0.55rem 1rem;
+  font: inherit;
+  font-weight: 650;
+  border-radius: 10px;
+  border: 1px solid var(--line, #c9cfd6);
+  background: var(--card, #ffffff);
+  color: inherit;
+  cursor: pointer;
+}
+
+.cl-btn-primary {
+  border-color: var(--accent, #2f6f6a);
+  background: var(--accent, #2f6f6a);
+  color: var(--bg, #ffffff);
+}
+
+.cl-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.cl-field {
+  display: block;
+  margin-top: 0.9rem;
+  font-size: 0.9rem;
+  color: var(--muted, #5f6670);
+}
+
+.cl-field select,
+.cl-field input[type="file"] {
+  display: block;
+  width: 100%;
+  margin-top: 0.3rem;
+  padding: 0.55rem 0.6rem;
+  font: inherit;
+  color: inherit;
+  background: var(--bg, #ffffff);
+  border: 1px solid var(--line, #c9cfd6);
+  border-radius: 9px;
+}
+
+.cl-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 1rem;
+}
+
+.cl-status {
+  margin-top: 0.9rem;
+  min-height: 2.4rem;
+  padding: 0.6rem 0.7rem;
+  border-radius: 8px;
+  background: var(--card, #f4f5f7);
+  border: 1px solid var(--line, #c9cfd6);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+/* The streaming stage is deliberately exact white in every theme: the
+   receiver's calibration assumes a white surround, not a design choice. */
+.cl-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: #ffffff;
+  color: #1d232a;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+}
+
+.cl-stage canvas {
+  display: block;
+  background: #ffffff;
+}
+
+.cl-stage-meta {
+  font-size: 0.95rem;
+  color: #444c55;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  padding: 0 1rem;
+}
+
+.cl-receive-stage {
+  position: relative;
+  margin-top: 1rem;
+  max-width: 40rem;
+  min-height: 70vmin;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: #000;
+}
+
+.cl-receive-stage video {
+  width: 100%;
+  border-radius: 12px;
+  background: #000;
+}
+
+/* Aiming guide: a centered square whose side is exactly 70% of the shorter
+   viewport edge (70vmin) — hold the code inside it. */
+.cl-guide {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 70vmin;
+  height: 70vmin;
+  transform: translate(-50%, -50%);
+  border: 3px solid rgba(255, 255, 255, 0.85);
+  border-radius: 14px;
+  pointer-events: none;
+}
+
+.cl-overlay-status {
+  position: absolute;
+  left: 0.6rem;
+  bottom: 0.6rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.cl-done {
+  margin-top: 1rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid var(--good, #2f6f51);
+  border-radius: 10px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.cl-download {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-top: 0.6rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: 9px;
+  background: var(--accent, #2f6f6a);
+  color: var(--bg, #ffffff);
+  text-decoration: none;
+  font-weight: 650;
+}
+
+.cl-hint {
+  color: var(--muted, #5f6670);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-top: 0.6rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #chromalink-app * {
+    transition: none !important;
+  }
+}

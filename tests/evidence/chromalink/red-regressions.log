@@ -1,0 +1,124 @@
+=== RED regression evidence (before fixes), 2026-08-09T10:31:19Z ===
+
+--- hostile OTI bounds (fix 1): parseOti accepts F beyond the 64 MiB container ---
++ Received:
+{
+  "packetBytes": 5924,
+  "sourceBlocks": 2,
+  "sourceSymbols": 11337,
+  "symbolSize": 5920,
+  "transferLength": 67109162,
+}
+
+ ❯ test/fountain.test.ts:110:59
+    108|     expect(parseOti(buildOti(maxContainer, 5920, 2))).not.toBeNull();
+    109|     // F beyond the 64 MiB transfer container is impossible for this w…
+    110|     expect(parseOti(buildOti(maxContainer + 1, 5920, 2))).toBeNull();
+       |                                                           ^
+    111|     // a ~1 TB 40-bit F must never reach the decoder
+    112|     expect(parseOti(buildOti(2 ** 39, 5920, 2))).toBeNull();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 6 passed (7)
+   Start at  05:31:19
+   Duration  190ms (transform 67ms, setup 0ms, import 87ms, tests 40ms, environment 0ms)
+
+
+--- no-finder state (fix 2): pipeline reports nogrid when no finder triple exists ---
+
+Expected: "nofinder"
+Received: "washout"
+
+ ❯ test/vision.test.ts:147:27
+    145|     const { outcomes, fallback } = analyzeFrameCandidates(img, freshVi…
+    146|     expect(outcomes.length).toBe(0);
+    147|     expect(fallback.kind).toBe('nofinder');
+       |                           ^
+    148|   }, 60_000);
+    149|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 4 skipped (5)
+   Start at  05:31:19
+   Duration  356ms (transform 141ms, setup 0ms, import 168ms, tests 121ms, environment 0ms)
+
+
+=== RED regression evidence (final hardening pass, before fixes), 2026-08-09T11:22:23Z ===
+
+--- fix A (receive-session): decoder.addPacket throw escapes accept() toward the worker-message handler ---
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/receive-session.test.ts > receive session > contains addPacket failures: typed rejection, then a clean transfer completes
+Error: decoder addPacket blew up
+ ❯ Object.addPacket test/receive-session.test.ts:57:19
+     55|           if (state.failAddNext) {
+     56|             state.failAddNext = false;
+     57|             throw new Error('decoder addPacket blew up');
+       |                   ^
+     58|           }
+     59|           feed.push(pkt.slice());
+ ❯ Object.accept src/lib/receive-session.ts:118:23
+ ❯ test/receive-session.test.ts:177:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  test/receive-session.test.ts > receive session > contains addPacket failures even when dispose also throws
+Error: decoder addPacket blew up
+ ❯ Object.addPacket test/receive-session.test.ts:57:19
+     55|           if (state.failAddNext) {
+     56|             state.failAddNext = false;
+     57|             throw new Error('decoder addPacket blew up');
+       |                   ^
+     58|           }
+     59|           feed.push(pkt.slice());
+ ❯ Object.accept src/lib/receive-session.ts:118:23
+ ❯ test/receive-session.test.ts:202:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 8 passed (10)
+   Start at  06:22:24
+   Duration  267ms (transform 93ms, setup 0ms, import 133ms, tests 27ms, environment 0ms)
+
+
+--- fix B (receiver-app): stale finalizer clears shared 'finalizing' flag; a third finalization starts while B is pending ---
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  test/receiver-finalize.test.ts > receiver finalization ownership > a stale finalizer resolving after Reset neither mutates UI nor unblocks a duplicate
+AssertionError: expected 3 to be 2 // Object.is equality
+
+- Expected
++ Received
+
+- 2
++ 3
+
+ ❯ test/receiver-finalize.test.ts:184:35
+    182|     // clear the shared flag and let C through)
+    183|     post(packetMessage(1, 9, 3));
+    184|     expect(pendingDigests.length).toBe(2);
+       |                                   ^
+    185|
+    186|     // B resolves and completes exactly once
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  06:22:24
+   Duration  333ms (transform 84ms, setup 0ms, import 115ms, tests 15ms, environment 104ms)
+
+
+--- fix C (sender-app): Start button enabled while a stream is active / after a start-time empty read (built gate vs unfixed dist) ---
+FAIL Start is disabled while a stream is active
+FAIL empty start-time read keeps Start disabled for that selection
+2 check(s) failed

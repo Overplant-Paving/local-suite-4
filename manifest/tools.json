@@ -2166,6 +2166,26 @@
         "mediaSrc": ["mediastream:"],
         "workerSrc": ["blob:"]
       }
+    },
+    {
+      "id": "chromalink",
+      "file": "chromalink.html",
+      "name": "ChromaLink",
+      "cat": "beta",
+      "cx": "L",
+      "desc": "Send a file phone-to-phone as animated 8-color frames read by the camera, with RaptorQ fountain recovery and SHA-256 verification.",
+      "network": "offline",
+      "key": null,
+      "endpoints": [],
+      "storage": ["suite.theme"],
+      "cacheTtlMin": null,
+      "since": "v4.3.3",
+      "flags": ["camera-secure-context", "large-inline-asset"],
+      "cspExtra": {
+        "scriptSrc": ["'wasm-unsafe-eval'"],
+        "mediaSrc": ["mediastream:", "blob:"],
+        "workerSrc": ["blob:"]
+      }
     }
   ]
 }

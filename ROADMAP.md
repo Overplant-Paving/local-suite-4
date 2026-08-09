@@ -240,6 +240,40 @@ release checklist executed · tag pushed.
 
 ## V4 work
 
+- [x] **Local Suite v4.3.3 — ChromaLink beta, 2026-08-09.** Adds ChromaLink as the 104th manifest
+  tool in Beta Tools (105 generated pages; PWA precache 109 entries):
+  phone-to-phone file transfer where the sender animates 8-color 2D frames and the receiver
+  decodes them through the camera with RaptorQ (RFC 6330, `raptorq@1.7.24` wasm) fountain
+  recovery, an inner GF(256) RS(255,223) interleave, RS(42,28)-protected headers, CRC32/CRC16
+  fail-closed frame validation, and SHA-256-gated reconstruction. The implementation is a strict
+  TypeScript/Vite subproject in `chromalink/` (locked `package-lock.json`, npm confined there);
+  `chromalink/scripts/export-suite.mjs` deterministically regenerates `tools/chromalink.html`
+  from the Vite build and `python3 build.py` produces the self-contained `dist/chromalink.html`.
+  A 2026-08-09 review-fix pass hardened hostile-OTI bounds, locked sessions to
+  transferId + exact OTI, serialized the camera frame pump, added receiver/sender lifecycle
+  guards, the 70vmin aiming guide with exact status texts, per-reason worker statistics, and
+  made the 240/320 px detection scales true decode-failure fallbacks. A same-day final
+  hardening pass contained `addPacket` failures in the receive session (typed
+  `decoder-failed` rejection with safe disposal and lock release), replaced the receiver's
+  shared finalizing flag with session-scoped finalization ownership (a stale SHA-256
+  finalizer resolving after Reset can no longer admit a duplicate finalization), and made
+  the sender's Start button track true validity (non-empty, ≤64 MiB, not condemned by a
+  start-time read, no stream/start active — a second click can no longer overlap streams).
+  Standalone gates:
+  `npx tsc --noEmit`, 82 Vitest tests including 100-frame production-path distortion gates
+  (N100 99%, N60 98% against ≥95/≥98 floors), gate-scale blur rejection through the normal
+  720 px capture (with the measured radius-3-still-decodable pin,
+  `tests/evidence/chromalink/blur-measurements.log`), and a 1 MiB Node E2E loopback under full
+  phase-3 distortion with 20% frame loss completing within K·1.35 packets with the decoder
+  built from the first decoded header OTI. Suite gates: `python3 build.py --check`,
+  `node tests/chromalink-built.mjs` (file:// boot under generated CSP, wasm init, sender
+  streaming, exact camera-denied state, fake-camera worker loop, lifecycle-race regressions,
+  guide geometry, mobile layout), wired into `.github/workflows/pages.yml`. Release evidence:
+  `tests/evidence/v4.3.3-release/`; implementation evidence:
+  `tests/evidence/chromalink/`. Synthetic and browser gates do not prove two-phone over-air
+  performance; physical compatibility, reliability, range, and goodput remain unverified beta
+  claims until a documented hardware matrix exists.
+
 - [x] **Local Suite v4.3.2 — Audio Transfer beta, 2026-08-08.** Added Audio Transfer as the 103rd
   manifest tool and placed it in the new **Beta Tools** hub category. The self-contained page
   implements speaker-to-microphone transfer of arbitrary binary files using audible C0/R1 BPSK OFDM, bounded deterministic

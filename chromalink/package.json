@@ -1,0 +1,31 @@
+{
+  "name": "chromalink",
+  "private": true,
+  "version": "0.1.0",
+  "description": "ChromaLink — optical file transfer between two phones via 8-color animated frames and RaptorQ fountain coding",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "export:suite": "node scripts/export-suite.mjs"
+  },
+  "dependencies": {
+    "crc-32": "1.2.2",
+    "fflate": "0.8.3",
+    "raptorq": "1.7.24"
+  },
+  "devDependencies": {
+    "@noble/hashes": "2.3.0",
+    "@types/node": "22.19.3",
+    "happy-dom": "20.11.2",
+    "typescript": "7.0.2",
+    "vite": "8.2.1",
+    "vitest": "4.1.10"
+  }
+}

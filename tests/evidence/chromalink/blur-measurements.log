@@ -1,0 +1,34 @@
+=== ChromaLink blur-gate measurement evidence, 2026-08-09T10:54:20Z ===
+Command: npx vitest run test/blur-evidence.test.ts --disable-console-intercept
+
+Method: N100 frames rendered at 6 px/module, captured through the normal
+720x720 synthetic path with full phase-3 distortion, box blur applied last
+(defocused optics blur the already-noisy sensor image). Sharpness is the
+production 160 px downscale Laplacian deviation; SHARPNESS_MIN = 25.
+
+N100, phase-3 distortion (rot ±8°, corners ±4%, σ8 noise, ±20 brightness), blur applied last:
+  blur= 0@720px (12 trials): decode=100%  sharpness(160px gate)=[231.5..244.1]  gate SHARPNESS_MIN=25
+  blur= 2@720px (12 trials): decode=100%  sharpness(160px gate)=[140.0..148.6]  gate SHARPNESS_MIN=25
+  blur= 3@720px (40 trials): decode= 88%  sharpness(160px gate)=[91.4..102.6]  gate SHARPNESS_MIN=25
+  blur= 4@720px (12 trials): decode=  0%  sharpness(160px gate)=[60.5..67.7]  gate SHARPNESS_MIN=25
+  blur= 5@720px (12 trials): decode=  0%  sharpness(160px gate)=[42.4..46.7]  gate SHARPNESS_MIN=25
+  blur= 6@720px (12 trials): decode=  0%  sharpness(160px gate)=[33.1..35.5]  gate SHARPNESS_MIN=25
+  blur= 8@720px (12 trials): decode=  0%  sharpness(160px gate)=[22.9..25.2]  gate SHARPNESS_MIN=25
+  blur=10@720px (12 trials): decode=  0%  sharpness(160px gate)=[17.2..18.6]  gate SHARPNESS_MIN=25
+  blur=12@720px (12 trials): decode=  0%  sharpness(160px gate)=[13.3..14.7]  gate SHARPNESS_MIN=25
+  blur=13@720px (12 trials): decode=  0%  sharpness(160px gate)=[11.8..13.1]  gate SHARPNESS_MIN=25
+  blur=14@720px (12 trials): decode=  0%  sharpness(160px gate)=[10.5..12.0]  gate SHARPNESS_MIN=25
+      Tests  1 passed (1)
+
+Conclusion: radius-3 blur at capture resolution measures ~91..103 on the
+160 px gate — far above SHARPNESS_MIN=25 — and still decodes 88% of
+frames (35/40); rejecting it as blur would discard mostly-decodable
+captures, so the gate must NOT fire there. The gate's calibrated
+"radius 3" blur condition lives in its own 160 px domain, i.e. radius
+3*(720/160)=13.5 at capture scale: radii 13 and 14 measure ~10..13 and
+are rejected as blur through the same normal 720 px capture path. The
+shipped gate (chromalink/test/vision.test.ts) asserts both truths and
+never bypasses the normal capture geometry. The requested literal gate
+"radius-3@720 => rejected as blur" is contradicted by this measurement
+and was therefore not implemented; this is the honest deviation, with
+the decode-rate table above as evidence.
