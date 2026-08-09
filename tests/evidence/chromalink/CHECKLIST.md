@@ -1,8 +1,8 @@
 # ChromaLink integration evidence — 2026-08-09 (incl. same-day review-fix and final hardening passes)
 
-Integrated as the **Local Suite v4.3.3 release candidate** (release date
-2026-08-09). All local synthetic and browser gates below are green; hosted
-publication, deployment, and tagging are pending and are tracked in
+Released and deployed as **Local Suite v4.3.3** on 2026-08-09. All local synthetic and
+browser gates below are green; hosted publication, byte-for-byte artifact verification,
+tagging, and the GitHub release are recorded in
 `tests/evidence/v4.3.3-release/release-checklist.md`. Contract:
 `CHROMALINK-SPEC.md`; tool doc: `CHROMALINK.md`.
 

@@ -1,0 +1,49 @@
+# Local Suite v4.3.3 — hosted verification
+
+Date: 2026-08-09
+Release commit deployed: `b37effacabff16f33cae89be6678785509087276`
+Pages workflow: https://github.com/Overplant-Paving/local-suite-4/actions/runs/31318839087 — success (`verify` and `deploy` both green)
+Hosted suite: https://overplant-paving.github.io/local-suite-4/
+Hosted ChromaLink: https://overplant-paving.github.io/local-suite-4/chromalink.html
+
+## Byte-for-byte hosted artifact verification
+
+Cache-busted HTTPS fetches were compared with the committed `dist/` files using `cmp`; all matched exactly:
+
+- `index.html`: 95,407 bytes; SHA-256 `2ba2ef0a5ac551d04314c1d8b869c7e1911906c2b2fe2b4a0939eb246fdf7587`
+- `chromalink.html`: 433,850 bytes; SHA-256 `dee4d199705e3b2f484fd3295962b0bf2b01267c2bc03d0b25da3cf6b6146d2c`
+- `sw.js`: 3,821 bytes; SHA-256 `452f4ba3764d1440918a282b83974f20bb8378d1d1f868c283ebe7ce575a0108`
+- `manifest.webmanifest`: 612 bytes; SHA-256 `b8026cd897c7ef01eb80d9c43f8bbdc066b9320d9ebbb116345ca87dda492b10`
+
+GitHub Pages returned HTTP 200 over HTTPS with `strict-transport-security` and `content-type: text/html; charset=utf-8` for ChromaLink.
+
+## Fresh-browser hosted QA
+
+Playwright Chromium opened the actual GitHub Pages deployment in fresh desktop and mobile contexts.
+
+Hub assertions:
+
+- Exact 104-tool KPI visible.
+- `🧪 Beta Tools` contains two separate cards: Audio Transfer and ChromaLink.
+- ChromaLink card links to the hosted `/local-suite-4/chromalink.html` page.
+- Service worker controls the hosted hub after the expected first-load reload.
+- No horizontal overflow and no console/page errors.
+
+ChromaLink assertions:
+
+- HTTPS secure context.
+- Correct `ChromaLink · Local Suite` page and Beta warning.
+- Separate Send and Receive chooser controls.
+- Explicit no-network transport wording.
+- No desktop or 390×844 mobile horizontal overflow.
+- Mobile Send/Receive buttons each measured 350 px wide in the 390 px viewport.
+- No console/page errors.
+
+Evidence:
+
+- `hosted-browser.json`
+- `hosted-hub.png`
+- `hosted-chromalink.png`
+- `hosted-chromalink-mobile.png`
+
+Visual review found no clipping, overlap, malformed cards, or release-blocking defects. Physical two-phone camera-to-screen transfer remains unverified because no device was attached; hosted/synthetic/browser verification does not replace that hardware gate.

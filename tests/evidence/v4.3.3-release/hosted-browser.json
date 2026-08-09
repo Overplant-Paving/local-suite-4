@@ -1,0 +1,44 @@
+{
+  "release": "b37effacabff16f33cae89be6678785509087276",
+  "base": "https://overplant-paving.github.io/local-suite-4/",
+  "hub": {
+    "title": "Local Suite · Command Center",
+    "bodyHas104Tools": true,
+    "betaText": "🧪 Beta Tools 2 toolsAudio Transfer☆Send files speaker-to-microphone with C0/R1 audible OFDM, BPSK fountain data, and SHA-256 verified recovery.offlineno keybuild: Laudio.htmlChromaLink☆Send a file phone-to-phone as animated 8-color frames read by the camera, with RaptorQ fountain recovery and SHA-256 verification.offlineno keybuild: Lchromalink.html",
+    "betaCards": [
+      "Audio Transfer☆Send files speaker-to-microphone with C0/R1 audible OFDM, BPSK fountain data, and SHA-256 verified recovery.offlineno keybuild: Laudio.html",
+      "Audio Transfer",
+      "ChromaLink☆Send a file phone-to-phone as animated 8-color frames read by the camera, with RaptorQ fountain recovery and SHA-256 verification.offlineno keybuild: Lchromalink.html",
+      "ChromaLink"
+    ],
+    "chromaHref": "https://overplant-paving.github.io/local-suite-4/chromalink.html",
+    "audioHref": "https://overplant-paving.github.io/local-suite-4/audio.html",
+    "swControlled": true,
+    "swScope": "https://overplant-paving.github.io/local-suite-4/",
+    "horizontalOverflow": false
+  },
+  "chromalink": {
+    "title": "ChromaLink · Local Suite",
+    "secure": true,
+    "send": true,
+    "receive": true,
+    "betaWarning": true,
+    "noNetworkClaim": true,
+    "horizontalOverflow": false
+  },
+  "mobile": {
+    "horizontalOverflow": false,
+    "buttons": [
+      {
+        "text": "Send",
+        "width": 350
+      },
+      {
+        "text": "Receive",
+        "width": 350
+      }
+    ],
+    "viewport": 390
+  },
+  "errors": []
+}

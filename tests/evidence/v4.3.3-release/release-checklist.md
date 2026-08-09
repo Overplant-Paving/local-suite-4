@@ -31,13 +31,13 @@ Target: exactly 104 manifest tools plus the generated hub (105 generated HTML pa
 - [x] `node tests/pwa-verify.mjs update` — changed source reached the active cache within one reload and the obsolete v4 cache was removed (`pwa-update.txt`); the temporary canary was then removed and the release build regenerated.
 - [x] Headed Chromium installability — `beforeinstallprompt` fired, the service worker controlled the page, manifest/installability errors were empty, and the full hub screenshot was reviewed with both Beta Tools cards visible (`pwa-headed.txt`, `headed-installability.png`).
 
-## Publication (Hermes — fill placeholders after deployment)
+## Publication
 
-- [ ] Merge verified v4.3.3 changes to `main` and push. <!-- commit: TBD -->
-- [ ] Final GitHub Pages verification/deployment workflow succeeds. <!-- run: TBD -->
-- [ ] Hosted hub exposes ChromaLink under Beta Tools. <!-- URL check: TBD -->
-- [ ] Hosted core artifacts match committed `dist/` bytes. <!-- archive as hosted-verify.txt -->
-- [ ] Tag and publish `v4.3.3` release after hosted verification. <!-- tag: TBD -->
+- [x] Release commit `b37effacabff16f33cae89be6678785509087276` pushed to `main`.
+- [x] GitHub Pages verification/deployment workflow succeeded: run `31318839087` — https://github.com/Overplant-Paving/local-suite-4/actions/runs/31318839087.
+- [x] Hosted hub exposes ChromaLink beside Audio Transfer under Beta Tools: https://overplant-paving.github.io/local-suite-4/.
+- [x] Hosted `index.html`, `chromalink.html`, `sw.js`, and `manifest.webmanifest` match committed `dist/` bytes exactly (`hosted-verify.txt`).
+- [x] Annotated tag and GitHub release published: `v4.3.3` — https://github.com/Overplant-Paving/local-suite-4/releases/tag/v4.3.3.
 
 ## Evidence files
 
@@ -45,5 +45,5 @@ Target: exactly 104 manifest tools plus the generated hub (105 generated HTML pa
 - `final-standalone-gates.txt` — clean install, strict TypeScript, 82/82 Vitest, Vite build/export.
 - `final-suite-gates.txt` — Local Suite build/check, ChromaLink/Optical/Audio focused gates, 105/105 smoke.
 - `pwa-coexist.txt`, `pwa-install.txt`, `pwa-update.txt`, `pwa-headed.txt`, `headed-installability.png`.
+- `hosted-verify.txt`, `hosted-browser.json`, `hosted-hub.png`, `hosted-chromalink.png`, `hosted-chromalink-mobile.png`.
 - Detailed implementation evidence: `tests/evidence/chromalink/` (`CHECKLIST.md`, `final-standalone-gates.log`, `final-suite-gates.log`, `final-smoke.log`, `red-regressions.log`, `blur-measurements.log`, `vision-tuning.log`, screenshots).
-- Post-deploy artifact to be added by Hermes: `hosted-verify.txt`.
