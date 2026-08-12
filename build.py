@@ -41,6 +41,10 @@ VENDOR_SCRIPT_RE = re.compile(
 OPTICAL_WORKER_MARKER_RE = re.compile(
     r'/\* @suite:optical-worker \*/""/\* /@suite:optical-worker \*/'
 )
+OPTICAL_H8_GLOBAL_HISTOGRAM_WORKER_MARKER_RE = re.compile(
+    r'/\* @suite:optical-h8-global-histogram-worker \*/""'
+    r'/\* /@suite:optical-h8-global-histogram-worker \*/'
+)
 ACOUSTIC_WORKER_MARKER_RE = re.compile(
     r'/\* @suite:acoustic-worker \*/""/\* /@suite:acoustic-worker \*/'
 )
@@ -53,7 +57,7 @@ VIEWPORT_RE = re.compile(r'<meta name="viewport"[^>]*>')
 CSP_META_RE = re.compile(r'<meta http-equiv="Content-Security-Policy" content="([^"]*)">')
 
 NETWORK_CLASSES = ("offline", "cors-open", "keyed", "blocked")
-RELEASE_TOOL_COUNT = 105  # v4.3.4: v4.3.3's 104 tools + Optical Transfer Beta
+RELEASE_TOOL_COUNT = 106  # v4.3.5: v4.3.4's 105 tools + Optical Transfer Beta Test 1
 
 # Per-tool CSP additions are deliberately limited to non-network browser schemes
 # needed by self-contained local tools. Network hosts must remain visible in the
@@ -162,10 +166,16 @@ def inline_vendor_scripts(name, html):
 
 def inline_optical_worker(name, html):
     """Embed the pinned ZXing worker and WASM in Optical Transfer variants."""
-    if not OPTICAL_WORKER_MARKER_RE.search(html):
+    has_stable_marker = OPTICAL_WORKER_MARKER_RE.search(html)
+    has_h8_marker = OPTICAL_H8_GLOBAL_HISTOGRAM_WORKER_MARKER_RE.search(html)
+    if not has_stable_marker and not has_h8_marker:
         return html
-    if name not in {"optical.html", "optical-beta.html"}:
-        raise SystemExit(f"{name}: optical worker marker is only valid in Optical Transfer pages")
+    if has_stable_marker and name not in {"optical.html", "optical-beta.html"}:
+        raise SystemExit(f"{name}: optical worker marker is only valid in stable Optical Transfer pages")
+    if has_h8_marker and name != "optical-beta-test-1.html":
+        raise SystemExit(
+            f"{name}: optical H8 worker marker is only valid in Optical Transfer Beta Test 1"
+        )
     worker_path = ROOT / "assets" / "optical" / "zxing-worker.js"
     wasm_path = ROOT / "assets" / "optical" / "zxing_reader.wasm"
     worker = read(worker_path)
@@ -178,6 +188,40 @@ def inline_optical_worker(name, html):
     )
     if count != 1:
         raise SystemExit(f"{name}: pinned ZXing worker WASM locator changed")
+    if has_h8_marker:
+        worker, fast_count = re.subn(
+            r'Jt\(R,\{formats:\["QRCode"\],maxNumberOfSymbols:1\}\)',
+            'Jt(R,{formats:["QRCode"],maxNumberOfSymbols:1,tryHarder:false,'
+            'tryRotate:false,tryInvert:false,tryDownscale:false})',
+            worker,
+            count=1,
+        )
+        if fast_count != 1:
+            raise SystemExit(f"{name}: ZXing fast decode options anchor changed")
+        worker, roi_guard_count = re.subn(
+            r'ct\.onmessage=async f=>\{const\{id:p,buf:b,w:M,h:c\}=f\.data;try\{',
+            'ct.onmessage=async f=>{const{id:p,buf:b,w:M,h:c}=f.data;'
+            'if(M*6!==c*5){ct.postMessage({id:p,bytes:null});return}try{',
+            worker,
+            count=1,
+        )
+        if roi_guard_count != 1:
+            raise SystemExit(f"{name}: ZXing worker ROI guard anchor changed")
+        worker, binarizer_count = re.subn(
+            r'binarizer:"LocalAverage"',
+            'binarizer:"GlobalHistogram"',
+            worker,
+            count=1,
+        )
+        if binarizer_count != 1:
+            raise SystemExit(f"{name}: ZXing global histogram anchor changed")
+        literal = json.dumps(worker, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+        return OPTICAL_H8_GLOBAL_HISTOGRAM_WORKER_MARKER_RE.sub(
+            lambda _m: "/* @suite:optical-h8-global-histogram-worker */" + literal
+            + "/* /@suite:optical-h8-global-histogram-worker */",
+            html,
+            count=1,
+        )
     literal = json.dumps(worker, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
     return OPTICAL_WORKER_MARKER_RE.sub(
         lambda _m: "/* @suite:optical-worker */" + literal + "/* /@suite:optical-worker */",

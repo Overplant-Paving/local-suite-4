@@ -37,6 +37,7 @@ jobs:
       - run: node tests/flood-built.mjs
       - run: node tests/optical-built.mjs
       - run: node tests/optical-beta-built.mjs
+      - run: node tests/optical-beta-test-1-built.mjs
       - run: node tests/audio-modem.mjs
       - run: node tests/audio-built.mjs
       - run: node tests/chromalink-built.mjs

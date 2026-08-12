@@ -240,6 +240,14 @@ release checklist executed · tag pushed.
 
 ## V4 work
 
+- [x] **Local Suite v4.3.5 — Optical Transfer Beta Test 1, 2026-08-12.** Adds a separate 106th
+  manifest tool in Beta Tools (107 generated pages; PWA precache 111 entries) while preserving
+  stable Optical Transfer and existing Optical Transfer Beta byte-for-byte. The selected package is
+  H66-R2: QR V37/2,563, ECC L mask 4, 30 presentations/s, sender precompute ring depth 3, four
+  receiver workers, processor capture, calibrated fixed ROI, ZXing fast global histogram, adaptive
+  H40 residual completion, and post-SHA lifecycle closure. The gross selected-package carrier
+  ceiling is documented separately from physical evidence and device/browser production bounds.
+
 - [x] **Local Suite v4.3.4 — Optical Transfer Beta, 2026-08-09.** Adds a separate 105th manifest tool in Beta Tools
   (106 generated pages; PWA precache 110 entries) while leaving stable Optical Transfer intact.
   The beta receiver can request 30/60/90/120 camera FPS, reports capped or unreported delivered

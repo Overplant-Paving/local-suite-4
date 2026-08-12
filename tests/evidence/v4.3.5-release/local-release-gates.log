@@ -1,0 +1,672 @@
+Local Suite v4.3.5 local release gates
+HEAD: 5246c17853c9d17afa59e97fed53f22960385589
+built dist/air.html (51803 bytes)
+built dist/airport.html (64762 bytes)
+built dist/alerts.html (49905 bytes)
+built dist/almanac.html (58674 bytes)
+built dist/apod.html (46852 bytes)
+built dist/arcade.html (394129 bytes)
+built dist/art.html (61632 bytes)
+built dist/asteroids.html (52196 bytes)
+built dist/audio.html (177545 bytes)
+built dist/body.html (47768 bytes)
+built dist/books.html (48545 bytes)
+built dist/budget.html (51268 bytes)
+built dist/calc.html (70705 bytes)
+built dist/checklists.html (51143 bytes)
+built dist/chromalink.html (433850 bytes)
+built dist/cite.html (58008 bytes)
+built dist/color.html (56636 bytes)
+built dist/congress.html (53284 bytes)
+built dist/convert.html (47332 bytes)
+built dist/currency.html (46791 bytes)
+built dist/dataviewer.html (55719 bytes)
+built dist/dates.html (47698 bytes)
+built dist/daylight.html (55249 bytes)
+built dist/dictionary.html (44061 bytes)
+built dist/discussion.html (49585 bytes)
+built dist/dns.html (51795 bytes)
+built dist/drought.html (47630 bytes)
+built dist/elevation.html (59708 bytes)
+built dist/emergency.html (51314 bytes)
+built dist/factbook.html (58536 bytes)
+built dist/fedregister.html (44974 bytes)
+built dist/flashcards.html (53224 bytes)
+built dist/flight.html (69368 bytes)
+built dist/flood.html (108404 bytes)
+built dist/focus.html (49929 bytes)
+built dist/foodrecalls.html (44754 bytes)
+built dist/fuellog.html (65622 bytes)
+built dist/gas.html (47785 bytes)
+built dist/geo.html (52809 bytes)
+built dist/hash.html (50079 bytes)
+built dist/healthlog.html (56135 bytes)
+built dist/holidays.html (47740 bytes)
+built dist/ics.html (52425 bytes)
+built dist/illness.html (50745 bytes)
+built dist/image.html (47972 bytes)
+built dist/index.html (96639 bytes)
+built dist/inflation.html (55279 bytes)
+built dist/iss.html (50569 bytes)
+built dist/jobs.html (50301 bytes)
+built dist/launches.html (46947 bytes)
+built dist/loan.html (55342 bytes)
+built dist/marine.html (52927 bytes)
+built dist/markets.html (45368 bytes)
+built dist/medicine.html (46883 bytes)
+built dist/metronome.html (48444 bytes)
+built dist/nasaimages.html (53322 bytes)
+built dist/nearby.html (54719 bytes)
+built dist/network.html (48773 bytes)
+built dist/normals.html (60670 bytes)
+built dist/notes.html (48752 bytes)
+built dist/nutrition.html (49553 bytes)
+built dist/optical-beta-test-1.html (1426820 bytes)
+built dist/optical-beta.html (1404077 bytes)
+built dist/optical.html (1403115 bytes)
+built dist/overhead.html (54962 bytes)
+built dist/paper.html (49048 bytes)
+built dist/parks.html (81480 bytes)
+built dist/passes.html (72209 bytes)
+built dist/password.html (108959 bytes)
+built dist/periodic.html (57855 bytes)
+built dist/printables.html (49202 bytes)
+built dist/qr.html (56318 bytes)
+built dist/quakes.html (51048 bytes)
+built dist/radar.html (52358 bytes)
+built dist/random.html (51966 bytes)
+built dist/recalls.html (53841 bytes)
+built dist/recipes.html (52073 bytes)
+built dist/rhymes.html (44198 bytes)
+built dist/rivers.html (49569 bytes)
+built dist/savings.html (46594 bytes)
+built dist/settings.html (95623 bytes)
+built dist/skyevents.html (49536 bytes)
+built dist/snow.html (51731 bytes)
+built dist/sound.html (48654 bytes)
+built dist/spaceweather.html (51402 bytes)
+built dist/spending.html (47027 bytes)
+built dist/text.html (52113 bytes)
+built dist/tides.html (56857 bytes)
+built dist/timers.html (49703 bytes)
+built dist/transit.html (52862 bytes)
+built dist/treasury.html (48219 bytes)
+built dist/tripcost.html (51937 bytes)
+built dist/tropical.html (51925 bytes)
+built dist/typing.html (44609 bytes)
+built dist/volcano.html (49399 bytes)
+built dist/voting.html (47196 bytes)
+built dist/wayback.html (49564 bytes)
+built dist/weather.html (69755 bytes)
+built dist/weatherhistory.html (58544 bytes)
+built dist/wiki.html (49186 bytes)
+built dist/wildfire.html (47689 bytes)
+built dist/wildlife.html (54685 bytes)
+built dist/word.html (80042 bytes)
+built dist/worldbank.html (49318 bytes)
+built dist/worldclock.html (51589 bytes)
+built dist/yields.html (48852 bytes)
+built dist/zip.html (57033 bytes)
+pwa: sw.js (suite-v4-9995681e7676, 111 precached) + manifest.webmanifest + 3 icons
+107 file(s) built.
+GATE release-tool-count   pass
+GATE source-text-integrity pass
+GATE manifest-files-sync  pass
+GATE markers              pass
+GATE dist-staleness       pass
+GATE no-inline-handlers   pass
+GATE csp                  pass
+GATE escaping-heuristic   pass
+GATE catalog-crosscheck   pass
+GATE settings-signup-sync pass
+GATE key-hygiene          pass
+GATE no-example-urls      pass
+GATE pwa-sync             pass
+NEGATIVE TESTS          pass (all fatal gates seen to fail on fixtures)
+
+manifest: 106 tools + hub  (71 v1 migrations, 35 suite-native)  by network: {'offline': 45, 'cors-open': 48, 'keyed': 10, 'blocked': 3}  flagged: 33
+
+--check: all fatal gates green
+multiple locations: PASS {"migration":true,"uniqueIds":["home","home-2"],"legacyWriterSync":true,"labelClear":true,"activeFallback":true,"finalClear":true,"invalidRejected":true,"unknownFieldsPreserved":true,"futureSchemaPreserved":true,"damagedDataPreserved":true,"inFlightGuard":{"rejected":true,"cached":null},"builtHub":{"toolLinks":106,"activeLabel":"Home","collection":{"schema":1,"activeId":"saved-location","items":[{"id":"saved-location","revision":1,"lat":40.7128,"lon":-74.006,"label":"Home"}]}},"wildfireScoped":true}
+location cross-tab: PASS {"reloads":2,"active":{"lat":34.0522,"lon":-118.2437,"label":"B"},"paintedLabel":"B","coveredTools":32}
+ok   unknown favorite id ignored, known one renders
+ok   recents with only unknown ids stays hidden
+ok   hub card star has aria-label
+ok   hub star toggles storage + pressed state
+ok   unfavoriting from the Favorites section works
+ok   search hides the quick-access sections
+ok   clearing the search restores Favorites
+ok   tool chrome star is a native button with aria-pressed
+ok   opening a tool records it first in recents
+ok   keyboard Enter toggles the chrome star
+ok   cross-tab: hub favorites updated live
+ok   cross-tab: hub recents updated live
+ok   recents dedupe + most-recent-first
+ok   recents bounded at 10, newest kept
+ok   hub + settings excluded from recents
+ok   clear empties recents + hides section + announces
+ok   mobile 390px: sections render, no horizontal overflow
+ok   zero console/page errors
+
+favorites-recents: PASS
+built flight tracker: PASS {"title":"AA100","route":["JFK","LAX"],"mapVisible":true,"keyExposed":false,"cspAllowsProvider":true,"positionSource":"Airplanes.live ADS-B · Position updated less than a minute ago","cached":true,"precipCells":7,"wxPanels":true,"metarDecoded":true}
+{
+  "title": "National Parks Explorer · Local Suite",
+  "park": "Yellowstone National Park",
+  "healthRows": 29,
+  "healthOk": 29,
+  "nativeSectionButtons": true,
+  "nativeParkButtons": true,
+  "cspAllowsApi": true,
+  "cspAllowsImages": true,
+  "keyVisible": false,
+  "horizontalOverflow": false,
+  "galleryPickerOptions": 2,
+  "endpointCount": 29,
+  "allHeaderAuth": true,
+  "queryLeak": false,
+  "galleryScoped": true,
+  "consoleIssues": [],
+  "authSuppression": {
+    "requests": 3,
+    "paths": [
+      "/campgrounds",
+      "/parks"
+    ],
+    "keyVisible": false
+  },
+  "rateSuppression": {
+    "requests": 3,
+    "paths": [
+      "/campgrounds",
+      "/parks"
+    ],
+    "keyVisible": false
+  }
+}
+ok   seven cards render
+ok   card 1: Bathhouse Brigade
+ok   card 1 art inlined as data URI, decoded, meaningful alt
+ok   card 1 external links are noopener+_blank
+ok   card 2: Bathhouse Brigade — Mobile Detail
+ok   card 2 art inlined as data URI, decoded, meaningful alt
+ok   card 2 external links are noopener+_blank
+ok   card 3: Chromatic Chains — Desktop Edition
+ok   card 3 art inlined as data URI, decoded, meaningful alt
+ok   card 3 external links are noopener+_blank
+ok   card 4: Chromatic Chains — Mobile Edition
+ok   card 4 art inlined as data URI, decoded, meaningful alt
+ok   card 4 external links are noopener+_blank
+ok   card 5: DOOM (1993) — Shareware
+ok   card 5 art inlined as data URI, decoded, meaningful alt
+ok   card 5 external links are noopener+_blank
+ok   card 6: Unicorn 42069er: The Sprinkle Mines
+ok   card 6 art inlined as data URI, decoded, meaningful alt
+ok   card 6 external links are noopener+_blank
+ok   card 7: Miner 42069er
+ok   card 7 art inlined as data URI, decoded, meaningful alt
+ok   card 7 external links are noopener+_blank
+ok   playable labels say what happens
+ok   DOOM card credits id Software and disclaims open source
+ok   no network request escapes the page on load
+ok   card art link is keyboard-focusable
+ok   file:// zero console/page errors
+ok   file:// zero CSP violations
+ok   mobile 390px: no horizontal overflow
+ok   hosted mode: seven cards, art decodes
+ok   hosted zero console/page errors
+ok   hosted zero CSP violations
+
+arcade: PASS
+ok   census two-step confirm + request shapes + AE/SFHA render
+ok   census multiple candidates are selectable
+ok   census no-match and JSONP failure cleanup
+ok   direct coordinates need one explicit Check
+ok   device position is a candidate needing an explicit Check
+ok   suite shortcut is explicit; cross-tab change updates only the candidate
+ok   suite-location abort mid-flight → single retry for the current target
+ok   superseded target: old response neither renders nor retries
+ok   zone: X 0.2% band
+ok   zone: X minimal
+ok   zone: D undetermined
+ok   zone: VE coastal
+ok   zone: AO depth
+ok   zone: sentinel -9999 suppressed
+ok   dual overlapping zones: any SFHA_TF=T wins the summary; all listed
+ok   no zone + NFHL availability present
+ok   no zone + no NFHL coverage
+ok   FEMA unreachable is not 'no flood zone'
+ok   GeoJSON dialect rejected → one Esri JSON fallback, same allowlist
+ok   zone ok + panel failure keeps the zone
+ok   footprint SVG + approximate edge distance (Polygon)
+ok   footprint renders MultiPolygon without errors
+ok   poor device accuracy suppresses the edge distance
+ok   NWS filtering, ordering, unrelated-only wording
+ok   unrelated-only alerts say 'no flood-related', not 'no alerts'
+ok   gauges: flood stage outranks nearest; sentinels; 20 km bound
+ok   no gauges → explicit 50 km expansion + rivers link
+ok   remote strings cannot inject markup
+ok   caches: warm boot renders before network; stale + partial offline honest
+ok   flood caches are bounded and never touch other keys
+ok   Refresh forces a network attempt inside the TTL; failure keeps the cached copy
+ok   stale panel/LOMR whose refresh fails are labelled, not presented as current
+ok   unreadable 200 payloads produce unknown states, never a negative claim
+ok   zone fallback after a target switch keeps the original point's identity
+ok   expired cache + failed network + cross-tab location change still renders the cache
+ok   SFHA unknown, not outside: null flag
+ok   SFHA unknown, not outside: string "Null"
+ok   SFHA unknown, not outside: unknown code
+ok   SFHA unknown, not outside: non-string flag
+ok   explicit F on every record is the only route to an outside-SFHA claim
+ok   one unknown record among explicit F records blocks the outside claim
+ok   all-unreadable FEMA zone records read as unknown, not as an empty answer
+ok   partly unreadable FEMA records render the readable ones and say so
+ok   all-unreadable NWS records read as unknown, never 'no flood alert'
+ok   all-unreadable NWPS records read as unknown, never 'no gauge within 20 km'
+ok   non-string NWS text fields render safely instead of throwing
+ok   a slow address lookup cannot repaint over a newer checked target
+ok   BFE unit: feet
+ok   BFE unit: meters
+ok   BFE unit: missing unit
+ok   panel identity is normalized and a tie is shown as ambiguous, not guessed
+ok   an explicitly printed panel outranks one with no stated print status
+ok   a gauge 18 km due north or south is inside the advertised 20 km search
+ok   not-current readings are unavailable, undated, and lose forecast ranking
+ok   a malformed ring is discarded whole, never stitched across missing vertices
+ok   no usable ring: no footprint, no edge distance, no inside-the-polygon claim
+ok   per-section status nodes announce classification, enrichment and conditions
+ok   a failed enrichment announces the failure without retracting the zone
+ok   aria-busy is true while a section is in flight
+ok   the fallback pipeline stays inside the documented six-request ceiling
+ok   live regions, disclosure keyboard path, no horizontal overflow (375px), dark theme
+ok   desktop screenshots, both themes
+
+flood-built: all scenarios green
+ok   built page exposes the deterministic protocol API
+ok   page load makes no HTTP(S) request
+ok   page boot has no console/page errors
+ok   page boot has no CSP violations
+ok   20-byte little-endian frame golden vector
+ok   frame golden vector parses exactly
+ok   deterministic log golden vector
+ok   robust-soliton CDF fingerprints
+ok   fountain block-subset golden vector
+ok   30% dropped frames recover exactly
+ok   duplicate frames are ignored without corruption
+ok   shuffled/out-of-order frames recover exactly
+ok   changed payload fails SHA-256
+ok   malformed/hostile frame headers are rejected before allocation
+ok   malformed container magic and lengths are rejected
+ok   gzip inflation stops at the declared ceiling
+ok   unsolved unique equations stop at a bounded memory ceiling
+ok   maximum-payload equation buffers are bounded to the explicit byte budget
+ok   received filename sanitization handles paths, bidi, invalid and reserved names
+ok   one stray valid frame cannot replace an active session
+ok   two distinct frames replace and isolate the session
+ok   UI Send flow packs locally and enables streaming
+ok   UI Send flow renders a real animated QR frame
+ok   desktop-composited QR remains exactly square
+ok   animated stream has an explicit pause control
+ok   rendered QR decodes through the real ZXing worker to a valid fountain frame
+ok   receiver exposes a download only after SHA-256 integrity verification
+ok   corrupt recovered bytes create no download or completed progress
+ok   invalid UTF-8 snippets fail without completed progress
+ok   receiver reset invalidates an in-flight verification
+ok   mode switch invalidates an in-flight verification
+ok   embedded ZXing worker and data-URI WASM warm under generated CSP
+ok   worker warm-up makes no HTTP(S) request
+ok   Receive reports unavailable camera / secure-context state
+ok   Receive permission denial is explicit and retryable
+ok   maximum-density QR remains square through a live resize to the 760/761px breakpoint
+ok   switching to Receive invalidates hidden sender work
+ok   impossible 2,953-byte ECC M tuning is rejected before streaming
+ok   reduced-motion preference limits the high-contrast stream to 2 FPS
+ok   camera stop tears down tracks, workers, and Blob lifecycle slots
+ok   Optical Transfer has no 390px mobile horizontal overflow
+ok   late camera-setting resolution cannot update torn-down UI state
+ok   late camera permission resolution cannot outlive a mode switch
+ok   generated artifact is self-contained
+ok   PWA app-shell cache includes optical.html
+ok   generated CSP scopes WASM/data/blob allowances
+ok   mobile HTTPS and PWA offline caveat is visible
+ok   confidentiality warning is explicit
+ok   integrity wording does not imply sender authenticity
+ok   vendored Optical assets match recorded provenance hashes
+
+optical: PASS
+ok   built page exposes the deterministic protocol API
+ok   page load makes no HTTP(S) request
+ok   page boot has no console/page errors
+ok   page boot has no CSP violations
+ok   Receive offers high-frame-rate camera requests through 120 FPS
+ok   Receive keeps 30 FPS as the compatibility-safe default
+ok   20-byte little-endian frame golden vector
+ok   frame golden vector parses exactly
+ok   deterministic log golden vector
+ok   robust-soliton CDF fingerprints
+ok   fountain block-subset golden vector
+ok   30% dropped frames recover exactly
+ok   duplicate frames are ignored without corruption
+ok   shuffled/out-of-order frames recover exactly
+ok   changed payload fails SHA-256
+ok   malformed/hostile frame headers are rejected before allocation
+ok   malformed container magic and lengths are rejected
+ok   gzip inflation stops at the declared ceiling
+ok   unsolved unique equations stop at a bounded memory ceiling
+ok   maximum-payload equation buffers are bounded to the explicit byte budget
+ok   received filename sanitization handles paths, bidi, invalid and reserved names
+ok   one stray valid frame cannot replace an active session
+ok   two distinct frames replace and isolate the session
+ok   UI Send flow packs locally and enables streaming
+ok   UI Send flow renders a real animated QR frame
+ok   desktop-composited QR remains exactly square
+ok   animated stream has an explicit pause control
+ok   rendered QR decodes through the real ZXing worker to a valid fountain frame
+ok   receiver exposes a download only after SHA-256 integrity verification
+ok   corrupt recovered bytes create no download or completed progress
+ok   invalid UTF-8 snippets fail without completed progress
+ok   receiver reset invalidates an in-flight verification
+ok   mode switch invalidates an in-flight verification
+ok   embedded ZXing worker and data-URI WASM warm under generated CSP
+ok   worker warm-up makes no HTTP(S) request
+ok   Receive reports unavailable camera / secure-context state
+ok   Receive permission denial is explicit and retryable
+ok   maximum-density QR remains square through a live resize to the 760/761px breakpoint
+ok   switching to Receive invalidates hidden sender work
+ok   impossible 2,953-byte ECC M tuning is rejected before streaming
+ok   reduced-motion preference limits the high-contrast stream to 2 FPS
+ok   camera mode reports a device-capped FPS instead of the higher request
+ok   camera mode does not invent an FPS when the track omits it
+ok   camera stop tears down tracks, workers, and Blob lifecycle slots
+ok   camera startup requests the selected 90 FPS mode
+ok   live camera tuning requests the selected 120 FPS mode
+ok   Optical Transfer Beta has no 390px mobile horizontal overflow
+ok   overlapping live FPS changes settle on the newest requested camera mode
+ok   late camera-setting resolution cannot update torn-down UI state
+ok   late camera permission resolution cannot outlive a mode switch
+ok   generated artifact is self-contained
+ok   Optical Transfer Beta is a separate Beta Tools manifest entry
+ok   built page identifies itself as Optical Transfer Beta
+ok   PWA app-shell cache includes optical-beta.html
+ok   generated CSP scopes WASM/data/blob allowances
+ok   mobile HTTPS and PWA offline caveat is visible
+ok   confidentiality warning is explicit
+ok   integrity wording does not imply sender authenticity
+ok   vendored Optical assets match recorded provenance hashes
+ok   generated hub renders Optical Transfer Beta inside Beta Tools
+
+optical beta: PASS
+ok   protected stable file hash is preserved: tools/optical.html
+ok   protected stable file hash is preserved: dist/optical.html
+ok   protected stable file hash is preserved: tests/optical-built.mjs
+ok   protected stable file hash is preserved: OPTICAL-TRANSFER.md
+ok   manifest has exactly 106 product identities
+ok   dist has exactly 107 generated HTML pages
+ok   PWA precache count is derived from generated HTML + webmanifest + icons
+ok   manifest contains separate Beta Test 1 identity
+ok   stable and existing beta optical identities remain distinct
+ok   PWA app-shell cache includes optical-beta-test-1.html
+ok   generated artifact is self-contained
+ok   built page identifies itself as Optical Transfer Beta Test 1
+ok   current product metadata is v4.3.5 in primary docs
+ok   builder exact allowlist recognizes only the new H8 filename
+ok   source uses the H8 global-histogram worker marker and not the stable marker
+ok   production source has no lab/harness remnant: URLSearchParams
+ok   production source has no lab/harness remnant: location.search
+ok   production source has no lab/harness remnant: OpticalTransferTest
+ok   production source has no lab/harness remnant: __optical
+ok   production source has no lab/harness remnant: physicalRunId
+ok   production source has no lab/harness remnant: campaign
+ok   production source has no lab/harness remnant: H66-R2-T-
+ok   production source has no lab/harness remnant: H76
+ok   production source has no lab/harness remnant: H77
+ok   production source has no lab/harness remnant: H78
+ok   production source has no lab/harness remnant: H79
+ok   production source has no lab/harness remnant: H80
+ok   production source has no lab/harness remnant: H81
+ok   production source has no lab/harness remnant: ADB
+ok   production source has no lab/harness remnant: CDP
+ok   production source has no lab/harness remnant: localhost
+ok   production source has no lab/harness remnant: 127.0.0.1
+ok   production source has no lab/harness remnant: synthetic trial
+ok   production source has no lab/harness remnant: benchmark harness
+ok   production source has no lab/harness remnant: test payload control
+ok   production H40 code has no old fixed 1.2s or 8MiB guards
+ok   production page has no hard 1MiB transfer assumption
+ok   telemetry retained across transfer duration is bounded
+ok   lifecycle safeguards are present in production source
+ok   integrity language does not claim authenticity
+ok   selected package constants match H66-R2
+ok   production bounds expose the required five classifications
+ok   resource safety bounds remain finite
+ok   H40 admission is payload-aware beyond 1 MiB
+ok   H40 plans classify admitted work as adaptive bounds
+ok   frame protocol accepts exact headers and rejects malformed input
+ok   adaptive H40 residual completion can solve full-rank rows with yields
+ok   H40 not-admitted fallback safely completes through normal LT peeling
+ok   retained LT equation buffers stay inside the explicit memory ceiling
+ok   browser load ignores lab-style query flags
+ok   page load makes no HTTP(S) request
+ok   page boot has no console/page errors
+ok   page boot has no CSP violations
+ok   UI controls are fixed to selected package values
+ok   rendered geometry is square V37 plus quiet zone at an integer scale
+ok   built H8 worker is embedded with data-URI WASM and selected decode options
+ok   rendered QR decodes through the selected H8 worker to a 2,563-byte frame
+ok   worker warm-up and QR decode make no HTTP(S) request
+ok   reduced-motion stream uses a slow no-catch-up presentation path
+ok   generated hub renders Optical Transfer Beta Test 1 inside Beta Tools
+
+optical beta test 1: PASS
+ok   44100 Hz C0-BPSK manifest wire encode
+ok   44100 Hz C0-BPSK manifest waveform encode
+ok   44100 Hz C0-BPSK manifest decode after 6144-sample pre-roll
+ok   44100 Hz C0-BPSK manifest identity
+ok   44100 Hz C0-BPSK manifest exact payload
+ok   44100 Hz R1-BPSK DATA wire encode
+ok   44100 Hz R1-BPSK DATA waveform encode
+ok   44100 Hz R1-BPSK DATA decode after 6144-sample pre-roll
+ok   44100 Hz R1-BPSK DATA identity
+ok   44100 Hz R1-BPSK DATA exact payload
+ok   48000 Hz C0-BPSK manifest wire encode
+ok   48000 Hz C0-BPSK manifest waveform encode
+ok   48000 Hz C0-BPSK manifest decode after 6144-sample pre-roll
+ok   48000 Hz C0-BPSK manifest identity
+ok   48000 Hz C0-BPSK manifest exact payload
+ok   48000 Hz R1-BPSK DATA wire encode
+ok   48000 Hz R1-BPSK DATA waveform encode
+ok   48000 Hz R1-BPSK DATA decode after 6144-sample pre-roll
+ok   48000 Hz R1-BPSK DATA identity
+ok   48000 Hz R1-BPSK DATA exact payload
+
+audio modem: PASS
+ok   hub exposes the new Beta Tools category
+ok   Audio Transfer is a separate Beta Tools card
+ok   page exposes bounded transfer helpers
+ok   finite fountain schedule reconstructs every deterministic no-loss and loss-matrix case
+ok   Send creates observed-rate AudioContext and audible packet
+ok   Receive opens microphone and reports effective processing
+ok   Receive reports real listening state
+ok   decoded packets reconstruct exact SHA-gated download
+ok   SHA-256 mismatch withholds download
+ok   browser exercise has no CSP violations
+ok   browser exercise has no console/page errors
+ok   page remains responsive without horizontal overflow
+ok   generated direct-file sender starts embedded Worker and data-URL AudioWorklet
+ok   direct-file sender makes no HTTP(S) request
+ok   direct-file sender has no console/page errors
+
+audio: PASS
+ok   built page carries the exact search status string
+ok   built page carries the exact first-mismatch corruption string
+ok   built page carries the unlocked-mismatch fresh-sync string
+ok   built page carries the exact camera-permission string
+ok   chooser shows the two full-width mode buttons
+ok   suite theme toggle flips
+ok   sender mounts after fountain init (wasm under CSP)
+ok   stream shows the exact propping/brightness hint
+ok   frame counter advances while streaming
+ok   quiet zone renders exact white
+ok   canvas is square with integer device pixels
+ok   frames actually change on the canvas
+ok   grid/fps selects are locked while streaming
+ok   stop tears the stage down
+ok   selects unlock after stop
+ok   desktop run made no HTTP(S) request
+ok   desktop run had no console/page errors
+ok   desktop run had no CSP violations
+ok   denied camera shows the exact permission message
+ok   denied camera offers a retry control
+ok   denied-camera path has no unexpected errors
+ok   fake camera reaches the worker-driven search state
+ok   no-finder scene shows the exact search status after 1 s
+ok   desktop receive: overlay guide exists
+ok   desktop receive: guide is square
+ok   desktop receive: guide side is 70% of the shorter viewport edge
+ok   desktop receive: guide is centered on the camera stage
+ok   repeated Reset never opens a concurrent camera
+ok   receive loop keeps running after repeated Reset
+ok   fake-camera run had no console/page errors
+ok   worker + camera run under CSP with no violations
+ok   a Retry storm opens at most one camera request at a time
+ok   retry-storm run has no unexpected errors
+ok   getUserMedia resolving after pagehide stops the track (no leak)
+ok   pagehide race run had no console/page errors
+ok   wake lock granted after Stop is released, not attached to stale state
+ok   wake-lock race run had no console/page errors
+ok   a failure after the stage is appended removes the stage
+ok   controls unlock after the failed start
+ok   the failed start reports a visible error status
+ok   stage-failure run has no unexpected errors
+ok   Start arms for a valid selection
+ok   Start is disabled while a stream is active
+ok   Start re-arms after Stop with the valid file still selected
+ok   start-validity run had no console/page errors
+ok   empty start-time read keeps Start disabled for that selection
+ok   a newly selected file re-arms Start after the failed read
+ok   the fresh selection streams normally after the failed read
+ok   empty-read run had no console/page errors
+ok   mobile chooser buttons fill their column
+ok   mobile page has no horizontal scroll
+ok   mobile boot had no console/page errors
+ok   mobile no-finder scene shows the exact search status after 1 s
+ok   mobile receive: overlay guide exists
+ok   mobile receive: guide is square
+ok   mobile receive: guide side is 70% of the shorter viewport edge
+ok   mobile receive: guide is centered on the camera stage
+ok   mobile receive run had no console/page errors
+
+all ChromaLink built-page checks passed
+installed Chrome not found; using Playwright Chromium for local smoke verification
+ok   air.html
+ok   airport.html
+ok   alerts.html
+ok   almanac.html
+ok   apod.html
+ok   arcade.html
+ok   art.html
+ok   asteroids.html
+ok   audio.html
+ok   body.html
+ok   books.html
+ok   budget.html
+ok   calc.html
+ok   checklists.html
+ok   chromalink.html
+ok   cite.html
+ok   color.html
+ok   congress.html
+ok   convert.html
+ok   currency.html
+ok   dataviewer.html
+ok   dates.html
+ok   daylight.html
+ok   dictionary.html
+ok   discussion.html
+ok   dns.html
+ok   drought.html
+ok   elevation.html
+ok   emergency.html
+ok   factbook.html
+ok   fedregister.html
+ok   flashcards.html
+ok   flight.html
+ok   flood.html
+ok   focus.html
+ok   foodrecalls.html
+ok   fuellog.html
+ok   gas.html
+ok   geo.html
+ok   hash.html
+ok   healthlog.html
+ok   holidays.html
+ok   ics.html
+ok   illness.html
+ok   image.html
+ok   index.html
+ok   inflation.html
+ok   iss.html
+ok   jobs.html
+ok   launches.html
+ok   loan.html
+ok   marine.html
+ok   markets.html
+ok   medicine.html
+ok   metronome.html
+ok   nasaimages.html
+ok   nearby.html
+ok   network.html
+ok   normals.html
+ok   notes.html
+ok   nutrition.html
+ok   optical-beta-test-1.html
+ok   optical-beta.html
+ok   optical.html
+ok   overhead.html
+ok   paper.html
+ok   parks.html
+ok   passes.html
+ok   password.html
+ok   periodic.html
+ok   printables.html
+ok   qr.html
+ok   quakes.html
+ok   radar.html
+ok   random.html
+ok   recalls.html
+ok   recipes.html
+ok   rhymes.html
+ok   rivers.html
+ok   savings.html
+ok   settings.html
+ok   skyevents.html
+ok   snow.html
+ok   sound.html
+ok   spaceweather.html
+ok   spending.html
+ok   text.html
+ok   tides.html
+ok   timers.html
+ok   transit.html
+ok   treasury.html
+ok   tripcost.html
+ok   tropical.html
+ok   typing.html
+ok   volcano.html
+ok   voting.html
+ok   wayback.html
+ok   weather.html
+ok   weatherhistory.html
+ok   wiki.html
+ok   wildfire.html
+ok   wildlife.html
+ok   word.html
+ok   worldbank.html
+ok   worldclock.html
+ok   yields.html
+ok   zip.html
+
+smoke: 107/107 green
+sw ready; caches: ["suite-v3-coexistence-fixture","suite-v4-9995681e7676"] (expected suite-v4-9995681e7676)
+coexistence state after v4 activation: {"keys":["suite-v3-coexistence-fixture","suite-v4-9995681e7676"],"currentEntries":111,"v3Body":"v3 offline shell","obsoleteV4Present":false}
+V3/V4 CACHE COEXISTENCE OK

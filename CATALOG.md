@@ -545,6 +545,14 @@ A separate Beta Tools variant of Optical Transfer with the same DCF2/LT wire for
 - **Verification:** dedicated focused gate retains stable protocol/security/lifecycle coverage and adds capped/omitted FPS plus out-of-order live-setting regressions.
 - **Complexity:** L · **File:** `optical-beta.html` · **Category:** Beta Tools · **Local:** sender `file://` ✅; mobile receiver hosted HTTPS/PWA offline ✅
 
+### 10.2a.2 Optical Transfer Beta Test 1
+A separate Beta Tools product page for the selected H66-R2 faster optical package. It fixes QR V37/2,563-byte frames, ECC L mask 4, approximately 30 presentations/s, sender precompute ring depth 3, four receiver workers, processor capture when available, a calibrated fixed ROI, ZXing fast global histogram decoding, adaptive H40 residual recovery, and post-SHA lifecycle closure.
+- **Stable boundary:** stable `optical.html` and existing `optical-beta.html`, including their generated artifacts and focused tests, remain byte-for-byte unchanged.
+- **Performance boundary:** the selected-package gross carrier ceiling is 76,890 B/s. Physical evidence is recorded separately: strict 1 MiB 65,919.16 B/s; 3 MiB 57,221.06 B/s and 10 MiB 53,575.31 B/s were observed but are non-counting because the prior benchmark guard interfered. Larger production transfers remain bounded by presentation cadence, camera capture/optics, decode yield/CPU, LT overhead, browser scheduling, and thermal state.
+- **Bounds classification:** removed benchmark/artificial cap, adaptive bound, protocol correctness bound, resource safety bound, and external browser/device limit are documented in `OPTICAL-TRANSFER-BETA-TEST-1.md`.
+- **Security:** SHA-256 verifies integrity only, not sender authenticity. Visible optical streams are not confidential.
+- **Complexity:** L · **File:** `optical-beta-test-1.html` · **Category:** Beta Tools · **Local:** sender `file://` ✅; mobile receiver hosted HTTPS/PWA offline ✅
+
 ### 10.2b Audio Transfer
 File → speaker → air → microphone → verified file download. The production page keeps manifest/final control on audible C0 BPSK OFDM and sends DATA on wider audible R1 BPSK OFDM at the observed 44.1 or 48 kHz AudioContext rate. Both use pilots/training, K=7 rate-1/2 convolutional FEC with soft Viterbi decode, interleaving, duplicated protected headers, and CRC32C. File data is split into 512-byte source blocks and sent as a finite systematic robust-soliton/XOR fountain with about 35% equation overhead; the systematic schedule guarantees no-loss reconstruction and a whole-file parity equation covers any one missing systematic packet. The bounded incremental receiver reconstructs arbitrary binary bytes within the declared 1 MiB limit and creates no download until the repeated final identity and Web Crypto SHA-256 both agree.
 - **Data:** none; file bytes, metadata, speaker samples, and microphone samples stay in the two browsers. No payload network or relay path exists.

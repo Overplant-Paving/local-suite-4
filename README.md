@@ -1,12 +1,14 @@
 # Local Suite 4
 
-This is **Local Suite v4**, built on the verified v2/v3 single-file architecture. **v4.3.4** contains
-**105 manifest tools** (106 generated pages). It adds **Optical Transfer Beta** as a separate third
-Beta Tools entry while retaining stable Optical Transfer byte-for-byte unchanged.
+This is **Local Suite v4**, built on the verified v2/v3 single-file architecture. **v4.3.5** contains
+**106 manifest tools** (107 generated pages). It adds **Optical Transfer Beta Test 1** as a separate
+fourth Beta Tools entry while retaining stable Optical Transfer and existing Optical Transfer Beta
+byte-for-byte unchanged.
 
-Optical Transfer Beta adds experimental 90/120 FPS receiver camera requests, truthful delivered-
-setting reporting, and serialized live constraints without changing the DCF2/LT wire format. See
-[OPTICAL-TRANSFER-BETA.md](OPTICAL-TRANSFER-BETA.md).
+Optical Transfer Beta Test 1 packages the selected H66-R2 faster QR carrier: V37/2,563-byte frames,
+ECC L mask 4, 30 presentations/s, processor capture, calibrated fixed ROI, ZXing fast global
+histogram, adaptive H40 residual recovery, and post-SHA lifecycle closure. See
+[OPTICAL-TRANSFER-BETA-TEST-1.md](OPTICAL-TRANSFER-BETA-TEST-1.md).
 
 **v4.3.3 adds ChromaLink** as the 104th manifest tool — phone-to-phone file transfer via 8-color
 animated frames read by the camera, with RaptorQ fountain recovery and SHA-256-gated
@@ -15,10 +17,11 @@ reconstruction. See [CHROMALINK.md](CHROMALINK.md); the TypeScript/Vite source l
 (82 Vitest tests, 58 built-page checks), but two-device physical over-air performance remains an
 unverified beta claim until a documented hardware matrix exists.
 
-Current release: **v4.3.4** (2026-08-09). Stable and Beta Optical Transfer focused gates are wired
-into the Pages workflow; release evidence is archived under `tests/evidence/v4.3.4-release/`.
+Current release: **v4.3.5** (2026-08-12). Stable, Beta, and Beta Test 1 Optical Transfer focused
+gates are wired into the Pages workflow; release evidence is archived under
+`tests/evidence/v4.3.5-release/`.
 ChromaLink implementation evidence remains under `tests/evidence/chromalink/`. Earlier release
-evidence remains under `tests/evidence/v4.3.3-release/`,
+evidence remains under `tests/evidence/v4.3.4-release/`, `tests/evidence/v4.3.3-release/`,
 `tests/evidence/v4.3.2-release/`, `tests/evidence/v4.3.1-release/`, `tests/evidence/v4.3-release/`
 (v4.3.0), `tests/evidence/v4.2-release/`, `tests/evidence/v4-release/` (v4.0.0), and
 `tests/evidence/v3-release/` (v3.0.0).
@@ -57,6 +60,13 @@ fail-closed CRC checks, and SHA-256-gated reconstruction. Payload bytes never to
 The installable PWA precaches 109 entries. As with Audio Transfer, the physical claim boundary is
 explicit: synthetic and browser gates pass, but real two-phone over-air performance is unverified.
 
+**v4.3.5 adds Optical Transfer Beta Test 1** as the 106th tool and fourth Beta Tools card. It
+packages the selected H66-R2 carrier at 76,890 gross bytes/s without describing it as an
+unconstrained maximum; larger production transfers remain bounded by presentation cadence, camera
+capture/optics, decode yield/CPU, LT overhead, browser scheduling, and thermal state. The PWA
+precaches 111 entries; stable Optical Transfer and existing Optical Transfer Beta are preserved
+byte-for-byte.
+
 **v4.3.4 adds Optical Transfer Beta** as the 105th tool and third Beta Tools card. It preserves
 stable Optical Transfer source, built artifact, focused test, documentation, and DCF2/LT wire
 format byte-for-byte while adding 90/120 FPS camera requests, delivered-setting reporting, and
@@ -69,7 +79,7 @@ built and self-contained — double-click any file there. The `tools/` folder ho
 
 ## What Local Suite is
 
-A family of 105 **single-file HTML tools** — weather station, earthquake monitor, flight tracker,
+A family of 106 **single-file HTML tools** — weather station, earthquake monitor, flight tracker,
 calculator workbench, recipe box, periodic table, DNS lookup, arcade — plus a hub page that maps
 them all, with favorites and recently-used quick access. The philosophy (unchanged in v4):
 
