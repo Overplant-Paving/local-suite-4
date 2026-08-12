@@ -32,9 +32,9 @@ Target: exactly 106 manifest tools plus the generated hub (107 generated HTML pa
 
 ## Publication
 
-- [ ] Artifact-bearing v4.3.5 commit pushed to `main`.
-- [ ] GitHub Pages verification/deployment succeeded for the artifact-bearing commit.
-- [ ] Hosted `index.html`, `optical-beta-test-1.html`, `optical.html`, `optical-beta.html`, `sw.js`, and `manifest.webmanifest` match committed `dist/` bytes.
-- [ ] Fresh hosted browser renders Optical Transfer Beta Test 1 as the fourth Beta Tools card without console or CSP errors.
+- [x] Artifact-bearing v4.3.5 commit `b7d647c192a243009793009e5c2347fb5cc1eddc` pushed to `main`; CI portability fixes followed at `d4b5d678bde4b9f4f54478da29624cf78b3dbfaf` and `d6655340dc78fdae172c00ace040bd701034b5d7`.
+- [x] GitHub Pages verification/deployment succeeded for `d6655340dc78fdae172c00ace040bd701034b5d7`: run `31568605360` — https://github.com/Overplant-Paving/local-suite-4/actions/runs/31568605360.
+- [x] Hosted `index.html`, `optical-beta-test-1.html`, `optical.html`, `optical-beta.html`, `sw.js`, and `manifest.webmanifest` match committed `dist/` bytes (`hosted-verify.txt`).
+- [x] Fresh hosted Chromium with service workers blocked renders Optical Transfer Beta Test 1 as the fourth Beta Tools card, exercises Send and Receive views without overflow, and reports zero console/page errors (`hosted-browser.json`, hosted screenshots, `hosted-screenshot-review.md`).
 - [ ] Hosted evidence committed and pushed; final Pages deployment SHA equals final `origin/main`.
 - [ ] Annotated `v4.3.5` tag and GitHub Release published.

@@ -1,0 +1,25 @@
+{
+  "deploymentSha": "d6655340dc78fdae172c00ace040bd701034b5d7",
+  "hub": {
+    "title": "Local Suite · Command Center",
+    "toolCount": 106,
+    "betaHeading": "🧪 Beta Tools 4 tools",
+    "card": "Optical Transfer Beta Test 1",
+    "link": "https://overplant-paving.github.io/local-suite-4/optical-beta-test-1.html",
+    "overflow": false
+  },
+  "send": {
+    "title": "Optical Transfer Beta Test 1 · Local Suite",
+    "h1": "Optical Transfer Beta Test 1",
+    "sendFile": true,
+    "receiveTab": true,
+    "overflow": false,
+    "csp": true
+  },
+  "receive": {
+    "panelVisible": true,
+    "cameraButton": "Start camera",
+    "status": "Ready. Point this device at a sending screen after starting the camera."
+  },
+  "errors": []
+}
