@@ -94,8 +94,14 @@ const kbd = await tool.evaluate(() => ({
 }));
 check("keyboard Enter toggles the chrome star", kbd.pressed === "true" && kbd.favs.includes("qr"), JSON.stringify(kbd));
 
-/* cross-tab: the hub hears the storage events without a reload */
-await hub.waitForTimeout(400);
+/* cross-tab: the hub hears the storage events without a reload.
+   Wait for the observable state rather than assuming CI dispatches both storage
+   events inside a fixed sleep. */
+await hub.waitForFunction(() =>
+  [...document.querySelectorAll("#favGrid .card h3 a")].some(a => a.textContent === "QR Code Maker") &&
+  [...document.querySelectorAll("#recRow a")].some(a => a.textContent === "QR Code Maker"),
+  null,
+  { timeout: 5000 });
 const cross = await hub.evaluate(() => ({
   favCards: [...document.querySelectorAll("#favGrid .card h3 a")].map(a => a.textContent),
   recChips: [...document.querySelectorAll("#recRow a")].map(a => a.textContent),
