@@ -1,0 +1,440 @@
+
+=== RUN 1 ===
+ok   unknown favorite id ignored, known one renders
+ok   recents with only unknown ids stays hidden
+ok   hub card star has aria-label
+ok   hub star toggles storage + pressed state
+ok   unfavoriting from the Favorites section works
+ok   search hides the quick-access sections
+ok   clearing the search restores Favorites
+ok   tool chrome star is a native button with aria-pressed
+ok   opening a tool records it first in recents
+ok   keyboard Enter toggles the chrome star
+ok   cross-tab: hub favorites updated live
+ok   cross-tab: hub recents updated live
+ok   recents dedupe + most-recent-first
+ok   recents bounded at 10, newest kept
+ok   hub + settings excluded from recents
+ok   clear empties recents + hides section + announces
+ok   mobile 390px: sections render, no horizontal overflow
+ok   zero console/page errors
+
+favorites-recents: PASS
+
+=== RUN 2 ===
+ok   unknown favorite id ignored, known one renders
+ok   recents with only unknown ids stays hidden
+ok   hub card star has aria-label
+ok   hub star toggles storage + pressed state
+ok   unfavoriting from the Favorites section works
+ok   search hides the quick-access sections
+ok   clearing the search restores Favorites
+ok   tool chrome star is a native button with aria-pressed
+ok   opening a tool records it first in recents
+ok   keyboard Enter toggles the chrome star
+ok   cross-tab: hub favorites updated live
+ok   cross-tab: hub recents updated live
+ok   recents dedupe + most-recent-first
+ok   recents bounded at 10, newest kept
+ok   hub + settings excluded from recents
+ok   clear empties recents + hides section + announces
+ok   mobile 390px: sections render, no horizontal overflow
+ok   zero console/page errors
+
+favorites-recents: PASS
+
+=== RUN 3 ===
+ok   unknown favorite id ignored, known one renders
+ok   recents with only unknown ids stays hidden
+ok   hub card star has aria-label
+ok   hub star toggles storage + pressed state
+ok   unfavoriting from the Favorites section works
+ok   search hides the quick-access sections
+ok   clearing the search restores Favorites
+ok   tool chrome star is a native button with aria-pressed
+ok   opening a tool records it first in recents
+ok   keyboard Enter toggles the chrome star
+ok   cross-tab: hub favorites updated live
+ok   cross-tab: hub recents updated live
+ok   recents dedupe + most-recent-first
+ok   recents bounded at 10, newest kept
+ok   hub + settings excluded from recents
+ok   clear empties recents + hides section + announces
+ok   mobile 390px: sections render, no horizontal overflow
+ok   zero console/page errors
+
+favorites-recents: PASS
+
+=== RUN 4 ===
+ok   unknown favorite id ignored, known one renders
+ok   recents with only unknown ids stays hidden
+ok   hub card star has aria-label
+ok   hub star toggles storage + pressed state
+ok   unfavoriting from the Favorites section works
+ok   search hides the quick-access sections
+ok   clearing the search restores Favorites
+ok   tool chrome star is a native button with aria-pressed
+ok   opening a tool records it first in recents
+ok   keyboard Enter toggles the chrome star
+ok   cross-tab: hub favorites updated live
+ok   cross-tab: hub recents updated live
+ok   recents dedupe + most-recent-first
+ok   recents bounded at 10, newest kept
+ok   hub + settings excluded from recents
+ok   clear empties recents + hides section + announces
+ok   mobile 390px: sections render, no horizontal overflow
+ok   zero console/page errors
+
+favorites-recents: PASS
+
+=== RUN 5 ===
+ok   unknown favorite id ignored, known one renders
+ok   recents with only unknown ids stays hidden
+ok   hub card star has aria-label
+ok   hub star toggles storage + pressed state
+ok   unfavoriting from the Favorites section works
+ok   search hides the quick-access sections
+ok   clearing the search restores Favorites
+ok   tool chrome star is a native button with aria-pressed
+ok   opening a tool records it first in recents
+ok   keyboard Enter toggles the chrome star
+ok   cross-tab: hub favorites updated live
+ok   cross-tab: hub recents updated live
+ok   recents dedupe + most-recent-first
+ok   recents bounded at 10, newest kept
+ok   hub + settings excluded from recents
+ok   clear empties recents + hides section + announces
+ok   mobile 390px: sections render, no horizontal overflow
+ok   zero console/page errors
+
+favorites-recents: PASS
+
+=== RUN 6 ===
+ok   unknown favorite id ignored, known one renders
+ok   recents with only unknown ids stays hidden
+ok   hub card star has aria-label
+ok   hub star toggles storage + pressed state
+ok   unfavoriting from the Favorites section works
+ok   search hides the quick-access sections
+ok   clearing the search restores Favorites
+ok   tool chrome star is a native button with aria-pressed
+ok   opening a tool records it first in recents
+ok   keyboard Enter toggles the chrome star
+ok   cross-tab: hub favorites updated live
+ok   cross-tab: hub recents updated live
+ok   recents dedupe + most-recent-first
+ok   recents bounded at 10, newest kept
+ok   hub + settings excluded from recents
+ok   clear empties recents + hides section + announces
+ok   mobile 390px: sections render, no horizontal overflow
+ok   zero console/page errors
+
+favorites-recents: PASS
+
+=== RUN 7 ===
+ok   unknown favorite id ignored, known one renders
+ok   recents with only unknown ids stays hidden
+ok   hub card star has aria-label
+ok   hub star toggles storage + pressed state
+ok   unfavoriting from the Favorites section works
+ok   search hides the quick-access sections
+ok   clearing the search restores Favorites
+ok   tool chrome star is a native button with aria-pressed
+ok   opening a tool records it first in recents
+ok   keyboard Enter toggles the chrome star
+ok   cross-tab: hub favorites updated live
+ok   cross-tab: hub recents updated live
+ok   recents dedupe + most-recent-first
+ok   recents bounded at 10, newest kept
+ok   hub + settings excluded from recents
+ok   clear empties recents + hides section + announces
+ok   mobile 390px: sections render, no horizontal overflow
+ok   zero console/page errors
+
+favorites-recents: PASS
+
+=== RUN 8 ===
+ok   unknown favorite id ignored, known one renders
+ok   recents with only unknown ids stays hidden
+ok   hub card star has aria-label
+ok   hub star toggles storage + pressed state
+ok   unfavoriting from the Favorites section works
+ok   search hides the quick-access sections
+ok   clearing the search restores Favorites
+ok   tool chrome star is a native button with aria-pressed
+ok   opening a tool records it first in recents
+ok   keyboard Enter toggles the chrome star
+ok   cross-tab: hub favorites updated live
+ok   cross-tab: hub recents updated live
+ok   recents dedupe + most-recent-first
+ok   recents bounded at 10, newest kept
+ok   hub + settings excluded from recents
+ok   clear empties recents + hides section + announces
+ok   mobile 390px: sections render, no horizontal overflow
+ok   zero console/page errors
+
+favorites-recents: PASS
+
+=== RUN 9 ===
+ok   unknown favorite id ignored, known one renders
+ok   recents with only unknown ids stays hidden
+ok   hub card star has aria-label
+ok   hub star toggles storage + pressed state
+ok   unfavoriting from the Favorites section works
+ok   search hides the quick-access sections
+ok   clearing the search restores Favorites
+ok   tool chrome star is a native button with aria-pressed
+ok   opening a tool records it first in recents
+ok   keyboard Enter toggles the chrome star
+ok   cross-tab: hub favorites updated live
+ok   cross-tab: hub recents updated live
+ok   recents dedupe + most-recent-first
+ok   recents bounded at 10, newest kept
+ok   hub + settings excluded from recents
+ok   clear empties recents + hides section + announces
+ok   mobile 390px: sections render, no horizontal overflow
+ok   zero console/page errors
+
+favorites-recents: PASS
+
+=== RUN 10 ===
+ok   unknown favorite id ignored, known one renders
+ok   recents with only unknown ids stays hidden
+ok   hub card star has aria-label
+ok   hub star toggles storage + pressed state
+ok   unfavoriting from the Favorites section works
+ok   search hides the quick-access sections
+ok   clearing the search restores Favorites
+ok   tool chrome star is a native button with aria-pressed
+ok   opening a tool records it first in recents
+ok   keyboard Enter toggles the chrome star
+ok   cross-tab: hub favorites updated live
+ok   cross-tab: hub recents updated live
+ok   recents dedupe + most-recent-first
+ok   recents bounded at 10, newest kept
+ok   hub + settings excluded from recents
+ok   clear empties recents + hides section + announces
+ok   mobile 390px: sections render, no horizontal overflow
+ok   zero console/page errors
+
+favorites-recents: PASS
+
+=== RUN 11 ===
+ok   unknown favorite id ignored, known one renders
+ok   recents with only unknown ids stays hidden
+ok   hub card star has aria-label
+ok   hub star toggles storage + pressed state
+ok   unfavoriting from the Favorites section works
+ok   search hides the quick-access sections
+ok   clearing the search restores Favorites
+ok   tool chrome star is a native button with aria-pressed
+ok   opening a tool records it first in recents
+ok   keyboard Enter toggles the chrome star
+ok   cross-tab: hub favorites updated live
+ok   cross-tab: hub recents updated live
+ok   recents dedupe + most-recent-first
+ok   recents bounded at 10, newest kept
+ok   hub + settings excluded from recents
+ok   clear empties recents + hides section + announces
+ok   mobile 390px: sections render, no horizontal overflow
+ok   zero console/page errors
+
+favorites-recents: PASS
+
+=== RUN 12 ===
+ok   unknown favorite id ignored, known one renders
+ok   recents with only unknown ids stays hidden
+ok   hub card star has aria-label
+ok   hub star toggles storage + pressed state
+ok   unfavoriting from the Favorites section works
+ok   search hides the quick-access sections
+ok   clearing the search restores Favorites
+ok   tool chrome star is a native button with aria-pressed
+ok   opening a tool records it first in recents
+ok   keyboard Enter toggles the chrome star
+ok   cross-tab: hub favorites updated live
+ok   cross-tab: hub recents updated live
+ok   recents dedupe + most-recent-first
+ok   recents bounded at 10, newest kept
+ok   hub + settings excluded from recents
+ok   clear empties recents + hides section + announces
+ok   mobile 390px: sections render, no horizontal overflow
+ok   zero console/page errors
+
+favorites-recents: PASS
+
+=== RUN 13 ===
+ok   unknown favorite id ignored, known one renders
+ok   recents with only unknown ids stays hidden
+ok   hub card star has aria-label
+ok   hub star toggles storage + pressed state
+ok   unfavoriting from the Favorites section works
+ok   search hides the quick-access sections
+ok   clearing the search restores Favorites
+ok   tool chrome star is a native button with aria-pressed
+ok   opening a tool records it first in recents
+ok   keyboard Enter toggles the chrome star
+ok   cross-tab: hub favorites updated live
+ok   cross-tab: hub recents updated live
+ok   recents dedupe + most-recent-first
+ok   recents bounded at 10, newest kept
+ok   hub + settings excluded from recents
+ok   clear empties recents + hides section + announces
+ok   mobile 390px: sections render, no horizontal overflow
+ok   zero console/page errors
+
+favorites-recents: PASS
+
+=== RUN 14 ===
+ok   unknown favorite id ignored, known one renders
+ok   recents with only unknown ids stays hidden
+ok   hub card star has aria-label
+ok   hub star toggles storage + pressed state
+ok   unfavoriting from the Favorites section works
+ok   search hides the quick-access sections
+ok   clearing the search restores Favorites
+ok   tool chrome star is a native button with aria-pressed
+ok   opening a tool records it first in recents
+ok   keyboard Enter toggles the chrome star
+ok   cross-tab: hub favorites updated live
+ok   cross-tab: hub recents updated live
+ok   recents dedupe + most-recent-first
+ok   recents bounded at 10, newest kept
+ok   hub + settings excluded from recents
+ok   clear empties recents + hides section + announces
+ok   mobile 390px: sections render, no horizontal overflow
+ok   zero console/page errors
+
+favorites-recents: PASS
+
+=== RUN 15 ===
+ok   unknown favorite id ignored, known one renders
+ok   recents with only unknown ids stays hidden
+ok   hub card star has aria-label
+ok   hub star toggles storage + pressed state
+ok   unfavoriting from the Favorites section works
+ok   search hides the quick-access sections
+ok   clearing the search restores Favorites
+ok   tool chrome star is a native button with aria-pressed
+ok   opening a tool records it first in recents
+ok   keyboard Enter toggles the chrome star
+ok   cross-tab: hub favorites updated live
+ok   cross-tab: hub recents updated live
+ok   recents dedupe + most-recent-first
+ok   recents bounded at 10, newest kept
+ok   hub + settings excluded from recents
+ok   clear empties recents + hides section + announces
+ok   mobile 390px: sections render, no horizontal overflow
+ok   zero console/page errors
+
+favorites-recents: PASS
+
+=== RUN 16 ===
+ok   unknown favorite id ignored, known one renders
+ok   recents with only unknown ids stays hidden
+ok   hub card star has aria-label
+ok   hub star toggles storage + pressed state
+ok   unfavoriting from the Favorites section works
+ok   search hides the quick-access sections
+ok   clearing the search restores Favorites
+ok   tool chrome star is a native button with aria-pressed
+ok   opening a tool records it first in recents
+ok   keyboard Enter toggles the chrome star
+ok   cross-tab: hub favorites updated live
+ok   cross-tab: hub recents updated live
+ok   recents dedupe + most-recent-first
+ok   recents bounded at 10, newest kept
+ok   hub + settings excluded from recents
+ok   clear empties recents + hides section + announces
+ok   mobile 390px: sections render, no horizontal overflow
+ok   zero console/page errors
+
+favorites-recents: PASS
+
+=== RUN 17 ===
+ok   unknown favorite id ignored, known one renders
+ok   recents with only unknown ids stays hidden
+ok   hub card star has aria-label
+ok   hub star toggles storage + pressed state
+ok   unfavoriting from the Favorites section works
+ok   search hides the quick-access sections
+ok   clearing the search restores Favorites
+ok   tool chrome star is a native button with aria-pressed
+ok   opening a tool records it first in recents
+ok   keyboard Enter toggles the chrome star
+ok   cross-tab: hub favorites updated live
+ok   cross-tab: hub recents updated live
+ok   recents dedupe + most-recent-first
+ok   recents bounded at 10, newest kept
+ok   hub + settings excluded from recents
+ok   clear empties recents + hides section + announces
+ok   mobile 390px: sections render, no horizontal overflow
+ok   zero console/page errors
+
+favorites-recents: PASS
+
+=== RUN 18 ===
+ok   unknown favorite id ignored, known one renders
+ok   recents with only unknown ids stays hidden
+ok   hub card star has aria-label
+ok   hub star toggles storage + pressed state
+ok   unfavoriting from the Favorites section works
+ok   search hides the quick-access sections
+ok   clearing the search restores Favorites
+ok   tool chrome star is a native button with aria-pressed
+ok   opening a tool records it first in recents
+ok   keyboard Enter toggles the chrome star
+ok   cross-tab: hub favorites updated live
+ok   cross-tab: hub recents updated live
+ok   recents dedupe + most-recent-first
+ok   recents bounded at 10, newest kept
+ok   hub + settings excluded from recents
+ok   clear empties recents + hides section + announces
+ok   mobile 390px: sections render, no horizontal overflow
+ok   zero console/page errors
+
+favorites-recents: PASS
+
+=== RUN 19 ===
+ok   unknown favorite id ignored, known one renders
+ok   recents with only unknown ids stays hidden
+ok   hub card star has aria-label
+ok   hub star toggles storage + pressed state
+ok   unfavoriting from the Favorites section works
+ok   search hides the quick-access sections
+ok   clearing the search restores Favorites
+ok   tool chrome star is a native button with aria-pressed
+ok   opening a tool records it first in recents
+ok   keyboard Enter toggles the chrome star
+ok   cross-tab: hub favorites updated live
+ok   cross-tab: hub recents updated live
+ok   recents dedupe + most-recent-first
+ok   recents bounded at 10, newest kept
+ok   hub + settings excluded from recents
+ok   clear empties recents + hides section + announces
+ok   mobile 390px: sections render, no horizontal overflow
+ok   zero console/page errors
+
+favorites-recents: PASS
+
+=== RUN 20 ===
+ok   unknown favorite id ignored, known one renders
+ok   recents with only unknown ids stays hidden
+ok   hub card star has aria-label
+ok   hub star toggles storage + pressed state
+ok   unfavoriting from the Favorites section works
+ok   search hides the quick-access sections
+ok   clearing the search restores Favorites
+ok   tool chrome star is a native button with aria-pressed
+ok   opening a tool records it first in recents
+ok   keyboard Enter toggles the chrome star
+ok   cross-tab: hub favorites updated live
+ok   cross-tab: hub recents updated live
+ok   recents dedupe + most-recent-first
+ok   recents bounded at 10, newest kept
+ok   hub + settings excluded from recents
+ok   clear empties recents + hides section + announces
+ok   mobile 390px: sections render, no horizontal overflow
+ok   zero console/page errors
+
+favorites-recents: PASS

@@ -1,19 +1,28 @@
 /* Focused v4 contract: suite-wide favorites + recently used.
-   Deterministic (no network): built pages from file://, one context = shared
-   localStorage + real cross-tab storage events. Run from tests/:
+   Deterministic (local HTTP only): built pages from one origin, one context =
+   shared localStorage + real cross-tab storage events. Run from tests/:
    node favorites-recents.mjs                                    exit 0 = green */
 import { chromium } from "playwright";
-import { pathToFileURL } from "node:url";
-import { resolve, join } from "node:path";
+import { createServer } from "node:http";
+import { existsSync, readFileSync } from "node:fs";
+import { resolve, join, extname } from "node:path";
 
 const ROOT = resolve(import.meta.dirname, "..");
-const url = f => pathToFileURL(join(ROOT, "dist", f)).href;
-let browser;
-try { browser = await chromium.launch({ channel: "chrome" }); }
-catch (e) {
-  if (!String(e).includes("distribution 'chrome' is not found")) throw e;
-  browser = await chromium.launch();
-}
+const DIST = join(ROOT, "dist");
+const MIME = { ".html": "text/html", ".js": "text/javascript", ".png": "image/png",
+  ".webmanifest": "application/manifest+json" };
+const server = createServer((request, response) => {
+  const rel = request.url.split("?")[0].replace(/^\/+/, "") || "index.html";
+  const path = join(DIST, rel);
+  if (!existsSync(path)) { response.writeHead(404); response.end(); return; }
+  response.writeHead(200, { "content-type": MIME[extname(path)] || "application/octet-stream" });
+  response.end(readFileSync(path));
+});
+await new Promise(resolveListen => server.listen(0, "127.0.0.1", resolveListen));
+server.unref();
+const origin = `http://127.0.0.1:${server.address().port}`;
+const url = file => `${origin}/${file}`;
+const browser = await chromium.launch();
 const failures = [];
 const check = (name, ok, detail = "") => {
   console.log((ok ? "ok   " : "FAIL ") + name + (ok || !detail ? "" : "  — " + detail));
@@ -169,5 +178,6 @@ await mob.close();
 check("zero console/page errors", errs.length === 0, errs.join(" | "));
 await ctx.close();
 await browser.close();
+server.close();
 console.log(failures.length ? `\nfavorites-recents: ${failures.length} FAILURE(S)` : "\nfavorites-recents: PASS");
 process.exit(failures.length ? 1 : 0);
