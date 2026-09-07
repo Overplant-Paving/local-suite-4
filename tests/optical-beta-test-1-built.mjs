@@ -22,7 +22,9 @@ const built = read("dist/optical-beta-test-1.html");
 const serviceWorker = read("dist/sw.js");
 const buildPy = read("build.py");
 const manifest = JSON.parse(read("manifest/tools.json"));
-const generatedHtml = readdirSync(join(ROOT, "dist")).filter(file => file.endsWith(".html")).sort();
+const bundledArcadeGames = ["mushroom-death-garden.html"];
+const distHtml = readdirSync(join(ROOT, "dist")).filter(file => file.endsWith(".html")).sort();
+const generatedHtml = distHtml.filter(file => !bundledArcadeGames.includes(file));
 const precache = JSON.parse(serviceWorker.match(/const PRECACHE = (\[[^\]]+\])/s)?.[1] || "[]");
 
 const protectedHashes = {
@@ -41,9 +43,11 @@ const stableEntry = manifest.tools.find(tool => tool.id === "optical");
 const betaEntry = manifest.tools.find(tool => tool.id === "optical-beta");
 check("manifest has exactly 106 product identities", manifest.tools.length === 106, String(manifest.tools.length));
 check("dist has exactly 107 generated HTML pages", generatedHtml.length === 107, String(generatedHtml.length));
+check("dist includes the bundled Mushroom Death Garden Arcade game",
+  bundledArcadeGames.every(file => distHtml.includes(file)), JSON.stringify(distHtml));
 check("PWA precache count is derived from generated HTML + webmanifest + icons",
-  precache.length === generatedHtml.length + 1 + 3 && precache.length === 111,
-  JSON.stringify({ generatedHtml: generatedHtml.length, precache: precache.length }));
+  precache.length === generatedHtml.length + bundledArcadeGames.length + 1 + 3 && precache.length === 112,
+  JSON.stringify({ generatedHtml: generatedHtml.length, bundledArcadeGames, precache: precache.length }));
 check("manifest contains separate Beta Test 1 identity",
   entry?.file === "optical-beta-test-1.html" && entry?.name === "Optical Transfer Beta Test 1" && entry?.cat === "beta" && entry?.since === "v4.3.5",
   JSON.stringify(entry));
