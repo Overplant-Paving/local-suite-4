@@ -120,6 +120,8 @@ textarea:focus-visible, summary:focus-visible, [tabindex]:focus-visible {
   .game { padding: 0; overflow: hidden; gap: 0; }
   .art { position: relative; display: block; background: var(--chip); }
   .art img { display: block; width: 100%; height: 230px; object-fit: cover; object-position: top center; }
+  .arcade-art { min-height: 230px; display: grid; place-content: center; text-align: center; padding: 1rem; background: radial-gradient(circle at 50% 75%, #713c49 0 14%, transparent 15%), radial-gradient(circle at 26% 80%, #4e7d55 0 11%, transparent 12%), linear-gradient(145deg, #111b17, #3b1622); color: #f4e4c0; font: 800 1.5rem/1.05 Georgia, serif; letter-spacing: .1em; text-shadow: 0 2px 0 #1b1010; }
+  .arcade-art em { color: #dd9b75; font-size: .77em; }
   .art:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
   .body { padding: 1rem 1.05rem 1.05rem; display: flex; flex-direction: column; gap: .55rem; flex: 1; }
   .game h2 { font-size: 1.12rem; line-height: 1.3; }
@@ -153,6 +155,23 @@ textarea:focus-visible, summary:focus-visible, [tabindex]:focus-visible {
   </header>
 
   <div class="grid" id="games">
+
+    <article class="card game">
+      <a class="art" href="mushroom-death-garden.html" target="_blank" rel="noopener noreferrer"
+         aria-label="Play Mushroom Death Garden in your browser (opens in a new tab)">
+        <div class="arcade-art" aria-hidden="true">MUSHROOM<br><em>DEATH GARDEN</em></div>
+      </a>
+      <div class="body">
+        <h2><a href="mushroom-death-garden.html" target="_blank" rel="noopener noreferrer">Mushroom Death Garden</a></h2>
+        <div class="chips"><span class="chip good">Desktop + touch</span><span class="chip">survival shooter</span></div>
+        <p class="desc">Cut through a night garden overrun by crawling mushrooms. Survive each bloom,
+          collect powers, and see how long your three souls last.</p>
+        <p class="meta">Bundled locally &bull; WASD/arrows or mouse/touch to move &bull; hold Space or click to fire</p>
+        <div class="actions">
+          <a class="play" href="mushroom-death-garden.html" target="_blank" rel="noopener noreferrer">Play locally &nearr;</a>
+        </div>
+      </div>
+    </article>
 
     <article class="card game">
       <a class="art" href="https://overplant-paving.github.io/bathhouse-brigade/" target="_blank" rel="noopener noreferrer"

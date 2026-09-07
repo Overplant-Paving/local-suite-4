@@ -19,5 +19,9 @@ redrawn.
 The DOOM capture shows the game's title screen as served by the owned deployment; DOOM and its
 artwork are © id Software — the card credits this and links only to the shareware deployment.
 
+`mushroom-death-garden.html` is a standalone, self-contained game supplied for this Local Suite
+release on 2026-09-07. `build.py` copies it byte-for-byte to `dist/` and includes it in the PWA
+precache, so the Arcade card opens a local playable copy.
+
 `build.py` inlines these files into `dist/arcade.html` as `data:` URIs (the `data-suite-asset`
 marker), so the built Arcade stays a single self-contained file.

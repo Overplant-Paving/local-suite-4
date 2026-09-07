@@ -315,6 +315,9 @@ def render_all(manifest):
     return out
 
 ICON_FILES = ("icons/icon-192.png", "icons/icon-512.png", "icons/icon-maskable-512.png")
+# Standalone games bundled with the Arcade. They are copied byte-for-byte into
+# dist/ so a local release remains playable without an external host.
+LOCAL_GAME_FILES = ("mushroom-death-garden.html",)
 
 WEBMANIFEST_NAME = "manifest.webmanifest"
 
@@ -380,13 +383,15 @@ def render_pwa(rendered):
              "type": "image/png", "purpose": "maskable"},
         ],
     }, ensure_ascii=False, indent=2) + "\n"
-    precache = sorted(rendered) + [WEBMANIFEST_NAME] + list(ICON_FILES)
+    precache = sorted(rendered) + list(LOCAL_GAME_FILES) + [WEBMANIFEST_NAME] + list(ICON_FILES)
     h = hashlib.sha256()
     for name in precache:
         if name == WEBMANIFEST_NAME:
             h.update(webmanifest.encode("utf-8"))
         elif name in ICON_FILES:
             h.update((CORE_DIR / "icons" / name.split("/")[1]).read_bytes())
+        elif name in LOCAL_GAME_FILES:
+            h.update((ROOT / "assets" / "arcade" / name).read_bytes())
         else:
             h.update(rendered[name].encode("utf-8"))
     cache_name = f"suite-v4-{h.hexdigest()[:12]}"
@@ -400,6 +405,13 @@ def cmd_build(_args):
     for name, html in sorted(rendered.items()):
         write(DIST_DIR / name, html)
         print(f"built dist/{name} ({len(html.encode('utf-8'))} bytes)")
+    for name in LOCAL_GAME_FILES:
+        source = ROOT / "assets" / "arcade" / name
+        if not source.exists():
+            raise SystemExit(f"missing bundled Arcade game: assets/arcade/{name}")
+        target = DIST_DIR / name
+        target.write_bytes(source.read_bytes())
+        print(f"bundled dist/{name} ({target.stat().st_size} bytes)")
     webmanifest, sw, precache, cache_name = render_pwa(rendered)
     write(DIST_DIR / WEBMANIFEST_NAME, webmanifest)
     write(DIST_DIR / "sw.js", sw)
@@ -480,7 +492,7 @@ def gate_markers(sources):
             problems.append(f"{name}: missing the @suite:tools marker")
     return problems
 
-def gate_dist_staleness(rendered, dist_dir):
+def gate_dist_staleness(rendered, dist_dir, local_game_files=()):
     problems = []
     for name, html in sorted(rendered.items()):
         p = dist_dir / name
@@ -488,8 +500,17 @@ def gate_dist_staleness(rendered, dist_dir):
             problems.append(f"dist/{name} missing — run: python build.py")
         elif p.read_bytes() != html.encode("utf-8"):
             problems.append(f"dist/{name} is stale (or was edited by hand) — run: python build.py")
+    for name in local_game_files:
+        source = ROOT / "assets" / "arcade" / name
+        target = dist_dir / name
+        if not source.exists():
+            problems.append(f"assets/arcade/{name} missing - cannot bundle game")
+        elif not target.exists():
+            problems.append(f"dist/{name} missing - run: python build.py")
+        elif target.read_bytes() != source.read_bytes():
+            problems.append(f"dist/{name} is stale - run: python build.py")
     for p in sorted(dist_dir.glob("*.html")):
-        if p.name not in rendered:
+        if p.name not in rendered and p.name not in local_game_files:
             problems.append(f"dist/{p.name} has no source in tools/ — remove it")
     return problems
 
@@ -503,9 +524,11 @@ def gate_no_inline_handlers(dist_texts):
             problems.append(f"{name}: inline event handler in markup: …{snippet}")
     return problems
 
-def gate_csp(dist_texts, manifest_tools):
+def gate_csp(dist_texts, manifest_tools, exempt_names=()):
     problems = []
     for name, text in sorted(dist_texts.items()):
+        if name in exempt_names:
+            continue
         m = CSP_META_RE.search(text)
         if not m:
             problems.append(f"{name}: no Content-Security-Policy meta tag")
@@ -733,9 +756,9 @@ def cmd_check(_args):
         ("source-text-integrity", True, gate_source_text_integrity(integrity_sources)),
         ("manifest-files-sync", True,  gate_manifest_files_sync(tools, tool_files)),
         ("markers",             True,  gate_markers(sources)),
-        ("dist-staleness",      True,  gate_dist_staleness(rendered, DIST_DIR)),
+        ("dist-staleness",      True,  gate_dist_staleness(rendered, DIST_DIR, LOCAL_GAME_FILES)),
         ("no-inline-handlers",  True,  gate_no_inline_handlers(dist_texts)),
-        ("csp",                 True,  gate_csp(dist_texts, tools)),
+        ("csp",                 True,  gate_csp(dist_texts, tools, LOCAL_GAME_FILES)),
         ("escaping-heuristic",  False, gate_escaping_heuristic(sources, load_escape_allowlist())),
         ("catalog-crosscheck",  False, gate_catalog_crosscheck(tools, catalog_text)),
         ("settings-signup-sync", False, gate_settings_signup_sync(sources, tools)),
