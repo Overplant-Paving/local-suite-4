@@ -1,4 +1,4 @@
-/* Built Arcade contract: seven cards, honest live-Pages destinations, inlined art,
+/* Built Arcade contract: one bundled local game plus seven live-Pages cards, inlined art,
    alt text, external-link safety, keyboard focus, CSP, file:// + hosted mode, mobile.
    Deterministic — no request leaves the page (the cards are links, not fetches).
    Run from tests/:  node arcade-built.mjs                          exit 0 = green */
@@ -18,6 +18,7 @@ const EXPECT = [
   ["Unicorn 42069er: The Sprinkle Mines", "Desktop · keyboard", "https://overplant-paving.github.io/unicorn-42069er/", "https://github.com/Overplant-Paving/unicorn-42069er", "pastel candy-mine entrance"],
   ["Miner 42069er", "Desktop · keyboard", "https://overplant-paving.github.io/miner-42069er/", "https://github.com/Overplant-Paving/miner-42069er", "timbered mine entrance"],
 ];
+const LOCAL_GAME = ["Mushroom Death Garden", "Desktop + touch", "mushroom-death-garden.html"];
 
 let browser;
 try { browser = await chromium.launch({ channel: "chrome" }); }
@@ -63,20 +64,27 @@ async function audit(page, modeName) {
     alt: c.querySelector(".art img")?.getAttribute("alt") || "",
     artLabel: c.querySelector("a.art")?.getAttribute("aria-label") || "",
   })));
-  check("seven cards render", cards.length === 7, String(cards.length));
+  check("eight cards render", cards.length === 8, String(cards.length));
+  const [localTitle, localEdition, localHref] = LOCAL_GAME;
+  const local = cards[0] || {};
+  check("first card: bundled Mushroom Death Garden",
+    local.title === localTitle && local.edition === localEdition &&
+      local.play === localHref && local.artHref === localHref &&
+      local.headingHref === localHref && !local.src && /Play locally/.test(local.playLabel || "") &&
+      /new tab/.test(local.artLabel), JSON.stringify(local));
   EXPECT.forEach(([title, edition, play, src, altFragment], i) => {
-    const c = cards[i] || {};
-    check(`card ${i + 1}: ${title}`,
+    const c = cards[i + 1] || {};
+    check(`card ${i + 2}: ${title}`,
       c.title === title && c.edition === edition && c.play === play && c.src === src &&
         c.artHref === play && c.headingHref === play,
       JSON.stringify(c));
-    check(`card ${i + 1} art inlined as data URI, decoded, meaningful alt`,
+    check(`card ${i + 2} art inlined as data URI, decoded, meaningful alt`,
       c.imgData && c.imgLoaded && c.alt.includes(altFragment) && /new tab/.test(c.artLabel),
       JSON.stringify({ imgData: c.imgData, imgLoaded: c.imgLoaded, alt: c.alt.slice(0, 80) }));
-    check(`card ${i + 1} external links are noopener+_blank`,
+    check(`card ${i + 2} external links are noopener+_blank`,
       c.rels.length >= 3 && c.rels.every(r => /noopener/.test(r) && /_blank/.test(r)), JSON.stringify(c.rels));
   });
-  check("playable labels say what happens", cards.every(c => /Play in your browser/.test(c.playLabel || "")));
+  check("playable labels say what happens", cards.every(c => /Play (locally|in your browser)/.test(c.playLabel || "")));
   check("DOOM card credits id Software and disclaims open source",
     await page.evaluate(() => /© id Software/.test(document.body.innerText) && /not open source/.test(document.body.innerText)));
   check("no network request escapes the page on load", escaped === 0, String(escaped));
@@ -121,8 +129,9 @@ async function audit(page, modeName) {
   const hosted = await page.evaluate(() => ({
     cards: document.querySelectorAll(".game").length,
     imgs: [...document.querySelectorAll(".art img")].every(i => i.complete && i.naturalWidth > 0),
+    local: document.querySelector(".game h2 a")?.getAttribute("href"),
   }));
-  check("hosted mode: seven cards, art decodes", hosted.cards === 7 && hosted.imgs, JSON.stringify(hosted));
+  check("hosted mode: eight cards, art decodes", hosted.cards === 8 && hosted.imgs && hosted.local === "mushroom-death-garden.html", JSON.stringify(hosted));
   check("hosted zero console/page errors", mon.errs.length === 0, mon.errs.join("|"));
   check("hosted zero CSP violations", (await mon.csp()).length === 0, (await mon.csp()).join("|"));
   await ctx.close();
