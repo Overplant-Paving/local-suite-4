@@ -1,9 +1,10 @@
 # Local Suite 4
 
 This is **Local Suite v4**, built on the verified v2/v3 single-file architecture. **v4.3.5** contains
-**106 manifest tools** (107 generated pages). It adds **Optical Transfer Beta Test 1** as a separate
-fourth Beta Tools entry while retaining stable Optical Transfer and existing Optical Transfer Beta
-byte-for-byte unchanged.
+**106 manifest tools**, the generated hub, and a bundled Arcade game (108 distributable HTML files).
+It adds **Optical Transfer Beta Test 1** as a separate fourth Beta Tools entry while retaining stable
+Optical Transfer and existing Optical Transfer Beta byte-for-byte unchanged, and bundles
+**Mushroom Death Garden** for local, offline Arcade play.
 
 Optical Transfer Beta Test 1 packages the selected H66-R2 faster QR carrier: V37/2,563-byte frames,
 ECC L mask 4, 30 presentations/s, processor capture, calibrated fixed ROI, ZXing fast global
@@ -17,8 +18,8 @@ reconstruction. See [CHROMALINK.md](CHROMALINK.md); the TypeScript/Vite source l
 (82 Vitest tests, 58 built-page checks), but two-device physical over-air performance remains an
 unverified beta claim until a documented hardware matrix exists.
 
-Current release: **v4.3.5** (2026-08-12). Stable, Beta, and Beta Test 1 Optical Transfer focused
-gates are wired into the Pages workflow; release evidence is archived under
+Current release: **v4.3.5** (2026-09-07). Stable, Beta, Beta Test 1, and Arcade focused gates are
+wired into the Pages workflow; release evidence is archived under
 `tests/evidence/v4.3.5-release/`.
 ChromaLink implementation evidence remains under `tests/evidence/chromalink/`. Earlier release
 evidence remains under `tests/evidence/v4.3.4-release/`, `tests/evidence/v4.3.3-release/`,
@@ -176,13 +177,14 @@ section plus a 🕘 Recently used row (deduplicated, most-recent-first, bounded 
 clear button). Both live in `localStorage` (`suite.hub.favorites`, `suite.hub.recents`), stay in
 sync across tabs, and ride along in Settings backup/restore like every other `suite.*` key.
 
-### The Arcade (v4; expanded in v4.3.0)
+### The Arcade (v4; expanded in v4.3.0 and v4.3.5)
 
-`dist/arcade.html` is a launcher for seven browser games from this suite's own workshop —
-Bathhouse Brigade (desktop + mobile editions), Chromatic Chains (desktop + mobile editions),
-the DOOM 1993 shareware episode in an emulator, Unicorn 42069er: The Sprinkle Mines, and Miner
-42069er. Every card links to a live GitHub Pages deployment; the card art is copied from the game
-repositories and inlined at build time (provenance: `assets/arcade/PROVENANCE.md`).
+`dist/arcade.html` is a launcher for eight browser games from this suite's own workshop. Mushroom
+Death Garden is bundled locally for offline play; Bathhouse Brigade (desktop + mobile editions),
+Chromatic Chains (desktop + mobile editions), the DOOM 1993 shareware episode in an emulator,
+Unicorn 42069er: The Sprinkle Mines, and Miner 42069er link to live GitHub Pages deployments. The
+external games' card art is copied from their repositories and inlined at build time (provenance:
+`assets/arcade/PROVENANCE.md`).
 
 ### National Parks Explorer setup
 

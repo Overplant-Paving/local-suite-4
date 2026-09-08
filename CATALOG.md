@@ -723,17 +723,17 @@ refinance what-ifs (10.11), dice and pick-from-list (10.5). Storage and quota di
 
 ## 11 · Games & Arcade
 
-### 11.1 The Arcade — *built* ✅ (v4; expanded in v4.3.0)
-A launcher for seven browser games from this suite's own workshop: Bathhouse Brigade (desktop and
-mobile editions), Chromatic Chains (desktop and mobile editions), DOOM 1993 shareware in an
-EmulatorJS/PrBoom wrapper, Unicorn 42069er: The Sprinkle Mines, and Miner 42069er. Every card links
-to its live GitHub Pages deployment (all seven verified playable 2026-08-06) plus the source
-repository, honestly labeled.
+### 11.1 The Arcade — *built* ✅ (v4; expanded in v4.3.0 and v4.3.5)
+A launcher for eight browser games from this suite's own workshop: the locally bundled Mushroom
+Death Garden; Bathhouse Brigade (desktop and mobile editions); Chromatic Chains (desktop and mobile
+editions); DOOM 1993 shareware in an EmulatorJS/PrBoom wrapper; Unicorn 42069er: The Sprinkle Mines;
+and Miner 42069er. The other seven cards link to verified live GitHub Pages deployments and source
+repositories; every destination is honestly labeled.
 - **Data:** none — zero network requests. Card art is copied from the game repositories
   (DOOM: a screenshot of the repository's own deployment, credited to id Software), optimized,
   and inlined at build time via the `data-suite-asset` marker; provenance in
   `assets/arcade/PROVENANCE.md`.
-- **Key:** none · **Local:** file:// ✅ (games themselves open on GitHub Pages) · **Complexity:** S
+- **Key:** none · **Local:** file:// ✅ (Mushroom Death Garden is local; the other games open on GitHub Pages) · **Complexity:** S
 - **Suggested file:** `arcade.html`
 
 ## Suggested build order

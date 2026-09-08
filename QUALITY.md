@@ -88,8 +88,8 @@ must fail the check (a file with an inline handler, a stale dist, a mismatched h
 that has never been seen to fail is assumed broken.
 
 **Tier 2 — smoke suite, mandatory:** `tests/smoke.mjs` (Playwright — the one npm concession,
-isolated in `tests/`, never required for *building*, always required for *shipping*). For each of
-every generated HTML file (currently 106 tools plus the hub, 107 files):
+isolated in `tests/`, never required for *building*, always required for *shipping*). For each
+distributable HTML file (currently 106 tools plus the hub and one bundled Arcade game, 108 files):
 
 1. open via `file://`
 2. assert zero console errors

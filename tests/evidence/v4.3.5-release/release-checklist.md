@@ -1,11 +1,12 @@
 # Local Suite v4.3.5 — release checklist
 
-Target: exactly 106 manifest tools plus the generated hub (107 generated HTML pages), with Optical Transfer Beta Test 1 as the fourth Beta Tools card. Stable Optical Transfer and the existing Optical Transfer Beta remain byte-for-byte unchanged.
+Target: exactly 106 manifest tools plus the generated hub and bundled Mushroom Death Garden (108 distributable HTML files), with Optical Transfer Beta Test 1 as the fourth Beta Tools card. Stable Optical Transfer and the existing Optical Transfer Beta remain byte-for-byte unchanged.
 
 ## Scope
 
 - [x] Separate `optical-beta-test-1` manifest identity with `cat: beta`; stable `optical` remains `cat: util`, and prior `optical-beta` remains separate.
 - [x] Manifest `since` version is `v4.3.5`.
+- [x] Mushroom Death Garden is bundled byte-for-byte as the eighth Arcade game and included in the PWA precache.
 - [x] Product page packages H66-R2: QR V37/2,563-byte frames, ECC L mask 4, approximately 30 presentations/s, sender ring depth 3, four receiver workers, processor capture, calibrated fixed ROI, ZXing fast global histogram, adaptive H40 recovery, and post-SHA closure.
 - [x] Stable Optical Transfer and existing Optical Transfer Beta source, generated artifacts, focused tests, and documentation are unchanged relative to `origin/main`.
 - [x] The production page excludes campaign, harness, ADB/CDP, localhost, synthetic-trial, and fixed 1 MiB benchmark pathways.
@@ -16,15 +17,16 @@ Target: exactly 106 manifest tools plus the generated hub (107 generated HTML pa
 
 ## Local verification
 
-- [x] `python3 build.py` — 107 generated HTML files and 111-entry `suite-v4-` precache (`local-release-gates.log`).
+- [x] `python build.py` — 107 generated HTML files plus one bundled game and a 112-entry `suite-v4-` precache.
 - [x] `python3 build.py --check` — all fatal and negative gates green at 106 manifest tools (`local-release-gates.log`).
 - [x] Full Pages-equivalent focused gate sequence — green (`local-release-gates.log`).
 - [x] Stable Optical Transfer focused regression — PASS (`local-release-gates.log`).
 - [x] Existing Optical Transfer Beta focused regression — PASS (`local-release-gates.log`).
 - [x] Optical Transfer Beta Test 1 focused production gate — PASS (`local-release-gates.log`).
-- [x] Full smoke suite — 107/107 generated pages green (`local-release-gates.log`).
-- [x] PWA v3/v4 cache coexistence — 111-entry current cache and foreign v3 cache preserved (`local-release-gates.log`).
-- [x] PWA install/offline matrix — clean manifest/installability, 111-entry precache, offline shell/function (`pwa-install.txt`).
+- [ ] Full smoke suite — 108/108 distributable HTML files green in release CI.
+- [x] Focused release gate verifies the generated PWA precache contains all 107 generated pages,
+  Mushroom Death Garden, the webmanifest, and three icons (112 entries total).
+- [ ] PWA v3/v4 cache coexistence and install/offline checks green in release CI.
 - [x] PWA update path — changed content activated within one reload and old v4 cache removed (`pwa-update.txt`).
 - [x] Headed Chromium — `beforeinstallprompt`, service-worker control, clean installability/console, and reviewed hub screenshot (`headed-installability.txt`, `headed-installability.png`, `screenshot-review.md`).
 - [x] Stable/prior-Beta protected files unchanged relative to `origin/main`.
@@ -37,4 +39,4 @@ Target: exactly 106 manifest tools plus the generated hub (107 generated HTML pa
 - [x] Hosted `index.html`, `optical-beta-test-1.html`, `optical.html`, `optical-beta.html`, `sw.js`, and `manifest.webmanifest` match committed `dist/` bytes (`hosted-verify.txt`).
 - [x] Fresh hosted Chromium with service workers blocked renders Optical Transfer Beta Test 1 as the fourth Beta Tools card, exercises Send and Receive views without overflow, and reports zero console/page errors (`hosted-browser.json`, hosted screenshots, `hosted-screenshot-review.md`).
 - [ ] Hosted evidence committed and pushed; final Pages deployment SHA equals final `origin/main`.
-- [ ] Annotated `v4.3.5` tag and GitHub Release published.
+- [ ] Annotated `v4.3.5` tag and GitHub Release published from the verified game-bearing commit.

@@ -240,8 +240,14 @@ release checklist executed · tag pushed.
 
 ## V4 work
 
+- [x] **Mushroom Death Garden bundled in the v4.3.5 Arcade, 2026-09-07.** Adds a self-contained
+  eighth game copied byte-for-byte into `dist/`, covered by the Arcade gate, and included in the
+  PWA precache. The release remains 106 manifest tools plus the generated hub, with 108 total
+  distributable HTML files and 112 precache entries.
+
 - [x] **Local Suite v4.3.5 — Optical Transfer Beta Test 1, 2026-08-12.** Adds a separate 106th
-  manifest tool in Beta Tools (107 generated pages; PWA precache 111 entries) while preserving
+  manifest tool in Beta Tools (107 generated pages plus the bundled Arcade game; PWA precache 112
+  entries) while preserving
   stable Optical Transfer and existing Optical Transfer Beta byte-for-byte. The selected package is
   H66-R2: QR V37/2,563, ECC L mask 4, 30 presentations/s, sender precompute ring depth 3, four
   receiver workers, processor capture, calibrated fixed ROI, ZXing fast global histogram, adaptive

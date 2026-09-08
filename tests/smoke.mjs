@@ -1,8 +1,8 @@
 /* smoke.mjs — the mandatory tier-2 smoke suite (QUALITY.md §3).
    For every dist/*.html opened from file://:
      1. zero console errors / page errors / CSP violations
-     2. chrome renders (a header or h1 exists and is visible)
-     3. theme toggle flips documentElement.dataset.theme, and flips back
+     2. page chrome or a standalone game surface renders
+     3. suite pages: theme toggle flips documentElement.dataset.theme, and flips back
      4. network tools: with all http(s) blocked, the page still renders (offline card, not blank)
    Run (from tests/):  node smoke.mjs            exit 0 = green                                  */
 import { chromium } from "playwright";
@@ -13,6 +13,7 @@ import { resolve, join } from "node:path";
 const ROOT = resolve(import.meta.dirname, "..");
 const manifest = JSON.parse(readFileSync(join(ROOT, "manifest", "tools.json"), "utf-8"));
 const networkTools = new Set(manifest.tools.filter(t => (t.endpoints || []).length).map(t => t.file));
+const bundledArcadeGames = new Set(["mushroom-death-garden.html"]);
 const files = readdirSync(join(ROOT, "dist")).filter(f => f.endsWith(".html")).sort();
 
 let browser;
@@ -43,8 +44,9 @@ for (const file of files) {
   await page.goto(pathToFileURL(join(ROOT, "dist", file)).href);
   await page.waitForTimeout(800);
 
-  if (!await page.locator("header, h1").first().isVisible().catch(() => false))
-    problems.push("no visible header/h1 — chrome did not render");
+  const renderTarget = bundledArcadeGames.has(file) ? "main, canvas" : "header, h1";
+  if (!await page.locator(renderTarget).first().isVisible().catch(() => false))
+    problems.push("no visible page chrome or game surface — page did not render");
 
   await page.keyboard.press("Escape"); // a tool may boot into a modal (e.g. weather with no location)
   try {
@@ -56,7 +58,7 @@ for (const file of files) {
       await btn.click({ timeout: 5000 });
       const t2 = await page.evaluate(() => document.documentElement.dataset.theme || "");
       if (t1 === t0 || (t2 !== "light" && t2 !== "dark")) problems.push(`theme toggle broken: "${t0}"->"${t1}"->"${t2}"`);
-    } else problems.push("no theme button found");
+    } else if (!bundledArcadeGames.has(file)) problems.push("no theme button found");
   } catch (e) {
     problems.push(`theme toggle probe failed: ${String(e).split("\n")[0].slice(0, 120)}`);
   }
