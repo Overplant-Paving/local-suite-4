@@ -398,7 +398,7 @@ Instant definitions, pronunciation, synonyms — the no-ads dictionary.
 
 ### 7.2 Wikipedia Reader
 Search + clean reader view for Wikipedia summaries; "random article" button; on-this-day and featured-article panels.
-- **Data:** `https://en.wikipedia.org/api/rest_v1/page/summary/{title}` — thumbnails from `upload.wikimedia.org` (img-src); the built tool uses `onthisday/selected` (not `/all`) — v2, Jul 2026. ``, `…/api/rest_v1/feed/onthisday/all/{MM}/{DD}`, `…/api/rest_v1/feed/featured/{YYYY}/{MM}/{DD}` (keyless, CORS ✓; Wikimedia is tightening anonymous rate limits in 2026 — a personal tool's volume is far below them).
+- **Data:** `https://en.wikipedia.org/api/rest_v1/page/summary/{title}` — thumbnails from `upload.wikimedia.org` or `thumb.wikimedia.org` (img-src); the built tool uses `onthisday/selected` (not `/all`) — v2, Jul 2026. ``, `…/api/rest_v1/feed/onthisday/all/{MM}/{DD}`, `…/api/rest_v1/feed/featured/{YYYY}/{MM}/{DD}` (keyless, CORS ✓; Wikimedia is tightening anonymous rate limits in 2026 — a personal tool's volume is far below them).
 - **Key:** none · **Local:** file:// ✅ · **Complexity:** M
 - **Suggested file:** `wiki.html`
 

@@ -1093,7 +1093,8 @@
       "key": null,
       "endpoints": [
         "https://en.wikipedia.org",
-        "https://upload.wikimedia.org"
+        "https://upload.wikimedia.org",
+        "https://thumb.wikimedia.org"
       ],
       "storage": [
         "suite.theme",
